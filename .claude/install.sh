@@ -56,14 +56,14 @@ if [ -L "$CLAUDE/rules" ]; then rm "$CLAUDE/rules"; echo "removed stale ~/.claud
 # Managed as a marker-delimited block in the shell rc files, replaced in place on
 # re-run so the installer owns the canonical copy (idempotent).
 install_cla_alias() {
-  local begin="# >>> banliu-agent-files cla alias >>>"
-  local end="# <<< banliu-agent-files cla alias <<<"
+  local begin="# >>> agent-files cla alias >>>"
+  local end="# <<< agent-files cla alias <<<"
   local block
   block="$(cat <<'EOF_BLOCK'
-# >>> banliu-agent-files cla alias >>>
+# >>> agent-files cla alias >>>
 # cla = Claude Code with all permission prompts skipped.
 alias cla="claude --dangerously-skip-permissions"
-# <<< banliu-agent-files cla alias <<<
+# <<< agent-files cla alias <<<
 EOF_BLOCK
 )"
   local rc

@@ -1,11 +1,13 @@
 # Vocab Capture & Sentence Rewrite
 
-All operations for the user's personal dictionary at `~/personal/projects/skills/dict/data/`. Two operation families:
+All operations for the user's personal dictionary at `$SKILL_DIR/data/`. Two operation families:
 
 - **Op 1–5: Vocab** — save, look up, list, extract, and bulk-curate words/verbs.
 - **Op 6: Sentence rewrite** — flag the user's own awkward sentences from the conversation and rewrite them as a native engineer would.
 
 All persistent data is stored as **styled HTML tables**. Each file is a complete, self-contained HTML document — open in a browser to read.
+
+`SKILL_DIR` = the directory containing this file.
 
 Pick the operation whose Trigger line best matches the user's phrasing.
 
@@ -13,11 +15,11 @@ Pick the operation whose Trigger line best matches the user's phrasing.
 
 | File | Contains | Columns |
 |------|----------|---------|
-| `~/personal/projects/skills/dict/data/dict.html` | General words, phrases, idioms (active learning) | Word / Phrase · Meaning · Synonyms · Example · **Progress** |
-| `~/personal/projects/skills/dict/data/tech-verb.html` | Verbs (active learning) | Verb · Meaning · Synonyms · Example · **Progress** |
-| `~/personal/projects/skills/dict/data/sentence-fixes.html` | Sentence rewrites from Op 6 (active learning) | Your sentence · Native rewrite · Style notes · **Progress** |
-| `~/personal/projects/skills/dict/data/history.html` | Graduated entries (`●●●●●` reached) — verbs / words / sentences in three sections | Same as source + `Graduated` date |
-| `~/personal/projects/skills/dict/data/<name>.html` | User-named files (e.g., `legal.html`) | Same vocab schema |
+| `$SKILL_DIR/data/dict.html` | General words, phrases, idioms (active learning) | Word / Phrase · Meaning · Synonyms · Example · **Progress** |
+| `$SKILL_DIR/data/tech-verb.html` | Verbs (active learning) | Verb · Meaning · Synonyms · Example · **Progress** |
+| `$SKILL_DIR/data/sentence-fixes.html` | Sentence rewrites from Op 6 (active learning) | Your sentence · Native rewrite · Style notes · **Progress** |
+| `$SKILL_DIR/data/history.html` | Graduated entries (`●●●●●` reached) — verbs / words / sentences in three sections | Same as source + `Graduated` date |
+| `$SKILL_DIR/data/<name>.html` | User-named files (e.g., `legal.html`) | Same vocab schema |
 
 ## Vocab Row Format (Ops 1, 4, 5)
 
@@ -45,15 +47,15 @@ Append a `<tr>` row to the `<tbody>` of the target HTML file:
 - **History check FIRST.** Before scanning the active file, scan the matching section of `history.html` (verb section for `tech-verb.html`, dict section for `dict.html`, sentence section for `sentence-fixes.html`) for an existing row with the same word/sentence (case-insensitive, trimmed). **If found in history → increment the count badge on the history row and STOP. Do not touch the active file.** The user has already graduated this entry; surfacing it again just bumps recurrence on the graduated record so the user sees how often it keeps coming up. Report e.g. `"backfill" already graduated — bumped to ×3 in history.html`.
 - **Active-file check before append.** Only reached when the history check finds no match. Scan the target active HTML for an existing row with the same word (case-insensitive, trimmed). If found, increment the count badge on the existing active row. If not found, append a new row with an empty progress cell.
 - **Append** new `<tr>` rows just before the closing `</tbody>` tag — never overwrite the file unless the user explicitly asks for a rebuild.
-- If the target HTML file doesn't exist, create it from scratch using the scaffold/CSS in the existing files at `~/personal/projects/skills/dict/data/` as the template.
+- If the target HTML file doesn't exist, create it from scratch using the scaffold/CSS in the existing files at `$SKILL_DIR/data/` as the template.
 - Use the Python helper below (or equivalent) to atomically handle both the check-and-increment and the append paths; avoid `echo`/`printf` for HTML edits since they can mis-place rows relative to `</tbody>`.
 - One `<tr>` per unique entry. No line breaks inside `<td>` cells unless using `<ul>`/`<li>` (Op 6 only).
 - Trim leading/trailing whitespace from the word before saving and matching.
 - After the operation, report to the user whether you **added a new row** or **incremented a count** (e.g., "wire up ×4 (count incremented)" vs. "added new row: backfill").
 - **Always print the touched file paths at the end of the response** so the user can open them from the terminal. Show only the files actually read or written. Format:
   ```
-  ~/personal/projects/skills/dict/data/tech-verb.html
-  ~/personal/projects/skills/dict/data/dict.html
+  $SKILL_DIR/data/tech-verb.html
+  $SKILL_DIR/data/dict.html
   ```
 - **50-row guardrail.** After every add/increment in `dict.html`, `tech-verb.html`, or `sentence-fixes.html`, count the active (non-graduated) rows in the file's `<tbody>`. If the count is ≥ 50, surface a warning in your response: `⚠️ {filename} now has {N} active rows — you're accumulating, not learning. Time to review and bump progress on the highest-frequency entries.` Repeat the warning on every operation until the count drops below 50 (via graduation to `history.html`).
 
@@ -67,14 +69,15 @@ import re
 from pathlib import Path
 
 # --- inputs ---
-file_path = Path.home() / "personal/projects/skills/dict/data/dict.html"   # change per call
+SKILL_DIR = Path("SKILL_DIR")   # substitute this file's own directory
+file_path = SKILL_DIR / "data/dict.html"   # change per call
 word      = "WORD"
 meaning   = "MEANING"
 syns      = "SYN1, SYN2"   # use "" for no synonyms
 example   = "EXAMPLE"
 # ---
 
-HIST = Path.home() / "personal/projects/skills/dict/data/history.html"
+HIST = SKILL_DIR / "data/history.html"
 HIST_SECTION_BY_FILE = {
     "tech-verb.html":      "<!-- Append <tr> rows here when a verb",
     "dict.html":           "<!-- Append <tr> rows here when a word",
@@ -148,9 +151,9 @@ PY
 **Trigger:** "save word X", "add X to vocab", "save baked into", "add this to dict.html".
 
 Route by entry type:
-- Verbs (including phrasal verbs) → `~/personal/projects/skills/dict/data/tech-verb.html`
-- Everything else (nouns, adjectives, idioms, phrases) → `~/personal/projects/skills/dict/data/dict.html`
-- User-named files → `~/personal/projects/skills/dict/data/<name>.html`
+- Verbs (including phrasal verbs) → `$SKILL_DIR/data/tech-verb.html`
+- Everything else (nouns, adjectives, idioms, phrases) → `$SKILL_DIR/data/dict.html`
+- User-named files → `$SKILL_DIR/data/<name>.html`
 
 Use the insert helper above with the chosen file path and row content.
 
@@ -159,11 +162,11 @@ Use the insert helper above with the chosen file path and row content.
 **Trigger:** "look up X", "define X", "do I have X saved".
 
 ```bash
-grep -oE 'class="col-word">[^<]*</td><td class="col-meaning">[^<]*' ~/personal/projects/skills/dict/data/*.html \
+grep -oE 'class="col-word">[^<]*</td><td class="col-meaning">[^<]*' $SKILL_DIR/data/*.html \
   | grep -i 'WORD'
 ```
 
-Search both `dict.html` and `tech-verb.html` if the user doesn't specify a file. Open the file in a browser for full context: `open ~/personal/projects/skills/dict/data/dict.html`.
+Search both `dict.html` and `tech-verb.html` if the user doesn't specify a file. Open the file in a browser for full context: `open $SKILL_DIR/data/dict.html`.
 
 ## Operation 3 — List
 
@@ -171,11 +174,11 @@ Search both `dict.html` and `tech-verb.html` if the user doesn't specify a file.
 
 ```bash
 # All words from both files, alphabetical:
-grep -oE 'class="col-word">[^<]*' ~/personal/projects/skills/dict/data/{dict,tech-verb}.html \
+grep -oE 'class="col-word">[^<]*' $SKILL_DIR/data/{dict,tech-verb}.html \
   | sed 's/.*">//' | sort -u
 ```
 
-For visual browsing: `open ~/personal/projects/skills/dict/data/dict.html` (and `tech-verb.html`).
+For visual browsing: `open $SKILL_DIR/data/dict.html` (and `tech-verb.html`).
 
 ---
 
@@ -258,7 +261,7 @@ Aim for **~40% phrasal verbs and ~30% negative-prefix verbs** in the output to a
 
 ### Output
 
-Append `<tr>` rows to `~/personal/projects/skills/dict/data/tech-verb.html`. Standard vocab schema (Verb · Meaning · Synonyms · Example). Encode scenario category as a `(meetings)`, `(debates)`, etc. suffix on the meaning.
+Append `<tr>` rows to `$SKILL_DIR/data/tech-verb.html`. Standard vocab schema (Verb · Meaning · Synonyms · Example). Encode scenario category as a `(meetings)`, `(debates)`, etc. suffix on the meaning.
 
 ### Tone
 
@@ -281,7 +284,7 @@ Professional, concise, idiomatic. Examples must be practical and immediately usa
 
 ### Output
 
-Append a `<tr>` row to `~/personal/projects/skills/dict/data/sentence-fixes.html` (three columns: **Your sentence · Native rewrite · Style notes**).
+Append a `<tr>` row to `$SKILL_DIR/data/sentence-fixes.html` (three columns: **Your sentence · Native rewrite · Style notes**).
 
 **Row template:**
 
@@ -381,7 +384,8 @@ import re
 from datetime import date
 from pathlib import Path
 
-DICT = Path.home() / "personal/projects/skills/dict/data"
+SKILL_DIR = Path("SKILL_DIR")   # substitute this file's own directory
+DICT = SKILL_DIR / "data"
 HIST = DICT / "history.html"
 SECTION_ANCHOR = {
     "tech-verb.html":      "<!-- Append <tr> rows here when a verb",
@@ -502,12 +506,12 @@ This makes the "accumulation vs. learning" gap visible at a glance.
 
 ## Browser-Based Progress Editing (Local Server)
 
-The HTML files include an embedded dropdown UI that lets the user update progress dots **directly in the browser**, with edits saved to disk via a separate `local-server` skill. The server itself lives at `~/personal/projects/skills/local-server/server.py` and is reusable by any personal-data skill — dict just points it at `~/personal/projects/skills/dict/data/`.
+The HTML files include an embedded dropdown UI that lets the user update progress dots **directly in the browser**, with edits saved to disk via a separate `local-server` skill. The server itself lives at `$SKILL_DIR/../local-server/server.py` and is reusable by any personal-data skill — dict just points it at `$SKILL_DIR/data/`.
 
 ### Starting the server
 
 ```bash
-python3 ~/personal/projects/skills/local-server/server.py --dir ~/personal/projects/skills/dict/data --port 8765
+python3 $SKILL_DIR/../local-server/server.py --dir "$SKILL_DIR/data" --port 8765
 ```
 
 (`--dir` is required for dict — the generic server defaults to `~/personal/dict`, not the dict data dir.)
@@ -515,7 +519,7 @@ python3 ~/personal/projects/skills/local-server/server.py --dir ~/personal/proje
 Prints:
 
 ```
-Serving ~/personal/projects/skills/dict/data on http://localhost:8765/
+Serving $SKILL_DIR/data on http://localhost:8765/
   ➜  http://localhost:8765/dict.html
   ➜  http://localhost:8765/history.html
   ➜  http://localhost:8765/sentence-fixes.html
@@ -554,7 +558,7 @@ Both paths target the same on-disk format and graduation flow — use whichever 
 
 **Trigger:** "preview", "open dict in browser", "browse dict", "start dict server", "start server", "/dict preview".
 
-Delegates to the `local-server` skill (see `~/personal/projects/skills/local-server/`). Idempotently starts the server pointed at `~/personal/projects/skills/dict/data/` and prints the URLs.
+Delegates to the `local-server` skill (see `$SKILL_DIR/../local-server/`). Idempotently starts the server pointed at `$SKILL_DIR/data/` and prints the URLs.
 
 ### Process
 
@@ -565,7 +569,7 @@ Delegates to the `local-server` skill (see `~/personal/projects/skills/local-ser
    - If output is non-empty, the server is already running. Skip to step 3.
 2. **Start the server detached** so it survives the current Claude session:
    ```bash
-   nohup python3 ~/personal/projects/skills/local-server/server.py --dir ~/personal/projects/skills/dict/data --port 8765 \
+   nohup python3 $SKILL_DIR/../local-server/server.py --dir "$SKILL_DIR/data" --port 8765 \
      > /tmp/dict-server.log 2>&1 &
    disown
    ```
@@ -585,7 +589,7 @@ Delegates to the `local-server` skill (see `~/personal/projects/skills/local-ser
      ➜  http://localhost:8765/sentence-fixes.html  (16 active)
      ➜  http://localhost:8765/history.html         (graduated entries)
 
-   Stop with "/dict stop server" or `pkill -f personal/projects/skills/local-server/server.py`.
+   Stop with "/dict stop server" or `pkill -f local-server/server.py`.
    ```
    Replace the active counts with the live values from each file (`grep -c '<td class="col-word"' tech-verb.html` etc.).
 4. **Do not auto-open the browser** — let the user click the link they want.
@@ -604,7 +608,7 @@ Delegates to the `local-server` skill (see `~/personal/projects/skills/local-ser
 Kill the background server process:
 
 ```bash
-pkill -f "personal/projects/skills/local-server/server.py" \
+pkill -f "local-server/server.py" \
   && echo "local server stopped" \
   || echo "no local server was running"
 ```

@@ -27,7 +27,8 @@ its `mode` argument.
 |---|---|---|
 | `table-` | `null-check`, `row-count`, `duplicate-check`, `schema-check`, `freshness-check`, `distribution-check`, `traceability-check` | Anything about validating one table's data, shape, freshness, or lineage |
 | `template-` | `general-readout`, `doc-data-issue-rc` | A document skeleton the agent fills in |
-| _(none)_ | atomic verb-first: `generate-plan`, `git-pull`; short object: `gsheet`, `hop`, `start`, `wtree`, `yell`; complex verb-last: `jira-create`, `docs-preview`, `review-self`, `review-others`, `skill-creator`, `skill-improver` | Standalone skills with no family. Prefix-less does not mean atomic - verb position tells you which |
+| `-drill` (suffix) | `domain-drill`, `sysdesign-drill` | A timed/Socratic practice rep on a topic. Suffix, not prefix, because the topic (`domain`, `sysdesign`) is the distinguishing token |
+| _(none)_ | atomic verb-first: `generate-plan`, `git-pull`; short object: `gsheet`, `hop`, `start`, `wtree`, `yell`, `dict`, `local-server`, `slack-msg`; complex verb-last: `jira-create`, `docs-preview`, `review-self`, `review-others`, `skill-improver`; noun-noun object: `file-organization`, `peer-feedback`, `self-assessment` | Standalone skills with no family. Prefix-less does not mean atomic - verb position tells you which |
 
 ## Worked example: `table-schema-check`
 

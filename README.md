@@ -1,4 +1,4 @@
-# banliu-agent-files
+# agent-files
 
 Personal AI-agent configuration for Claude Code and GitHub Copilot CLI. This repo is
 standalone-first: a fresh clone with no company layer installed must render rules,

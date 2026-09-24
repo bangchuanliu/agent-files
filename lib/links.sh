@@ -23,7 +23,7 @@ supports() {
 # replace_managed_block <file> <begin-marker> <end-marker> <block>
 replace_managed_block() {
   local file="$1" begin="$2" end="$3" block="$4" tmp
-  tmp="$file.banliu-agent-files.$$"
+  tmp="$file.agent-files.$$"
   awk -v b="$begin" -v e="$end" '$0==b{skip=1} !skip{print} $0==e{skip=0}' "$file" > "$tmp"
   printf '%s\n' "$block" >> "$tmp"
   mv "$tmp" "$file"

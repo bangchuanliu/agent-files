@@ -2,8 +2,11 @@
 
 My own skills, grouped by **intent** (what I'm trying to do), not by topic. This is the
 human lookup — when auto-recall misses, scan here and invoke the skill explicitly with
-`/<name>`. Work skills (`attribution-*`, `qa-*`, `data-*`, `commit-pr`, …) are **not**
-listed here; find those with `li-plugin-tool:recommend` ("is there a skill for X?").
+`/<name>`. Two other kinds of skills are **not** listed here: general/work skills that live
+in this same directory (`wtree`, `git-pull`, `table-*`, `jira-create`, …) — scan
+`ls ai-agents/skills/` or match by description; and company-layer plugin skills
+(`attribution-*`, `qa-*`, `data-*`, `commit-pr`, …) — find those with
+`li-plugin-tool:recommend` ("is there a skill for X?").
 
 > The agent matches your intent against each skill's `description`, not against this file.
 > This index is for *you*. Keep descriptions sharp; keep this list short.

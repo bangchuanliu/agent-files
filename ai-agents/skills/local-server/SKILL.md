@@ -15,6 +15,8 @@ The server **never inspects or rewrites HTML content**. Any in-browser interacti
 
 This keeps the server reusable across any future personal-data skill — they just need to ship HTML with their own JS and follow the same save protocol.
 
+`SKILL_DIR` = the directory containing this file.
+
 ---
 
 ## Operations
@@ -30,7 +32,7 @@ PORT=8765
 if lsof -nP -iTCP:$PORT -sTCP:LISTEN 2>/dev/null | grep -q LISTEN; then
   echo "server already running on :$PORT"
 else
-  nohup python3 ~/personal/skills/local-server/server.py --dir <DIR> --port $PORT \
+  nohup python3 "$SKILL_DIR/server.py" --dir <DIR> --port $PORT \
     > /tmp/local-server-$PORT.log 2>&1 &
   disown
 fi
@@ -56,7 +58,7 @@ Then print the URLs from the served directory:
 **Trigger:** "stop local server", "kill local server".
 
 ```bash
-pkill -f "personal/skills/local-server/server.py" \
+pkill -f "local-server/server.py" \
   && echo "local server stopped" \
   || echo "no local server was running"
 ```
@@ -72,7 +74,7 @@ lsof -nP -iTCP:$PORT -sTCP:LISTEN -t | xargs -r kill
 **Trigger:** "local server status", "is the local server running".
 
 ```bash
-lsof -nP -iTCP -sTCP:LISTEN 2>/dev/null | grep "personal/skills/local-server/server.py"
+lsof -nP -iTCP -sTCP:LISTEN 2>/dev/null | grep "local-server/server.py"
 ```
 
 Reports any active instances with their ports.
@@ -104,7 +106,7 @@ The browser typically gets `content` by cloning `document.documentElement`, norm
 A skill that stores HTML data references this skill in its own operations:
 
 ```bash
-python3 ~/personal/skills/local-server/server.py --dir <dir> --port 8765
+python3 "$SKILL_DIR/../local-server/server.py" --dir <dir> --port 8765
 ```
 
 Each consuming skill is responsible for:

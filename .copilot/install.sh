@@ -58,14 +58,14 @@ fi
 # Managed as a marker-delimited block in the shell rc files, replaced in place on
 # re-run so the installer owns the canonical copy (idempotent).
 install_coya_alias() {
-  local begin="# >>> banliu-agent-files coya alias >>>"
-  local end="# <<< banliu-agent-files coya alias <<<"
+  local begin="# >>> agent-files coya alias >>>"
+  local end="# <<< agent-files coya alias <<<"
   local block
   block="$(cat <<'EOF_BLOCK'
-# >>> banliu-agent-files coya alias >>>
+# >>> agent-files coya alias >>>
 # coya = Copilot CLI in autopilot mode with all tools auto-allowed.
 alias coya='copilot --autopilot --allow-all'
-# <<< banliu-agent-files coya alias <<<
+# <<< agent-files coya alias <<<
 EOF_BLOCK
 )"
   local rc

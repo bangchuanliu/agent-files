@@ -13,7 +13,7 @@ set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-echo "=== banliu-agent-files - Setup ==="
+echo "=== agent-files - Setup ==="
 echo "repo: $REPO"
 echo ""
 

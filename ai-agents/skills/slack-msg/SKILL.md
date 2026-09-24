@@ -42,7 +42,9 @@ Bold: `*bold*` | Italic: `_italic_` | Strike: `~text~` | Code: backticks | Links
 
 ## Output
 
-Always write to `/Users/banliu/personal/skills/slack-msg/messages/msg.txt` — overwrite every time, raw Slack text, no code fences. Then print the absolute file path.
+`SKILL_DIR` = the directory containing this file.
+
+Always write to `$SKILL_DIR/messages/msg.txt` — overwrite every time, raw Slack text, no code fences. Then print the absolute file path.
 
 Writing to a file is required because terminal indentation corrupts inline output.
 
