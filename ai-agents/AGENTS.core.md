@@ -53,7 +53,6 @@ Paths are relative to `ai-agents/`. Read when relevant.
 | Topic | Doc |
 |---|---|
 | fan-out dispatch, `/fleet`, todo graph | `docs/fleet-dispatch.md` |
-| creating / renaming / reviewing a skill | `docs/skill-naming.md` |
 | syncing this file between agents | `docs/agent-config-sync.md` |
 
 ## Maintaining This File
