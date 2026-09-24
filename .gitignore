@@ -1,8 +1,25 @@
 # macOS junk
 .DS_Store
 
-# Machine-local agent config (per-machine permissions, logs)
+# Python bytecode caches (generated when skill scripts import local packages)
+__pycache__/
+*.py[cod]
+
+# Claude-native local/generated config
 .claude/settings.local.json
 .claude/logs/
-**/.claude/settings.local.json
-**/.claude/logs/
+.claude/.claude/
+.claude/*/.claude/
+
+# Rendered rules
+ai-agents/.generated/
+
+# Skill/agent generated artifacts (evals, feedback, messages)
+ai-agents/skills/*/evals/
+ai-agents/skills/*/feedback/
+ai-agents/skills/*/messages/
+ai-agents/agents/.evals/
+ai-agents/*/.claude/
+
+# Local pre-refactor skill backups
+ai-agents/.backups/

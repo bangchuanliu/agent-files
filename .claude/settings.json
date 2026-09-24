@@ -1,0 +1,73 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__playwright__*",
+      "mcp__glean_default__*",
+      "Bash(git:*)",
+      "Bash(gh:*)",
+      "Bash(./gradlew:*)",
+      "Bash(pytest:*)",
+      "Bash(ruff:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(python:*)",
+      "Bash(claude:*)",
+      "Bash(curl:*)",
+      "Bash(curli:*)",
+      "Bash(mkdir:*)",
+      "Bash(open:*)",
+      "Bash(picli:*)",
+      "Bash(tmux:*)",
+      "Bash(cd:*)",
+      "Bash(kill:*)",
+      "Bash(awk:*)",
+      "Bash(sort:*)",
+      "Bash(jq:*)",
+      "Bash(xargs:*)",
+      "Bash(jar:*)",
+      "Bash(head:*)",
+      "Read",
+      "Edit"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "URL=$(gh pr view --json url -q '.url' 2>/dev/null) && [ -n \"$URL\" ] && echo \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"PostToolUse\\\",\\\"additionalContext\\\":\\\"PR URL: $URL\\\"}}\" || true",
+            "if": "Bash(git push:*)",
+            "timeout": 10,
+            "statusMessage": "Fetching PR URL..."
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "^(startup|resume|clear|compact|fork)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"$HOME/.claude/hooks/herdr-agent-state.sh\" session",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash \"$HOME/.claude/statusline-command.sh\""
+  },
+  "enabledPlugins": {
+    "feature-dev@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": true
+  },
+  "effortLevel": "xhigh"
+}

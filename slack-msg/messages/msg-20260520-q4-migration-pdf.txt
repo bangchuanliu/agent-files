@@ -1,3 +1,0 @@
-Used your PDF to build the Q4 migration task plan — it's in this doc: [link].
-
-Your doc is still useful for migrating other datasets. I'll attach it in the migration doc as well.

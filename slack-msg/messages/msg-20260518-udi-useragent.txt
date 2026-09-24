@@ -1,1 +1,0 @@
-*Finding 2:* In the UCE table, `pixelRequestUserAgent` and `attributedCreativeUserAgent` represent the conversion and engagement user agents respectively. Do we have matching user-agent fields in the UDI schema — should they map to the `device` field?

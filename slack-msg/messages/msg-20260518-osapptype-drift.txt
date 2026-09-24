@@ -1,1 +1,0 @@
-*Finding 1:* `osAppType` distribution is inconsistent between legacy and ASH tables, whereas InsightTag metadata uses each individual field. Which approach do you lean toward? Would love your input.

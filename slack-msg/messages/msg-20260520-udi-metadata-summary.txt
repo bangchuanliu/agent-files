@@ -1,7 +1,0 @@
-Here's the summary of our discussion:
-
-*Conversion metadata*
-Inherit USP metadata through to the UDI schema. This requires updating the current UDI metadata.
-
-*Engagement metadata*
-Add `device`, `parsedUserAgent`, and `shrunkMobileHeader` to the engagement metadata object.
