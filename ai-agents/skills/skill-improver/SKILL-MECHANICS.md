@@ -2,6 +2,19 @@
 
 The skill-specific branch of [`skill-improver`](SKILL.md): what changes when the document is a skill (frontmatter, the invocation choice, and router skills). Everything else about writing it is the universal reference in `SKILL.md`.
 
+## Frontmatter
+
+Required fields:
+
+- `name:` folder-matching kebab-case.
+- `kind:` `leaf` for a skill that performs work directly, `orchestrator` for a skill that routes or coordinates other workers or skills.
+- `description:` required. For model-invoked skills it is the model-facing context pointer; for user-invoked skills it is a human-facing one-line summary.
+
+Optional fields:
+
+- `disable-model-invocation: true` makes the skill user-invoked.
+- `agents:` limits installation to matching host adapters. This repo's `lib/links.sh supports()` honours a comma/space-separated frontmatter line such as `agents: claude, copilot`; absence means all agents. Keep skills portable anyway: a filtered skill may opt out of an unsupported host, but tool-specific instructions still need a fallback when the skill is installed.
+
 ## Invocation
 
 Two choices, trading the two loads:

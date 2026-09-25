@@ -1,7 +1,7 @@
 ---
 name: template-general-readout
 kind: leaf
-description: "High-level skeletons for any kind of readout - product/adoption strategy, launch or staged rollout, GA readiness, qualitative customer research, program/portfolio review, incident or postmortem, and data validation. Picks the genre, gives the section skeleton, and stops. Use when: readout, read-out, write a readout, exec readout, leadership readout, readout template, what sections should this readout have, rollout readout, research readout, strategy readout, program readout, data validation readout, migration readout, parity readout. For a DATA VALIDATION or migration/parity readout, prefer a company-supplied data-validation readout skill if one exists; otherwise use this generic skeleton. For an RCA use template-doc-data-issue-rc. NOT for: an RCA narrative → use template-doc-data-issue-rc; running validation checks → use the relevant validation skill."
+description: "Readout skeleton: choose sections for strategy, launch, research, program, incident, or data-validation readouts. Branches: pick genre; emit skeleton; adapt for leadership. Prefer specialized validation or RCA skills when they exist. NOT for: RCA narrative -> use template-doc-data-issue-rc; running checks -> use validation skills."
 ---
 
 # General Readout Template
@@ -14,7 +14,7 @@ material. It deliberately carries no methodology; the specialised skills do that
 
 | Genre | The question it answers | Go deeper in |
 |---|---|---|
-| **Data validation / migration** | Do the new numbers match, and can we ship them? | If a company layer supplies a data-validation readout skill, prefer it; otherwise use the generic skeleton below |
+| **Data validation / migration** | Do the new numbers match, and can we ship them? | If the environment supplies a data-validation readout skill, prefer it; otherwise use the generic skeleton below |
 | **Strategy / exploration** | Is this area healthy, and what should we start, stop or continue? | - |
 | **Launch / staged rollout / GA** | Did this stage meet its criteria, and do we advance? | - |
 | **Qualitative research** | What did customers tell us, and is the concept validated? | - |
@@ -74,7 +74,7 @@ Sections *in addition to* the universal spine.
 - **"The so what"** per section - ✅ validated / ⚠️ needs proving
 - **Sample-bias disclosure** - how this cohort differs from the population
 - Self-reported numbers labelled as stated preference, never as forecast
-- Appendix - participant table, transcripts or a queryable transcript agent
+- Appendix - participant table, transcripts or a searchable transcript index/tool
 
 ### Program / portfolio review
 - Workstream inventory with status and owner

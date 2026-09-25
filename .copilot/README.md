@@ -18,6 +18,9 @@ Wires shared `ai-agents/` content into GitHub Copilot CLI's local discovery dirs
 may rewrite it in place. Re-run `ai-agents/render-rules.sh` or this installer after editing
 rules.
 
+The installer also adds a managed `coya` alias block to `~/.zshrc` and `~/.bashrc`; reruns replace
+the block instead of appending.
+
 ## Notes
 
 - Skill discovery comes from the local `~/.copilot/skills` dir, not a plugin.

@@ -1,7 +1,7 @@
 ---
 name: where-are-we
 kind: orchestrator
-description: "Report every long-running project in flight across days and weeks - one status file per project under ~/.where-are-we, joined to live worktrees, branches, dirty/unpushed git state and PR state, plus plan.md and other in-flight markdown found under ~/.worktree/*/* that no status file has adopted yet. Gives each project a verdict of pick-up / waiting / review / wrap-up / orphan / paused. Use when: where are we, what am I in the middle of, what's still in flight, what did I leave half-done, status of all my projects, what's gone stale, what happened to that migration, pick up where I left off. NOT for: live agent sessions right now (yell), moving to a tab (hop), starting a task stack (start), or creating and cleaning worktrees (wtree)."
+description: "Project ledger: long-horizon in-flight projects across days/weeks from ~/.where-are-we status files, live worktrees, branches, dirty/unpushed git state, PR state, and unadopted in-flight markdown. Use when: where are we, what am I in the middle of, what is still in flight, what did I leave half-done, what is stale, pick up where I left off. NOT for: live agent triage now (yell), moving to a tab (hop), starting a task stack (start), or worktree lifecycle (wtree)."
 ---
 
 # where-are-we - what am I in the middle of?
@@ -114,38 +114,14 @@ than overriding the verdict.
 worktree, and the mtime of each linked note. The status file's own mtime counts *only*
 when `updated:` is absent - otherwise a stray `touch` would make a dead project look alive.
 
-## RECOMMENDATIONS
+## Design rules
 
-Opinions, beyond the literal spec. Items marked **[implemented]** are already in the code.
-
-1. **Keep the hand-written part down to two fields.** **[implemented]** Git and PR state
-   answer *what changed and where*; they can never answer *why* or *what next*. So the tool
-   derives everything derivable and asks a human for exactly `status` and `next`. Git
-   history is a good substitute for a status file's facts and a useless substitute for its
-   judgement.
-2. **Update at the end of a session, not on a schedule.** **[implemented]** as the `update`
-   subcommand, designed for an agent to call as its last act:
-   `where-are-we update <slug> --next "..." --note "..."`. Wiring that into a stop hook
-   would automate it fully, but hook installation is a user decision that depends on the
-   local agent host, so this skill ships the command and not the hook.
-3. **Treat `review` as a prompt, never an action.** **[implemented]** A project untouched
-   for three weeks is ambiguous between dead and paused, and only the user can say which.
-   The tool asks; it never archives anything.
-4. **Survive `wtree clean` by design.** **[implemented]** Records live outside worktrees, a
-   deleted worktree becomes `orphan` rather than data loss, and the branch name is kept so
-   the worktree can be re-cut. A future improvement worth making in `wtree`: have
-   `wtree clean` consult `where-are-we --json` and downgrade a worktree whose project is
-   `active` to KEEP.
-5. **Adopt, do not duplicate.** **[implemented]** A `plan.md` already *is* a status file
-   written by hand. Rather than demanding it be rewritten, the tool lists it as unadopted
-   and prints the one command that links it to a project.
-6. **Do not merge this into `yell`.** Different clocks (minutes vs weeks), different
-   lifetimes (process vs project), different failure mode (a forgotten tab vs a forgotten
-   month). `yell` should stay a process inventory.
-7. **Not yet implemented, deliberately:** deriving a project from PR history alone (too
-   noisy across a repository), auto-closing a project when its last PR merges (silently
-   losing follow-up work is worse than a stale row), and issue-tracker linkage (`links:`
-   holds URLs today; live issue state belongs behind an explicit flag, not in every run).
+- Keep the hand-written part to `status` and `next`; derive git, worktree, and PR facts
+  live so they do not become stale caches.
+- Update at the end of a work session with `where-are-we update <slug> --next "..." --note "..."`.
+- Treat `review` as a prompt for human judgement. The tool asks; it does not archive.
+- Adopt existing in-flight markdown instead of copying it into a second record.
+- Keep this separate from `yell`: project clocks are days/weeks; agent clocks are minutes.
 
 ## Safety rules
 
@@ -162,10 +138,3 @@ Opinions, beyond the literal spec. Items marked **[implemented]** are already in
   look *more* in flight, never less.
 - All subprocess output is fully buffered before parsing - no producer is piped into a
   short-circuiting consumer, so there is no intermittent SIGPIPE / exit-141 failure.
-
-## Related
-
-- `yell` - which agent session needs me *right now*.
-- `hop` - take me to the tab for that worktree.
-- `start` - start a new task stack for a project that needs one.
-- `wtree` - create and safely clean the worktrees a project runs in.

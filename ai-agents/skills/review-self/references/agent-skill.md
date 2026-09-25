@@ -1,177 +1,105 @@
-# Agent Skill / Command / Plan Review
+# Agent document review
 
-Review checklist for changes under `.claude/` directories (skills, commands, rules) and `plans/` directories.
+Review checklist for agent-consumed documents: skills, commands, repository rules, and implementation plans.
 
----
+## Contents
 
-## File Classification
+- [Scope](#scope)
+- [Skill review](#skill-review)
+- [Command review](#command-review)
+- [Plan review](#plan-review)
+- [Rule review](#rule-review)
+- [Review gates](#review-gates)
 
-| Type | Location | Format |
-|------|----------|--------|
-| **Skill** | `.claude/skills/<name>/SKILL.md` | YAML frontmatter + markdown body |
-| **Command** | `.claude/commands/<name>.md` | Markdown (no frontmatter required) |
-| **Rule** | `.claude/rules/<name>.md` | Markdown conventions/guidelines |
-| **Plan** | `plans/features/<name>/plan.md` | Structured implementation plan |
-| **Plan State** | `plans/features/<name>/state.json` | Phase tracking JSON |
+## Scope
 
----
+| Type | Common locations | Format |
+|---|---|---|
+| **Skill** | `*/skills/<name>/SKILL.md` | YAML frontmatter plus markdown body |
+| **Command** | host command folders | Markdown instructions |
+| **Rule** | `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, host rule folders | Markdown conventions |
+| **Plan** | `plans/features/<name>/plan.md` or project plan folders | Ordered implementation plan |
 
-## Review Checklist
+For writing-quality levers - context pointers, progressive disclosure, co-location, completion criteria, leading words, positive prompting, and pruning - use `skill-improver` as the single source of truth. This file adds review gates and checklists for applying those levers to agent documents.
 
-### 1. Skill Review (P0/P1)
+## Skill review
 
-#### 1.1 Frontmatter (P0)
+### Frontmatter
 
-Every `SKILL.md` must have valid YAML frontmatter:
+Check every `SKILL.md`:
 
-```yaml
----
-name: skill-name
-description: "Clear description of what the skill does and when to trigger it."
----
+- **P0:** frontmatter parses as YAML and contains `name` and `description`.
+- **P0:** `name` matches the folder and is lowercase kebab-case.
+- **P1:** `kind:` is present and is `leaf` or `orchestrator`.
+- **P1:** `description` is a sharp context pointer: leading word first, one trigger per branch, false-trigger route when useful.
+- **P1:** host filters such as `agents:` have a portable meaning or the skill gives a portable fallback.
+
+Run the local mechanical checker when this repo provides one, for example:
+
+```bash
+python3 ai-agents/skills/skill-improver/scripts/spec_check.py ai-agents/skills/<name>
 ```
 
-**Check**:
-- P0: `name` and `description` are required - skill won't register without them
-- P1: `description` should include trigger conditions (when to use), not just what it does
-- P1: `description` should be specific enough to avoid false triggers but broad enough to catch real use cases
+### Body and references
 
-#### 1.2 Structure (P1)
+- **P1:** main `SKILL.md` keeps the required sequence in view and pushes branch-only reference behind links.
+- **P1:** each step has a checkable completion criterion.
+- **P1:** links to references are live, and a referenced file is loaded only when its branch fires.
+- **P2:** long reference files have a Contents section or are split by branch.
+- **P2:** examples are concrete and few: keep the one that changes behavior.
 
-```
-skill-name/
-├── SKILL.md           # Required - main instructions
-├── references/        # Optional - loaded on demand
-│   └── domain.md
-├── scripts/           # Optional - executable helpers
-└── assets/            # Optional - templates, icons
-```
+### Portability
 
-**Check**:
-- P1: SKILL.md should stay under ~500 lines - move large content to `references/`
-- P1: Reference files should have clear pointers from SKILL.md about when to read them
-- P2: Large reference files (>300 lines) should include a table of contents
+- **P1:** tool-specific instructions name the capability first and the host implementation second. Example: "ask through the host's user-prompt tool; if none exists, stop before the write".
+- **P1:** a named agent, slash command, MCP tool, or shell path has a direct fallback.
+- **P2:** repository facts come from files or commands instead of cached prose.
 
-#### 1.3 Content Quality (P1/P2)
+## Command review
 
-- **P1**: Instructions should use imperative form ("Run X", "Check Y"), not passive voice
-- **P1**: Include concrete examples - code snippets, sample commands, expected output
-- **P1**: Explain the *why* behind instructions, not just the *what* - LLMs reason better with motivation
-- **P2**: Avoid excessive MUST/NEVER/ALWAYS - explain reasoning instead
-- **P2**: Don't over-specify steps the model can figure out - focus on what's non-obvious
+Commands are normally user-invoked. Check:
 
-#### 1.4 Triggering (P1)
+- **P1:** first paragraph states the outcome and required inputs.
+- **P1:** arguments and flags have examples.
+- **P1:** side effects are gated with explicit confirmation when they write outside the user's own branch or workspace.
+- **P1:** orchestrated phases have handoff artifacts and failure behavior.
+- **P2:** command logic points to shared skills instead of duplicating their rules.
 
-- **P1**: Skill description should match realistic user phrases (casual, formal, abbreviated)
-- **P2**: Include edge cases - what should NOT trigger this skill?
+## Plan review
 
----
-
-### 2. Command Review (P1/P2)
-
-Commands are simpler than skills - they're user-invoked via `/command-name`.
-
-#### 2.1 Format
-
-- **P1**: First line should clearly state what the command does
-- **P1**: Include usage examples with sample arguments
-- **P2**: Document optional arguments/flags
-
-#### 2.2 Agent Commands
-
-For commands that orchestrate agents (like `pm.md`, `tl.md`, `dev.md`):
-
-- **P1**: Define clear phase transitions and handoff points between agents
-- **P1**: State tracking (state.json) should be updated at each phase
-- **P1**: Error handling - what happens when a phase fails?
-- **P2**: Avoid duplicating logic that exists in skills - reference the skill instead
-
----
-
-### 3. Plan Review (P1/P2)
-
-Plans in `plans/features/<name>/plan.md` guide implementation.
-
-#### 3.1 Structure
-
-A well-formed plan should include:
+A well-formed plan includes:
 
 ```markdown
 # Feature Name
 
 ## Overview
-Brief description of what and why.
-
 ## Scope
-What's in scope and explicitly out of scope.
-
 ## Design Decisions
-Key choices and their rationale.
-
 ## Affected Components
-Files/modules that will change.
-
 ## Tasks
-Ordered implementation steps with acceptance criteria.
 ```
 
-**Check**:
-- P1: Tasks should be ordered by dependency - not alphabetically or randomly
-- P1: Each task should have clear acceptance criteria (how to know it's done)
-- P1: Scope should explicitly list what's out of scope to prevent drift
-- P2: Design decisions should include alternatives considered and why they were rejected
+Check:
 
-#### 3.2 State Tracking
+- **P1:** tasks are dependency-ordered.
+- **P1:** every task has acceptance criteria or a done condition.
+- **P1:** scope lists exclusions that prevent drift.
+- **P1:** changed files and validation steps are explicit.
+- **P2:** design decisions include important alternatives and why they were rejected.
+- **P2:** state-tracking files match actual progress when present.
 
-`state.json` should reflect actual progress:
+## Rule review
 
-- **P1**: Phase status should match reality - don't mark phases complete that aren't
-- **P2**: Include timestamps for phase transitions
+Rules define conventions. Check:
 
----
+- **P2:** concise, actionable wording.
+- **P2:** no contradiction with higher-priority rules.
+- **P2:** project-specific facts live in project files, not global rules.
 
-### 4. Rules Review (P2)
+## Review gates
 
-Rules in `.claude/rules/` define project conventions.
+Auto-fail the review when any is true:
 
-- **P2**: Rules should be concise - long rules get ignored
-- **P2**: Avoid contradicting other rules or CLAUDE.md
-- **P2**: Rules should be actionable, not aspirational
-
----
-
-### 5. Simplification Review (P1/P2)
-
-Evaluate whether instructions can be tightened without losing clarity or correctness. Apply to SKILL.md, commands, and reference files.
-
-#### 5.1 Redundancy (P1)
-
-- **P1**: Same instruction stated in multiple places - consolidate to one location and reference it
-- **P1**: Steps that restate what the model already knows (e.g., "use git to commit" without non-obvious flags) - remove or reduce to the non-obvious part
-- **P1**: Examples that demonstrate the same thing - keep the most illustrative one, cut the rest
-
-#### 5.2 Verbosity (P1)
-
-- **P1**: Prose that can be replaced by a table or code block - restructure
-- **P1**: Multi-sentence instructions where one sentence suffices - tighten
-- **P1**: Explanations of *what* without *why* - either add the why or cut the explanation (the model can infer the what from context)
-
-#### 5.3 Misplaced Content (P1)
-
-- **P1**: SKILL.md over ~500 lines - move domain-specific detail to `references/` and add a "read this when" pointer
-- **P1**: Inline content that duplicates an existing reference file - replace with a pointer
-- **P2**: Reference files over ~300 lines without a TOC - add one or split
-
-#### 5.4 Dead Weight (P2)
-
-- **P2**: Instructions that can never trigger (unreachable conditions, impossible states)
-- **P2**: Commented-out or TODO sections with no timeline - remove or file as a real task
-- **P2**: Excessive MUST/NEVER/ALWAYS qualifiers - replace with reasoning ("X because Y" > "YOU MUST X")
-
----
-
-## Review Gates (Auto-Fail)
-
-- Skill missing `name` or `description` in frontmatter
-- Command references nonexistent skills or tools
-- Plan tasks have circular dependencies
+- Skill frontmatter is missing or unparsable.
+- Command or skill points to a nonexistent required file, skill, command, or tool without fallback.
+- Plan tasks have circular dependencies or no completion criteria.
+- Instructions require one host agent's feature with no portable fallback.

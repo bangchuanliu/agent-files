@@ -102,7 +102,7 @@ def to_number(value: Any) -> float | None:
     if isinstance(value, (int, float)):
         return float(value)
     s = str(value).strip().replace(",", "").replace("$", "").replace("%", "")
-    if not s or s in {"-", "-", "n/a", "N/A"}:
+    if not s or s.lower() in {"-", "n/a"}:
         return None
     try:
         return float(s)

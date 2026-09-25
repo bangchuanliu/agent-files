@@ -9,8 +9,8 @@ community pitfall list: frontmatter shape, name/description rules, body size,
 link resolution, reference depth, and script hygiene. Everything here has one
 correct answer, so a reviewer should never spend attention on it.
 
-Voice, density, over-abstraction and time-sensitivity are NOT checked here —
-they need judgement and belong in the review pass.
+Voice, density, over-abstraction and time-sensitivity are NOT checked here - they need
+judgement and belong in the review pass.
 
 Exit 0 = clean, 1 = findings, 2 = bad usage.
 """
@@ -26,16 +26,21 @@ except ImportError:
 
 NAME_RE = re.compile(r"[a-z0-9]+(-[a-z0-9]+)*")
 VALID_KINDS = ("leaf", "orchestrator")
+VALID_AGENTS = {"claude", "copilot", "openai"}
+SKIP_DISCOVERY_DIRS = {
+    ".git", ".hg", ".svn", "node_modules", "data", "assets", "dist",
+    "build", "target", "__pycache__",
+}
 # A NOT-for clause names its neighbours either as "-> use x" or as "(x)".
 # Both forms are in use; neither is more correct.
-# The parenthesised form must look like a skill name — kebab-case with at least
-# one hyphen — or "(the tokenized table)" reads as a route to a skill called "the".
+# The parenthesised form must look like a skill name - kebab-case with at least
+# one hyphen - or "(the tokenized table)" reads as a route to a skill called "the".
 NEIGHBOUR_RE = re.compile(r"(?:->|→)\s*use\s+([a-z0-9][a-z0-9-]*)"
                           r"|\(([a-z0-9]+(?:-[a-z0-9]+)+)\)")
 RESERVED_NAMES = {"anthropic", "claude"}
 DESCRIPTION_LIMIT = 1024          # agentskills.io v1
 # agentskills.io v1 caps name at 64 chars. Copilot CLI does not appear to enforce
-# it — over-length skills load — so this is a portability finding, not a blocker.
+# it - over-length skills load - so this is a portability finding, not a blocker.
 NAME_LIMIT = 64
 BODY_LINE_LIMIT = 500             # ~5k tokens, the activation budget
 TOC_LINE_THRESHOLD = 100          # reference files longer than this need a TOC
@@ -98,11 +103,17 @@ def findings_for(skill_dir, siblings=None, house=False):
         if field in meta and not isinstance(meta[field], str):
             out.append(("P1", f"{field} must be a string, got "
                               f"{type(meta[field]).__name__}"))
+    if "disable-model-invocation" in meta and not isinstance(meta["disable-model-invocation"], bool):
+        out.append(("P1", "disable-model-invocation must be a boolean"))
+    if "agents" in meta and not isinstance(meta["agents"], (str, list)):
+        out.append(("P1", f"agents must be a comma-separated string or list, got "
+                          f"{type(meta['agents']).__name__}"))
     if isinstance(meta.get("description"), str) and not meta["description"].strip():
         out.append(("P1", "description is blank"))
 
     name = str(meta.get("name", "") or "")
     description = str(meta.get("description", "") or "")
+    user_invoked = meta.get("disable-model-invocation") is True
 
     # --- name -------------------------------------------------------------
     if not name:
@@ -115,14 +126,14 @@ def findings_for(skill_dir, siblings=None, house=False):
                               f"and single hyphens"))
         if len(name) > NAME_LIMIT:
             out.append(("P3", f"name is {len(name)} chars; agentskills.io v1 caps it at "
-                              f"{NAME_LIMIT}. Copilot CLI loads it anyway — this matters only "
+                              f"{NAME_LIMIT}. Copilot CLI loads it anyway - this matters only "
                               f"for strict validators and other agents"))
         if name.lower() in RESERVED_NAMES:
             out.append(("P1", f"name '{name}' is reserved"))
 
     # --- description ------------------------------------------------------
     if not description:
-        out.append(("P1", "frontmatter has no description — the skill cannot trigger"))
+        out.append(("P1", "frontmatter has no description - model-invoked skills cannot trigger, and user-invoked skills need a human summary"))
     else:
         if len(description) > DESCRIPTION_LIMIT:
             out.append(("P1", f"description is {len(description)} chars, "
@@ -135,21 +146,38 @@ def findings_for(skill_dir, siblings=None, house=False):
             if char in scrubbed:
                 context = re.search(rf".{{0,40}}{re.escape(char)}.{{0,40}}", description)
                 out.append(("P1", f"'{char}' in name/description breaks strict validators"
-                                  + (f" — ...{context.group(0)}..." if context else "")))
+                                  + (f" - ...{context.group(0)}..." if context else "")))
                 break
         if re.match(r"\s*(I |I'll|We |We'll)", description):
             out.append(("P2", "description is first-person; use third-person"))
+        if user_invoked and ("Use when:" in description or "NOT for:" in description):
+            out.append(("P3", "user-invoked description should be a one-line human summary, not trigger routing"))
 
     # --- house conventions ------------------------------------------------
     kind = meta.get("kind")
     if kind is None:
-        out.append(("P2", f"no kind: in frontmatter — expected one of {VALID_KINDS}"))
+        out.append(("P2", f"no kind: in frontmatter - expected one of {VALID_KINDS}"))
     elif kind not in VALID_KINDS:
         out.append(("P2", f"kind: '{kind}' is not one of {VALID_KINDS}"))
 
     # A description that routes to a neighbour should route somewhere real. This
     # is the one house check worth enforcing by default: a renamed sibling leaves
     # a pointer that reads perfectly and resolves to nothing.
+    agents = meta.get("agents")
+    if isinstance(agents, str):
+        agent_names = [a for a in re.split(r"[,\s]+", agents.strip()) if a]
+    elif isinstance(agents, list):
+        agent_names = [str(a) for a in agents]
+    else:
+        agent_names = []
+    for agent in agent_names:
+        if not re.fullmatch(r"[A-Za-z0-9_-]+", agent):
+            out.append(("P2", f"agents entry '{agent}' contains characters "
+                              "lib/links.sh supports() will not match cleanly"))
+        elif agent.lower() not in VALID_AGENTS:
+            out.append(("P3", f"agents entry '{agent}' is not one of the known "
+                              f"adapters {sorted(VALID_AGENTS)}"))
+
     if "NOT for:" in description and siblings is not None:
         tail = description.split("NOT for:")[-1]
         for arrow_form, paren_form in NEIGHBOUR_RE.findall(tail):
@@ -160,22 +188,23 @@ def findings_for(skill_dir, siblings=None, house=False):
                 continue
             if neighbour and neighbour != folder and neighbour not in siblings:
                 out.append(("P2", f"description routes to '{neighbour}', which is not an "
-                                  f"installed skill — renamed, or a typo"))
+                                  f"installed skill - renamed, or a typo"))
 
     if house:
-        if not description.strip().startswith("Use when"):
-            out.append(("P3", "description does not start with 'Use when' (house convention)"))
-        if "NOT for:" not in description:
-            out.append(("P3", "description has no 'NOT for:' clause (house convention)"))
+        if not user_invoked:
+            if not description.strip().startswith("Use when"):
+                out.append(("P3", "description does not start with 'Use when' (house convention)"))
+            if "NOT for:" not in description:
+                out.append(("P3", "description has no 'NOT for:' clause (house convention)"))
 
     # --- body -------------------------------------------------------------
     body = raw[match.end():]
     lines = len(body.splitlines())
     if lines > BODY_LINE_LIMIT:
         out.append(("P2", f"body is {lines} lines, over the {BODY_LINE_LIMIT}-line "
-                          f"activation budget — move detail into references/"))
+                          f"activation budget - move detail into references/"))
     for m in re.finditer(r"[\w.]+\\[\w.]+\.(?:py|sh|md|json|ya?ml|txt|csv|tsv)\b", body):
-        out.append(("P2", f"backslash path '{m.group(0)}' — use forward slashes"))
+        out.append(("P2", f"backslash path '{m.group(0)}' - use forward slashes"))
         break
 
     # --- links and reference depth ---------------------------------------
@@ -208,7 +237,7 @@ def findings_for(skill_dir, siblings=None, house=False):
                     out.append(("P1", f"references/{entry} has a broken link: {target}"))
                 elif target.endswith(".md") and os.path.basename(target) not in body:
                     out.append(("P3", f"references/{entry} links on to {target}, which "
-                                      f"SKILL.md does not link directly — keep references "
+                                      f"SKILL.md does not link directly - keep references "
                                       f"one level deep"))
 
     # --- scripts ----------------------------------------------------------
@@ -228,8 +257,8 @@ def findings_for(skill_dir, siblings=None, house=False):
             # Only files meant to be run need the executable bit; an imported
             # helper module is not a CLI and never will be.
             has_shebang = open(full, encoding="utf-8", errors="ignore").read(2) == "#!"
-            # Three ways a script is used: run directly (./x.py — needs +x), run via
-            # an interpreter (python3 x.py — does not), or imported. Only the first
+            # Three ways a script is used: run directly (./x.py - needs +x), run via
+            # an interpreter (python3 x.py - does not), or imported. Only the first
             # needs the executable bit, so infer intent from how the docs invoke it.
             via_interpreter = re.search(
                 rf"(?:python3?|bash|sh)\s+\S*{re.escape(entry)}\b", documented) is not None
@@ -244,7 +273,7 @@ def findings_for(skill_dir, siblings=None, house=False):
                 out.append(("P3", f"scripts/{entry} has a shebang but is not executable "
                                   f"(chmod +x)"))
             if entry not in documented and (has_shebang or invoked):
-                out.append(("P2", f"scripts/{entry} is runnable but documented nowhere — "
+                out.append(("P2", f"scripts/{entry} is runnable but documented nowhere - "
                                   f"dead weight, or an undocumented capability"))
     return out
 
@@ -262,13 +291,23 @@ def main():
     targets = []
     for path in args.paths:
         if args.all:
-            targets += [os.path.join(path, d) for d in sorted(os.listdir(path))
-                        if os.path.isfile(os.path.join(path, d, "SKILL.md"))]
+            try:
+                entries = sorted(os.scandir(path), key=lambda e: e.name)
+            except OSError as exc:
+                print(f"Cannot scan {path}: {exc}", file=sys.stderr)
+                return 2
+            for entry in entries:
+                if not entry.is_dir(follow_symlinks=False):
+                    continue
+                if entry.name.startswith(".") or entry.name in SKIP_DISCOVERY_DIRS:
+                    continue
+                if os.path.isfile(os.path.join(entry.path, "SKILL.md")):
+                    targets.append(entry.path)
         else:
             targets.append(path)
 
     if not targets:
-        print("No skills found. Check the path — an empty scan is a misconfiguration, "
+        print("No skills found. Check the path - an empty scan is a misconfiguration, "
               "not a clean result.", file=sys.stderr)
         return 2
 

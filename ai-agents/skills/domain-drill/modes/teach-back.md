@@ -6,9 +6,9 @@
 
 ## Session Start
 
-Check `~/.claude/learning/<topic>/teach-back-<concept>.md`:
+Check `$SKILL_DIR/learning/<topic>/teach-back-<concept>.md`:
 - **File exists**: read it, say *"Last time you got [strong areas] right but had gaps in [weak areas]. Want to try again or continue from where you left off?"*
-- **File missing**: say *"Go ahead — explain [concept] as you understand it. Don't look anything up. I'll grade you after."*
+- **File missing**: say *"Go ahead - explain [concept] as you understand it. Don't look anything up. I'll grade you after."*
 
 ---
 
@@ -31,13 +31,13 @@ Let the user finish without interrupting. Do not prompt or hint mid-explanation.
 Always use this structure:
 
 ```
-## Teach-Back: [Concept] — [Date]
+## Teach-Back: [Concept] - [Date]
 
 ### What you got right
 - [specific strength, with the L-layer it maps to]
 
 ### Gaps
-- [missing piece] — you said [X] but the actual constraint/tension is [Y]
+- [missing piece] - you said [X] but the actual constraint/tension is [Y]
 
 ### Inverted
 - [anything stated backwards or causally wrong]
@@ -56,6 +56,6 @@ Technology in context:[✓ / ~ / ✗]
 
 ## After Grading
 
-Save result to `~/.claude/learning/<topic>/teach-back-<concept>.md` and offer to push gaps into the main learning index under `## Open Questions`.
+Save result to `$SKILL_DIR/learning/<topic>/teach-back-<concept>.md` and offer to push gaps into the main learning index under `## Open Questions`.
 
-**If the explanation is strong across all dimensions**: say so directly, then challenge with one harder question — a counter-movement, an edge case, or a context where the standard tradeoff flips.
+**If the explanation is strong across all dimensions**: say so directly, then challenge with one harder question - a counter-movement, an edge case, or a context where the standard tradeoff flips.

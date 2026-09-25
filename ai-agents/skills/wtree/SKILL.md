@@ -1,7 +1,7 @@
 ---
 name: wtree
 kind: orchestrator
-description: "Manage git worktrees for repo groups under the per-group worktree root, with agent-session awareness. Modes: show (every worktree + its live Copilot/Claude/tmux sessions, git state and PR state), clean (remove only worktrees with no active session, no local work and an already closed/merged PR), new (cut a fresh worktree from origin's default branch, safe to run from a dirty feature branch). Use when: wtree, worktree, git worktree, list worktrees, clean worktrees, new worktree, worktree sessions, new branch off master. NOT for: pulling latest across normal clones (git-pull), or deleting merged branches inside a normal clone."
+description: "Worktrees: create, show, and safely clean git worktrees under WTREE_ROOT with session, git, and PR gates. Use when: wtree, worktree, git worktree, list worktrees, clean worktrees, new worktree, worktree sessions, new branch off master. NOT for: live agent follow-up now (yell), long-horizon project status (where-are-we), jumping to a terminal tab or existing path (hop), starting a full task stack (start), pulling normal clones (git-pull), or deleting merged branches inside a normal clone."
 ---
 
 # wtree - worktree manager

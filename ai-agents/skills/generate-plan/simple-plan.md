@@ -1,6 +1,6 @@
 # Simple Plan Template
 
-Use for features whose triage verdict is `simple` (every dimension is `simple`). Dev implements directly from this plan; no parallel groups, no TL review of QA/monitor/validate phases.
+Use for features whose triage verdict is `simple` (every dimension is `simple`). Implement directly from this plan; no parallel groups, no TL review of QA/monitor/validate phases.
 
 Also used for `complexity: tiny` - keep tasks to allow-listed drop-in edits (no new branches/predicates/public APIs/schema changes).
 
@@ -16,7 +16,7 @@ Also used for `complexity: tiny` - keep tasks to allow-listed drop-in edits (no 
 feature_name: <kebab-case-name>
 complexity: simple
 needs_qa: <true | false>
-route: "<route string from triage - see triage agent's route table>"
+route: "<route string from triage - see triage route table>"
 ticket: <TICKET-123 or "none">   # resolved by triage, copied from spec.md
 
 # added by generate-plan skill
@@ -42,14 +42,14 @@ created: YYYY-MM-DD
 ## Tasks
 
 - [ ] Task 1: <description>
-  - File: `path/to/file`
-  - Action: create | modify | delete
-  - Details: <specific changes - fields, methods, config keys>
+ - File: `path/to/file`
+ - Action: create | modify | delete
+ - Details: <specific changes - fields, methods, config keys>
 
 - [ ] Task 2: <description>
-  - File: `path/to/other-file`
-  - Action: modify
-  - Details: <...>
+ - File: `path/to/other-file`
+ - Action: modify
+ - Details: <...>
 
 <Order tasks by dependency. A simple plan typically has 1–4 tasks; if it grows past 6, reconsider the triage verdict.>
 

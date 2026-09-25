@@ -2,10 +2,10 @@
 
 All operations for the user's personal dictionary at `$SKILL_DIR/data/`. Two operation families:
 
-- **Op 1–5: Vocab** — save, look up, list, extract, and bulk-curate words/verbs.
-- **Op 6: Sentence rewrite** — flag the user's own awkward sentences from the conversation and rewrite them as a native engineer would.
+- **Op 1–5: Vocab** - save, look up, list, extract, and bulk-curate words/verbs.
+- **Op 6: Sentence rewrite** - flag the user's own awkward sentences from the conversation and rewrite them as a native engineer would.
 
-All persistent data is stored as **styled HTML tables**. Each file is a complete, self-contained HTML document — open in a browser to read.
+All persistent data is stored as **styled HTML tables**. Each file is a complete, self-contained HTML document - open in a browser to read.
 
 `SKILL_DIR` = the directory containing this file.
 
@@ -18,7 +18,7 @@ Pick the operation whose Trigger line best matches the user's phrasing.
 | `$SKILL_DIR/data/dict.html` | General words, phrases, idioms (active learning) | Word / Phrase · Meaning · Synonyms · Example · **Progress** |
 | `$SKILL_DIR/data/tech-verb.html` | Verbs (active learning) | Verb · Meaning · Synonyms · Example · **Progress** |
 | `$SKILL_DIR/data/sentence-fixes.html` | Sentence rewrites from Op 6 (active learning) | Your sentence · Native rewrite · Style notes · **Progress** |
-| `$SKILL_DIR/data/history.html` | Graduated entries (`●●●●●` reached) — verbs / words / sentences in three sections | Same as source + `Graduated` date |
+| `$SKILL_DIR/data/history.html` | Graduated entries (`●●●●●` reached) - verbs / words / sentences in three sections | Same as source + `Graduated` date |
 | `$SKILL_DIR/data/<name>.html` | User-named files (e.g., `legal.html`) | Same vocab schema |
 
 ## Vocab Row Format (Ops 1, 4, 5)
@@ -35,7 +35,7 @@ Append a `<tr>` row to the `<tbody>` of the target HTML file:
 </tr>
 ```
 
-- **Synonyms are required** (1–2), everyday-register. If no true synonym exists, use `<td class="col-syn empty">—</td>`.
+- **Synonyms are required** (1–2), everyday-register. If no true synonym exists, use `<td class="col-syn empty"> - </td>`.
 - **Count badge** (`<span class="count">×N</span>`) appears only when N ≥ 2. Omit it for first occurrences.
 - **Progress cell** always starts as `<span class="filled"></span><span class="empty">○○○○○</span>` (0 filled, 5 empty). It's updated by Op 7.
 - HTML-escape `<`, `>`, `&` in user content.
@@ -43,10 +43,10 @@ Append a `<tr>` row to the `<tbody>` of the target HTML file:
 
 ## Universal Rules
 
-- **Sweep before append.** Before adding any new entry to an active HTML file, scan that file's `<tbody>` for rows whose progress cell is `<span class="filled">●●●●●</span><span class="empty"></span>` (5 dots). Move each such row into the matching section of `history.html` — strip the `<td class="col-progress">…</td>` cell and insert a `<td class="col-graduated">YYYY-MM-DD</td>` cell with today's date. **Preserve the count badge (`<span class="count">×N</span>`) on the col-word / col-orig cell when graduating** — history rows track recurrence the same way active rows do. Do the sweep first, then the **history check**, then the **active-file dedupe check**, then the append.
-- **History check FIRST.** Before scanning the active file, scan the matching section of `history.html` (verb section for `tech-verb.html`, dict section for `dict.html`, sentence section for `sentence-fixes.html`) for an existing row with the same word/sentence (case-insensitive, trimmed). **If found in history → increment the count badge on the history row and STOP. Do not touch the active file.** The user has already graduated this entry; surfacing it again just bumps recurrence on the graduated record so the user sees how often it keeps coming up. Report e.g. `"backfill" already graduated — bumped to ×3 in history.html`.
+- **Sweep before append.** Before adding any new entry to an active HTML file, scan that file's `<tbody>` for rows whose progress cell is `<span class="filled">●●●●●</span><span class="empty"></span>` (5 dots). Move each such row into the matching section of `history.html` - strip the `<td class="col-progress">…</td>` cell and insert a `<td class="col-graduated">YYYY-MM-DD</td>` cell with today's date. **Preserve the count badge (`<span class="count">×N</span>`) on the col-word / col-orig cell when graduating** - history rows track recurrence the same way active rows do. Do the sweep first, then the **history check**, then the **active-file dedupe check**, then the append.
+- **History check FIRST.** Before scanning the active file, scan the matching section of `history.html` (verb section for `tech-verb.html`, dict section for `dict.html`, sentence section for `sentence-fixes.html`) for an existing row with the same word/sentence (case-insensitive, trimmed). **If found in history → increment the count badge on the history row and STOP. Do not touch the active file.** The user has already graduated this entry; surfacing it again just bumps recurrence on the graduated record so the user sees how often it keeps coming up. Report e.g. `"backfill" already graduated - bumped to ×3 in history.html`.
 - **Active-file check before append.** Only reached when the history check finds no match. Scan the target active HTML for an existing row with the same word (case-insensitive, trimmed). If found, increment the count badge on the existing active row. If not found, append a new row with an empty progress cell.
-- **Append** new `<tr>` rows just before the closing `</tbody>` tag — never overwrite the file unless the user explicitly asks for a rebuild.
+- **Append** new `<tr>` rows just before the closing `</tbody>` tag - never overwrite the file unless the user explicitly asks for a rebuild.
 - If the target HTML file doesn't exist, create it from scratch using the scaffold/CSS in the existing files at `$SKILL_DIR/data/` as the template.
 - Use the Python helper below (or equivalent) to atomically handle both the check-and-increment and the append paths; avoid `echo`/`printf` for HTML edits since they can mis-place rows relative to `</tbody>`.
 - One `<tr>` per unique entry. No line breaks inside `<td>` cells unless using `<ul>`/`<li>` (Op 6 only).
@@ -57,7 +57,7 @@ Append a `<tr>` row to the `<tbody>` of the target HTML file:
   $SKILL_DIR/data/tech-verb.html
   $SKILL_DIR/data/dict.html
   ```
-- **50-row guardrail.** After every add/increment in `dict.html`, `tech-verb.html`, or `sentence-fixes.html`, count the active (non-graduated) rows in the file's `<tbody>`. If the count is ≥ 50, surface a warning in your response: `⚠️ {filename} now has {N} active rows — you're accumulating, not learning. Time to review and bump progress on the highest-frequency entries.` Repeat the warning on every operation until the count drops below 50 (via graduation to `history.html`).
+- **50-row guardrail.** After every add/increment in `dict.html`, `tech-verb.html`, or `sentence-fixes.html`, count the active (non-graduated) rows in the file's `<tbody>`. If the count is ≥ 50, surface a warning in your response: `⚠️ {filename} now has {N} active rows - you're accumulating, not learning. Time to review and bump progress on the highest-frequency entries.` Repeat the warning on every operation until the count drops below 50 (via graduation to `history.html`).
 
 ### Insert helper (reuse across Ops 1, 4, 5)
 
@@ -121,7 +121,7 @@ if anchor_pos != -1:
         new_section, hit, n = bump_in(section, word_lc)
         if hit:
             HIST.write_text(before + new_section + after)
-            print(f'already graduated — bumped to ×{n} in history.html: {word}')
+            print(f'already graduated - bumped to ×{n} in history.html: {word}')
             raise SystemExit(0)
 
 # ── Step 2: active-file dedupe check ──
@@ -133,7 +133,7 @@ if hit:
     raise SystemExit(0)
 
 # ── Step 3: append a new row ──
-syn_cell = f'<td class="col-syn">{syns}</td>' if syns.strip() else '<td class="col-syn empty">—</td>'
+syn_cell = f'<td class="col-syn">{syns}</td>' if syns.strip() else '<td class="col-syn empty"> - </td>'
 row = (f'      <tr><td class="{COL_CLASS}">{word}</td>'
        f'<td class="col-meaning">{meaning}</td>'
        f'{syn_cell}'
@@ -146,7 +146,7 @@ PY
 
 ---
 
-## Operation 1 — Add a single entry
+## Operation 1 - Add a single entry
 
 **Trigger:** "save word X", "add X to vocab", "save baked into", "add this to dict.html".
 
@@ -157,7 +157,7 @@ Route by entry type:
 
 Use the insert helper above with the chosen file path and row content.
 
-## Operation 2 — Look up
+## Operation 2 - Look up
 
 **Trigger:** "look up X", "define X", "do I have X saved".
 
@@ -168,7 +168,7 @@ grep -oE 'class="col-word">[^<]*</td><td class="col-meaning">[^<]*' $SKILL_DIR/d
 
 Search both `dict.html` and `tech-verb.html` if the user doesn't specify a file. Open the file in a browser for full context: `open $SKILL_DIR/data/dict.html`.
 
-## Operation 3 — List
+## Operation 3 - List
 
 **Trigger:** "list my vocab", "list all words", "show dict".
 
@@ -182,7 +182,7 @@ For visual browsing: `open $SKILL_DIR/data/dict.html` (and `tech-verb.html`).
 
 ---
 
-## Operation 4 — Sentence Vocab Extractor
+## Operation 4 - Sentence Vocab Extractor
 
 **Trigger:** user provides an example sentence (or short passage) and asks to extract/save/harvest vocab.
 
@@ -196,23 +196,23 @@ For visual browsing: `open $SKILL_DIR/data/dict.html` (and `tech-verb.html`).
 ### Selection Rules
 
 - Skip filler words: articles, common prepositions, auxiliaries (`is`, `was`, `the`, `of`, etc.).
-- **Capture liberally — exposure beats curation.** Default toward including a candidate when in doubt. The history-check dedup (see Universal Rules) absorbs accidental repeats, so over-capture is cheap; under-capture costs a learning opportunity. Aim for **5–10 entries** from a typical sentence and **10–20** from a multi-sentence passage, split across `tech-verb.html` and `dict.html`.
+- **Capture liberally - exposure beats curation.** Default toward including a candidate when in doubt. The history-check dedup (see Universal Rules) absorbs accidental repeats, so over-capture is cheap; under-capture costs a learning opportunity. Aim for **5–10 entries** from a typical sentence and **10–20** from a multi-sentence passage, split across `tech-verb.html` and `dict.html`.
 - **Cover every content-bearing word at least once.** For each clause, harvest: (a) the main verb, (b) every noun phrase that names a concept (artifact, role, metric, state), (c) every adjective that carries weight (severity, scope, certainty), (d) every adverbial idiom (`out of the blue`, `by design`, `on purpose`). When you can choose between a generic word and a more specific one in the source, save both as separate entries.
-- **Prioritize negative-prefix verbs and phrasal verbs** — high-signal because the user defaults to "not + verb" or generic single-word equivalents. When the source uses a generic verb or "not + verb" pattern, **also surface the prefix/phrasal alternative** as an additional entry, even if the source didn't use it. Examples:
+- **Prioritize negative-prefix verbs and phrasal verbs** - high-signal because the user defaults to "not + verb" or generic single-word equivalents. When the source uses a generic verb or "not + verb" pattern, **also surface the prefix/phrasal alternative** as an additional entry, even if the source didn't use it. Examples:
   - Negative-prefix verbs (`mis-`, `dis-`, `un-`, `over-`, `under-`, `out-`, `re-`, `mal-`): `disagree` (vs. "not agree"), `misread` (vs. "read wrong"), `overlook` (vs. "not notice"), `underestimate` (vs. "not expect enough"), `unblock` (vs. "remove blocker"), `dismiss` (vs. "not consider"), `override` (vs. "force ignore"), `outpace` (vs. "go faster than").
   - Phrasal verbs (verb + particle): `push back` (vs. "disagree strongly"), `drill down` (vs. "look at in detail"), `loop in` (vs. "include someone"), `take offline` (vs. "discuss later"), `circle back` (vs. "revisit"), `pull in` (vs. "request help from").
-- Inclusion standard — every entry must pass these three (a single low-confidence "maybe" still gets included; previously rejected by criterion 4, now allowed):
-  1. **Real, current English** — a native speaker would actually use it in tech work; not a coinage, archaism, or jargon-only term.
-  2. **Idiomatic in pro contexts** — would plausibly appear in a Slack thread, PR comment, or design doc.
-  3. **Reusable** — works across multiple situations, not just the source sentence.
-  (Redundancy with a more common synonym is no longer a rejection criterion — save both and let the user pick which one feels right when graduating.)
+- Inclusion standard - every entry must pass these three (a single low-confidence "maybe" still gets included; previously rejected by criterion 4, now allowed):
+  1. **Real, current English** - a native speaker would actually use it in tech work; not a coinage, archaism, or jargon-only term.
+  2. **Idiomatic in pro contexts** - would plausibly appear in a Slack thread, PR comment, or design doc.
+  3. **Reusable** - works across multiple situations, not just the source sentence.
+  (Redundancy with a more common synonym is no longer a rejection criterion - save both and let the user pick which one feels right when graduating.)
 - Lemmatize verbs to base form (`shipped` → `ship`, `pushing back` → `push back`).
 - **Examples must be NEW**, not the original sentence. Write a fresh, ≤10-word, native-speaker-idiomatic example for each entry.
 
 ### Output to the User
 
 After appending:
-1. List the entries you added, grouped by file (plain text in chat — `verb · meaning · syn · example`). Don't echo the raw HTML.
+1. List the entries you added, grouped by file (plain text in chat - `verb · meaning · syn · example`). Don't echo the raw HTML.
 2. List candidate words you **considered but skipped** as low-signal (generic verbs like *provide, ask, require*; generic modifiers like *future, minor, new*). One short line, no examples.
 
 ### Example
@@ -228,11 +228,11 @@ After appending:
 > - telemetry · runtime metrics from production · monitoring data, observability · "Telemetry caught the regression first."
 > - regression · a previously-fixed bug returning · relapse, backslide · "The deploy introduced a regression."
 >
-> **Skipped as low-signal:** *need, initial, because* — too generic.
+> **Skipped as low-signal:** *need, initial, because* - too generic.
 
 ---
 
-## Operation 5 — Bulk Tech Verb Curation
+## Operation 5 - Bulk Tech Verb Curation
 
 **Trigger:** "extract tech verbs", "generate 500 verbs", "curate tech vocab".
 
@@ -242,18 +242,18 @@ Act as a **Senior Communication Coach for the Tech Industry (Silicon Valley styl
 
 Group verbs into these 5 daily scenarios. Since the HTML schema has no Category column, encode the category as a parenthetical suffix on the meaning, e.g., `revisit a topic later (meetings)`.
 
-1. 🗓️ **Meetings & Syncs** — status updates, coordination
-2. ⚔️ **Debates & Decision Making** — strategy, disagreement, proposing ideas
-3. 🎤 **Presentations & Demos** — explaining concepts, guiding an audience
-4. ☕ **Small Talk & Socializing** — lunch, coffee chats, networking
-5. 💻 **Technical Execution** — coding, devops, specific work actions
+1. 🗓️ **Meetings & Syncs** - status updates, coordination
+2. ⚔️ **Debates & Decision Making** - strategy, disagreement, proposing ideas
+3. 🎤 **Presentations & Demos** - explaining concepts, guiding an audience
+4. ☕ **Small Talk & Socializing** - lunch, coffee chats, networking
+5. 💻 **Technical Execution** - coding, devops, specific work actions
 
 ### Selection Criteria
 
 Prioritize **two categories the user commonly misses**, in this order:
 
-1. **Phrasal verbs** (verb + particle) — idiomatic in pro speech: *circle back, push back, drill down, loop in, take offline, pull in, ship it, dog-food, level-set, double-click, hash out, lock in, spin up, tee up, kick off, wind down, sign off, walk back, knock out, sort out*.
-2. **Negative-prefix verbs** (`mis-`, `dis-`, `un-`, `over-`, `under-`, `out-`, `re-`, `mal-`) — replace clunky "not + verb": *misread, misjudge, misalign, disagree, dismiss, disregard, unblock, undo, undercut, overlook, override, overrule, overstate, underestimate, outpace, outperform, outscope, rewrite, revisit, refactor*.
+1. **Phrasal verbs** (verb + particle) - idiomatic in pro speech: *circle back, push back, drill down, loop in, take offline, pull in, ship it, dog-food, level-set, double-click, hash out, lock in, spin up, tee up, kick off, wind down, sign off, walk back, knock out, sort out*.
+2. **Negative-prefix verbs** (`mis-`, `dis-`, `un-`, `over-`, `under-`, `out-`, `re-`, `mal-`) - replace clunky "not + verb": *misread, misjudge, misalign, disagree, dismiss, disregard, unblock, undo, undercut, overlook, override, overrule, overstate, underestimate, outpace, outperform, outscope, rewrite, revisit, refactor*.
 
 Then other "insider" terms: *flag, table, align, socialize (an idea), hard-stop, rubber-stamp, spike, red-line, green-light*.
 
@@ -269,18 +269,18 @@ Professional, concise, idiomatic. Examples must be practical and immediately usa
 
 ---
 
-## Operation 6 — Authentic Sentence Rewrite
+## Operation 6 - Authentic Sentence Rewrite
 
 **Trigger:** "flag issues in my sentences", "rewrite my sentences", "scan the conversation for awkward sentences", "fix sentences in this thread", "review my sentences".
 
-**Philosophy — read before writing.** This is **not** a grammar checker. For each flagged sentence, produce the rewrite a senior native engineer would actually write in Slack, a PR comment, or a 1:1 IM — after fully understanding the user's intent. The user is past the rule-level stage; their gap is **idiom, register, and restructuring**, so every style note calls out that gap explicitly.
+**Philosophy - read before writing.** This is **not** a grammar checker. For each flagged sentence, produce the rewrite a senior native engineer would actually write in Slack, a PR comment, or a 1:1 IM - after fully understanding the user's intent. The user is past the rule-level stage; their gap is **idiom, register, and restructuring**, so every style note calls out that gap explicitly.
 
 ### Process
 
 1. **Understand intent.** Re-read in conversation context. What is the user trying to communicate, to whom, in what register (Slack, PR, agent IM)?
-2. **Filter — flag generously.** Only skip true throwaways: single-word affirmations (`yes`, `ok`, `thanks`), command snippets (`gh pr view`), and code/file references. Flag any sentence where a native engineer would phrase it noticeably differently — including pure stylistic upgrades that don't change meaning, mild article/preposition drift, or sentences that are technically fine but would read flat in Slack. **When in doubt, flag it** — the history-check dedup absorbs repeats, and surfacing more sentences gives the user wider exposure to the native-rewrite patterns.
-3. **Rewrite, don't patch.** Restructure freely: drop redundancy, use phrasal/negative-prefix verbs, adopt dev-IM register cues (`FYI`, `Heads up`, `Out of curiosity`, `Quick question`), shorten paths/quoted strings when context makes them obvious. Calibrate by severity — worse sentences earn larger rewrites.
-4. **Style notes — ≤3 bullets.** Each bullet calls out one idiom/register/restructuring upgrade and *why* an engineer would phrase it that way. Do **not** explain grammar rules.
+2. **Filter - flag generously.** Only skip true throwaways: single-word affirmations (`yes`, `ok`, `thanks`), command snippets (`gh pr view`), and code/file references. Flag any sentence where a native engineer would phrase it noticeably differently - including pure stylistic upgrades that don't change meaning, mild article/preposition drift, or sentences that are technically fine but would read flat in Slack. **When in doubt, flag it** - the history-check dedup absorbs repeats, and surfacing more sentences gives the user wider exposure to the native-rewrite patterns.
+3. **Rewrite, don't patch.** Restructure freely: drop redundancy, use phrasal/negative-prefix verbs, adopt dev-IM register cues (`FYI`, `Heads up`, `Out of curiosity`, `Quick question`), shorten paths/quoted strings when context makes them obvious. Calibrate by severity - worse sentences earn larger rewrites.
+4. **Style notes - ≤3 bullets.** Each bullet calls out one idiom/register/restructuring upgrade and *why* an engineer would phrase it that way. Do **not** explain grammar rules.
 
 ### Output
 
@@ -302,8 +302,8 @@ Append a `<tr>` row to `$SKILL_DIR/data/sentence-fixes.html` (three columns: **Y
 ```
 
 - **Max 3 bullets** in `col-notes`; minimum 1.
-- Each bullet is one short, parallel sentence — focus on one upgrade per bullet.
-- Use em dashes (`—`) inside cell text for clarity.
+- Each bullet is one short, parallel sentence - focus on one upgrade per bullet.
+- Use plain hyphen separators (` - `) inside cell text for clarity.
 - Wrap inline code/paths in `<code>…</code>` when they look code-like.
 - **Count badge** (`<span class="count">×N</span>`) appears only when N ≥ 2; omit for first occurrences.
 
@@ -311,13 +311,13 @@ Append a `<tr>` row to `$SKILL_DIR/data/sentence-fixes.html` (three columns: **Y
 
 Apply the same three-step rule as vocab: **history-first, then active, then append**.
 
-1. **History check (sentence section of `history.html`)** — scan only the sentence-section `<tbody>` (the one anchored by `<!-- Append <tr> rows here when a sentence`). Match on:
-   - **Exact sentence match** (whitespace-normalized, case-insensitive) → bump count badge on the col-orig cell in history and STOP. Report e.g. `already graduated — bumped to ×3 in history.html`.
-   - **Issue-pattern match** — if the existing graduated row's bullets cover the same idiom/register gap (≥2 of 3 bullets address the same upgrade), treat as repeat → bump and STOP.
-2. **Active-file dedupe (`sentence-fixes.html`)** — if no history match, scan the active file the same way. Found → increment the active count badge.
-3. **Append** — if neither check fires, append a new row to `sentence-fixes.html`.
+1. **History check (sentence section of `history.html`)** - scan only the sentence-section `<tbody>` (the one anchored by `<!-- Append <tr> rows here when a sentence`). Match on:
+   - **Exact sentence match** (whitespace-normalized, case-insensitive) → bump count badge on the col-orig cell in history and STOP. Report e.g. `already graduated - bumped to ×3 in history.html`.
+   - **Issue-pattern match** - if the existing graduated row's bullets cover the same idiom/register gap (≥2 of 3 bullets address the same upgrade), treat as repeat → bump and STOP.
+2. **Active-file dedupe (`sentence-fixes.html`)** - if no history match, scan the active file the same way. Found → increment the active count badge.
+3. **Append** - if neither check fires, append a new row to `sentence-fixes.html`.
 
-When incrementing (history or active), report the matched original sentence and the new count (e.g., `"…subject drop after 'so'…" ×3 (count incremented in history.html)`). Do not modify the existing rewrite or bullets — the count reflects how often this *type* of issue has recurred.
+When incrementing (history or active), report the matched original sentence and the new count (e.g., `"…subject drop after 'so'…" ×3 (count incremented in history.html)`). Do not modify the existing rewrite or bullets - the count reflects how often this *type* of issue has recurred.
 
 ### Example Row
 
@@ -327,7 +327,7 @@ When incrementing (history or active), report the matched original sentence and 
 > ```html
 > <tr>
 >   <td class="col-orig">dict skill disappear after removing the symlink</td>
->   <td class="col-native">Heads up — dict's gone from the skill list after that rm.</td>
+>   <td class="col-native">Heads up - dict's gone from the skill list after that rm.</td>
 >   <td class="col-notes"><ul>
 >     <li>Engineers open unexpected findings with "Heads up" or "FYI".</li>
 >     <li>"Gone from the skill list" is concrete vs. abstract "disappeared".</li>
@@ -339,7 +339,7 @@ When incrementing (history or active), report the matched original sentence and 
 
 ---
 
-## Operation 7 — Update Learning Progress
+## Operation 7 - Update Learning Progress
 
 **Trigger:** "I used X today", "progress X +1", "mark X learned", "bump X", "graduate X", "review my progress", "show progress".
 
@@ -349,12 +349,12 @@ Tracks how well the user actually owns each entry. The Progress column shows 5 d
 
 | Dots | Milestone |
 |------|-----------|
-| `○○○○○` | Just added — encountered for the first time. |
+| `○○○○○` | Just added - encountered for the first time. |
 | `●○○○○` | Re-encountered in reading/listening and recognized it. |
 | `●●○○○` | Used it in a real Slack message, PR comment, or design doc. |
 | `●●●○○` | Used it unprompted in a live conversation or meeting. |
 | `●●●●○` | Explained it to someone else in your own words. |
-| `●●●●●` | You own it — **stays in place** until the next entry is added to this file, at which point the row sweeps into `history.html`. The dropdown does not graduate on its own. |
+| `●●●●●` | You own it - **stays in place** until the next entry is added to this file, at which point the row sweeps into `history.html`. The dropdown does not graduate on its own. |
 
 ### Update Actions
 
@@ -370,16 +370,16 @@ Tracks how well the user actually owns each entry. The Progress column shows 5 d
 
 1. **Identify the file.** Match by word/sentence in `dict.html` first, then `tech-verb.html`, then `sentence-fixes.html`. If ambiguous, ask the user.
 2. **Locate the row** by case-insensitive match on the col-word / col-orig cell.
-3. **Update the dots** in the `col-progress` cell: `filled` span gets N `●` characters, `empty` span gets `5 - N` `○` characters. **Reaching 5 does not auto-graduate** — the row stays in place and shows `●●●●●`. Graduation happens lazily, as a sweep before the next Op 1/4/5 append (see Universal Rules → "Sweep before append").
-4. **Force-graduate (`graduate <word>`):** Skip the sweep deferral and immediately run the graduation routine on the matched row — remove from source, append to the matching section of `history.html` with today's date in `col-graduated`.
+3. **Update the dots** in the `col-progress` cell: `filled` span gets N `●` characters, `empty` span gets `5 - N` `○` characters. **Reaching 5 does not auto-graduate** - the row stays in place and shows `●●●●●`. Graduation happens lazily, as a sweep before the next Op 1/4/5 append (see Universal Rules → "Sweep before append").
+4. **Force-graduate (`graduate <word>`):** Skip the sweep deferral and immediately run the graduation routine on the matched row - remove from source, append to the matching section of `history.html` with today's date in `col-graduated`.
 5. **Report** the new state, e.g., `wire up: ●●●○○ → ●●●●○ (used unprompted ✓)`, `wire up: ●●●●○ → ●●●●● (ready to graduate on next add)`, or for force-graduate: `wire up: ●●●●● → graduated to history.html on 2026-05-15 🎓`.
 
 ### Update Helper
 
-Use **`bump_progress`** to change the dot count (no graduation — even at 5, the row stays put). Use **`graduate_one`** for force-graduate. Use **`sweep_graduated`** to run the pre-append sweep that moves all `●●●●●` rows in a file into `history.html`.
+Use **`bump_progress`** to change the dot count (no graduation - even at 5, the row stays put). Use **`graduate_one`** for force-graduate. Use **`sweep_graduated`** to run the pre-append sweep that moves all `●●●●●` rows in a file into `history.html`.
 
 ```python
-# Reusable helper — paste at the top of the script for any of the three actions below.
+# Reusable helper - paste at the top of the script for any of the three actions below.
 import re
 from datetime import date
 from pathlib import Path
@@ -484,7 +484,7 @@ moved = sweep_graduated("tech-verb.html"); print(f"swept: {moved}")
 When the user says *"review my progress"* / *"show progress"*, parse all three active files and print a summary:
 
 ```
-tech-verb.html — 29 active
+tech-verb.html - 29 active
   ○○○○○ : 24
   ●○○○○ : 3
   ●●○○○ : 1
@@ -492,12 +492,12 @@ tech-verb.html — 29 active
   ●●●●○ : 0
   ●●●●● : 0 (graduations happen automatically)
 
-dict.html — 36 active
+dict.html - 36 active
   …
-sentence-fixes.html — 16 active
+sentence-fixes.html - 16 active
   …
 
-history.html — N graduated total
+history.html - N graduated total
 ```
 
 This makes the "accumulation vs. learning" gap visible at a glance.
@@ -506,7 +506,7 @@ This makes the "accumulation vs. learning" gap visible at a glance.
 
 ## Browser-Based Progress Editing (Local Server)
 
-The HTML files include an embedded dropdown UI that lets the user update progress dots **directly in the browser**, with edits saved to disk via a separate `local-server` skill. The server itself lives at `$SKILL_DIR/../local-server/server.py` and is reusable by any personal-data skill — dict just points it at `$SKILL_DIR/data/`.
+The HTML files include an embedded dropdown UI that lets the user update progress dots **directly in the browser**, with edits saved to disk via a separate `local-server` skill. The server itself lives at `$SKILL_DIR/../local-server/server.py` and is reusable by any personal-data skill - dict just points it at `$SKILL_DIR/data/`.
 
 ### Starting the server
 
@@ -514,7 +514,7 @@ The HTML files include an embedded dropdown UI that lets the user update progres
 python3 $SKILL_DIR/../local-server/server.py --dir "$SKILL_DIR/data" --port 8765
 ```
 
-(`--dir` is required for dict — the generic server defaults to `~/personal/dict`, not the dict data dir.)
+(`--dir` is required for dict - the generic server defaults to `~/personal/dict`, not the dict data dir.)
 
 Prints:
 
@@ -530,7 +530,7 @@ Open any URL. The Progress column renders as a dropdown styled to look like dots
 
 ### How the JS knows whether the server is running
 
-The embedded script only activates on `http://` or `https://`. If the user opens the file via `file://` (e.g., from Finder), the dropdown UI no-ops and the static dots stay visible — read-only mode.
+The embedded script only activates on `http://` or `https://`. If the user opens the file via `file://` (e.g., from Finder), the dropdown UI no-ops and the static dots stay visible - read-only mode.
 
 ### Endpoint
 
@@ -548,69 +548,54 @@ Server returns `{"status": "ok", "message": "wire up: 3/5"}` on success or `{"st
 
 ### Op 7 vs. browser UI
 
-Both paths target the same on-disk format and graduation flow — use whichever is faster:
-- **Browser dropdown** — best for casual one-off bumps during a review session.
-- **Op 7 via Claude** — best for batch updates ("bump all phrasal verbs +1"), force-graduate, or when the server isn't running.
+Both paths target the same on-disk format and graduation flow - use whichever is faster:
+- **Browser dropdown** - best for casual one-off bumps during a review session.
+- **Op 7 via this skill** - best for batch updates ("bump all phrasal verbs +1"), force-graduate, or when the server isn't running.
 
 ---
 
-## Operation 8 — Preview (Start Local Server)
+## Operation 8 - Preview (Start Local Server)
 
-**Trigger:** "preview", "open dict in browser", "browse dict", "start dict server", "start server", "/dict preview".
+**Trigger:** "open dict", "preview vocab", "review words", "start dict server".
 
-Delegates to the `local-server` skill (see `$SKILL_DIR/../local-server/`). Idempotently starts the server pointed at `$SKILL_DIR/data/` and prints the URLs.
-
-### Process
-
-1. **Check if a server is already listening on port 8765**:
-   ```bash
-   lsof -nP -iTCP:8765 -sTCP:LISTEN 2>/dev/null
-   ```
-   - If output is non-empty, the server is already running. Skip to step 3.
-2. **Start the server detached** so it survives the current Claude session:
-   ```bash
-   nohup python3 $SKILL_DIR/../local-server/server.py --dir "$SKILL_DIR/data" --port 8765 \
-     > /tmp/dict-server.log 2>&1 &
-   disown
-   ```
-   Then wait until the port is reachable:
-   ```bash
-   for i in 1 2 3 4 5; do
-     curl -s -o /dev/null http://localhost:8765/tech-verb.html && break
-     sleep 0.2
-   done
-   ```
-3. **Print the URLs** in your response so the user can click any of them in the terminal:
-   ```
-   Dict server is running on http://localhost:8765/
-
-     ➜  http://localhost:8765/tech-verb.html       (29 active)
-     ➜  http://localhost:8765/dict.html            (36 active)
-     ➜  http://localhost:8765/sentence-fixes.html  (16 active)
-     ➜  http://localhost:8765/history.html         (graduated entries)
-
-   Stop with "/dict stop server" or `pkill -f local-server/server.py`.
-   ```
-   Replace the active counts with the live values from each file (`grep -c '<td class="col-word"' tech-verb.html` etc.).
-4. **Do not auto-open the browser** — let the user click the link they want.
-
-### Edge cases
-
-- If `python3` isn't on PATH, the start command fails silently; check the log at `/tmp/dict-server.log` and report the error.
-- If port 8765 is bound by something *other* than the local-server process, report the conflict and suggest the user kill that process or pass `--port` to use a different port.
-
----
-
-## Operation 9 — Stop Server
-
-**Trigger:** "stop server", "stop dict server", "kill dict server", "/dict stop".
-
-Kill the background server process:
+The HTML dropdowns can persist progress only over HTTP. Start the shared local server from the repo that contains this skill:
 
 ```bash
-pkill -f "local-server/server.py" \
-  && echo "local server stopped" \
-  || echo "no local server was running"
+# From the repo root, or substitute an absolute SKILL_DIR.
+SKILL_DIR="ai-agents/skills/dict"
+python3 $SKILL_DIR/../local-server/server.py --dir "$SKILL_DIR/data" --port 8765
 ```
 
-Report the outcome. If the server wasn't running, that's a no-op — say so plainly. Note: this kills **all** local-server instances regardless of port; if you have multiple data skills using their own ports, prefer `lsof -nP -iTCP:8765 -sTCP:LISTEN -t | xargs -r kill` for surgical stops.
+Agent notes:
+
+1. Resolve `SKILL_DIR` to this file's directory. If your environment supports managed background processes, run the same foreground command through that mechanism and keep the returned process/session id. Otherwise ask the user to run the command in a separate terminal and leave it open while reviewing.
+2. Do not redirect logs to a system temp directory. If a log is needed, write to `$SKILL_DIR/data/dict-server.log`.
+3. Report both links:
+
+   ```
+   Dict:       http://localhost:8765/dict.html
+   Tech verbs: http://localhost:8765/tech-verb.html
+   Sentences:  http://localhost:8765/sentence-fixes.html
+   ```
+
+4. Do not auto-open the browser - let the user click the link they want.
+
+Troubleshooting:
+
+- If port 8765 is busy, retry with another high port (e.g., 8766) and report the actual links.
+- If `python3` isn't on PATH, report the command failure and ask the user to run with the Python executable available in their environment.
+
+## Operation 9 - Stop Server
+
+**Trigger:** "stop dict server", "shut down vocab preview".
+
+Stop only the server process started for this preview. Prefer the process/session id returned by your managed background process tool. If the user started the server manually, tell them to press Ctrl-C in that terminal.
+
+If no process id is available, identify the listener for the reported port first and kill that exact PID only, for example:
+
+```bash
+lsof -nP -iTCP:8765 -sTCP:LISTEN
+kill <PID>
+```
+
+Report the outcome. If the server wasn't running, say so plainly.

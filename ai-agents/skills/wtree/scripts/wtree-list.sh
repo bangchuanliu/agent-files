@@ -5,7 +5,7 @@
 #
 # Fields: repo_group branch path state dirty stashes ahead behind upstream
 #         pr_count pr_states pr_url sessions_active sessions_detail last_seen main_repo
-set -uo pipefail
+set -euo pipefail
 
 WTREE_ROOT="${WTREE_ROOT:-$HOME/.worktree}"
 SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -15,9 +15,9 @@ WANT_PR=1
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --repo-group) REPO_GROUP_FILTER="$2"; shift 2 ;;
-    --m[p]) REPO_GROUP_FILTER="$2"; shift 2 ;; # deprecated hidden alias
-    --idle-mins) IDLE_MINS="$2"; shift 2 ;;
+    --repo-group) [[ $# -ge 2 && -n "$2" ]] || { echo "wtree-list: --repo-group requires a value" >&2; exit 2; }; REPO_GROUP_FILTER="$2"; shift 2 ;;
+    --m[p]) [[ $# -ge 2 && -n "$2" ]] || { echo "wtree-list: --mp requires a value" >&2; exit 2; }; REPO_GROUP_FILTER="$2"; shift 2 ;; # deprecated hidden alias
+    --idle-mins) [[ $# -ge 2 && -n "$2" ]] || { echo "wtree-list: --idle-mins requires a value" >&2; exit 2; }; IDLE_MINS="$2"; shift 2 ;;
     --no-pr) WANT_PR=0; shift ;;
     *) echo "wtree-list: unknown arg $1" >&2; exit 2 ;;
   esac
@@ -39,7 +39,7 @@ done
 [[ ${#paths[@]} -eq 0 ]] && exit 0
 
 # ---- one batched session lookup for all paths ----
-SESSIONS="$(python3 "$SKILL_DIR/wtree-sessions.py" --idle-mins "$IDLE_MINS" "${paths[@]}" 2>/dev/null)"
+SESSIONS="$(python3 "$SKILL_DIR/wtree-sessions.py" --idle-mins "$IDLE_MINS" "${paths[@]}" 2>/dev/null || true)"
 [[ -z "$SESSIONS" ]] && SESSIONS='{}'
 
 for path in "${paths[@]}"; do

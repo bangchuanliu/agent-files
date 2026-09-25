@@ -1,12 +1,12 @@
 ---
 name: jira-create
 kind: leaf
-description: "Create agent-optimized JIRA tickets with structured fields. Use when: create JIRA, JIRA ticket, create ticket, document work, batch tickets."
+description: "Jira: draft agent-optimized tickets with structured fields, acceptance criteria, inferred labels, and batch ticket plans. Use when: create Jira, Jira ticket, create ticket, document work, or batch tickets."
 ---
 
-# JIRA Create
+# Jira Create
 
-Create JIRA tickets with fields that enable efficient agent processing. Every ticket should be parseable by TL, dev, and QA agents without human clarification.
+Create tickets with fields that enable efficient agent processing. Every ticket should be parseable by planning, development, and QA agents without human clarification.
 
 ## Step 0 - company context
 
@@ -20,6 +20,8 @@ skip this step - its absence is normal and the generic guidance below is complet
 3. **Apply company context** from Step 0 when present. It may override project keys, components, labels, field names, or due-date rules.
 4. **Present a draft** with all fields filled in. Highlight uncertain fields with 2-3 alternatives.
 5. **Wait for explicit confirmation** before creating through the available Jira integration - never create without approval.
+
+Completion criterion: before creation, the draft names project, type, summary, priority, assignee, due date, points, component, labels, epic decision, and acceptance criteria. After creation, report the ticket key and URL.
 
 ## Draft Format
 

@@ -17,6 +17,7 @@ WTREE_NEW="${WTREE_NEW:-$HOME/.copilot/skills/wtree/scripts/wtree-new.sh}"
 HOP_TERM="${HOP_TERM:-$HOME/.copilot/skills/hop/scripts/hop-term.py}"
 AGENT_KIND="${DO_AGENT_KIND:-copilot}"
 AGENT_ARGS=(--autopilot --allow-all)
+FALLBACK_AGENT_CMD="${START_AGENT_CMD:-${HOP_AGENT_CMD:-coya}}"
 START_DIR="${DO_START_DIR:-$HOME}"
 WAIT_SECS="${DO_WAIT_SECS:-30}"
 
@@ -37,15 +38,18 @@ EOF
 
 log() { printf 'start: %s\n' "$*" >&2; }
 die() { printf 'start: error: %s\n' "$*" >&2; exit 1; }
+need_value() {
+  [[ $# -ge 2 && -n "$2" ]] || die "$1 requires a value"
+}
 
 # ---------------------------------------------------------------- args
 SLUG=""; REPO_GROUP=""; BASE=""; ACTIVATE="--activate"
 WANT_WORKTREE=1; WANT_AGENT=1; DRY=0; STATUS_ONLY=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --repo-group) REPO_GROUP="${2:-}"; shift 2 ;;
-    --m[p]) REPO_GROUP="${2:-}"; shift 2 ;; # deprecated hidden alias
-    --base) BASE="${2:-}"; shift 2 ;;
+    --repo-group) need_value "$@"; REPO_GROUP="$2"; shift 2 ;;
+    --m[p]) need_value "$@"; REPO_GROUP="$2"; shift 2 ;; # deprecated hidden alias
+    --base) need_value "$@"; BASE="$2"; shift 2 ;;
     --no-worktree) WANT_WORKTREE=0; shift ;;
     --no-agent) WANT_AGENT=0; shift ;;
     --no-focus) ACTIVATE="--no-activate"; shift ;;
@@ -148,7 +152,8 @@ run() { # echo under --dry-run, execute otherwise
 }
 
 open_tab() { # new terminal tab at $START_DIR running `herdr --session <session>`
-  local cmd="$HERDR_BIN --session $NAME"
+  local cmd
+  printf -v cmd '%q --session %q' "$HERDR_BIN" "$NAME"
   if [[ "$DRY" == 1 ]]; then
     printf '  would run: %s open %s --cmd %q %s\n' "$HOP_TERM" "$START_DIR" "$cmd" "$ACTIVATE" >&2
     printf 'dry-pane\n'; return 0
@@ -216,7 +221,8 @@ if [[ "$DRY" != 1 ]]; then
 fi
 
 if [[ -n "$WORKTREE" ]]; then
-  run "$HERDR_BIN" --session "$NAME" pane run "$IPANE" "cd $WORKTREE"
+  printf -v cd_cmd 'cd %q' "$WORKTREE"
+  run "$HERDR_BIN" --session "$NAME" pane run "$IPANE" "$cd_cmd"
 fi
 
 if [[ "$WANT_AGENT" == 1 ]]; then
@@ -225,9 +231,9 @@ if [[ "$WANT_AGENT" == 1 ]]; then
       "$HERDR_BIN" "$NAME" "$SLUG" "$AGENT_KIND" "$IPANE" "${AGENT_ARGS[*]}" >&2
   elif ! "$HERDR_BIN" --session "$NAME" agent start "$SLUG" \
         --kind "$AGENT_KIND" --pane "$IPANE" -- "${AGENT_ARGS[@]}" >/dev/null 2>&1; then
-    # agent start is strict about readiness; the shell alias always works.
-    log "agent start did not confirm readiness - falling back to 'coya' in the pane"
-    "$HERDR_BIN" --session "$NAME" pane run "$IPANE" "coya" >/dev/null || true
+    # agent start is strict about readiness; run the configured interactive fallback.
+    log "agent start did not confirm readiness - falling back to '$FALLBACK_AGENT_CMD' in the pane"
+    "$HERDR_BIN" --session "$NAME" pane run "$IPANE" "$FALLBACK_AGENT_CMD" >/dev/null || true
   fi
 fi
 

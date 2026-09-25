@@ -1,94 +1,118 @@
 ---
 name: table-distribution-check
 kind: leaf
-description: "Compare value-frequency distribution of a column between two tables - detect category drift, top-N reshuffle, or new/missing values. Use when: distribution shift, category drift, value distribution, top values diff, percentile drift, distribution skew. NOT for: schema changes (table-schema-check), null rates (table-null-check), or row totals (table-row-count) - value-frequency shape only."
+description: "Distribution check: compare value-frequency or numeric distribution for one column between two table slices. Use when: distribution shift, category drift, value distribution, top values diff, percentile drift, skew. NOT for: schema drift (table-schema-check), null rates (table-null-check), row totals (table-row-count), duplicate keys (table-duplicate-check), freshness (table-freshness-check), or source-target joins (table-traceability-check)."
 ---
 
-# Data Distribution Check - Value Frequency Comparison
+# Table Distribution Check
 
-Compare the value-frequency distribution of a column between **baseline** and **test** tables for the same partition. Catches category drift that aggregate row counts miss.
+Compare one column's distribution between baseline and test slices. Use categorical mode for enum or low-cardinality values, and numeric mode for continuous measures.
 
-## Step 0: Optional Context Overrides
+## Inputs
 
-If `~/.config/dotfiles/context/table-checks/context.md` exists, it may define table-specific threshold overrides for this table-check family. Read it and prefer its thresholds for the tables it names. Its absence is normal; the defaults below are complete on their own.
+- Baseline table or subquery: `<baseline_table_or_subquery>`.
+- Test table or subquery: `<test_table_or_subquery>`.
+- Baseline and test partition filters. Use equivalent logical windows.
+- Column or expression to compare, with a stable alias.
+- Mode: `categorical` or `numeric`.
+- Optional top-N limit for evidence, default 50.
+- Optional context overrides: if a local `table-checks/context.md` exists, use table-specific thresholds from it and cite them in the output. Its absence is normal.
+- SQL engine: run with whatever SQL engine or tool is available in this environment. Engine, catalog, cluster, and credential details come from local context. The queries below are ANSI/Trino-flavoured; adapt only syntax, not semantics.
 
-## Input
+## Query
 
-- Baseline table, test table (Trino paths)
-- Partition filter
-- Column or expression to compare (e.g. `outcome.source`, `signalsource`)
-- Mode: `categorical` (default) or `numeric`
-
-## Categorical Mode (string / enum columns)
-
-Compute per-value share in each table, then full-outer-join on the value to surface shifts and new/missing categories.
+Categorical mode:
 
 ```sql
 WITH baseline AS (
-  SELECT <col> AS val, COUNT(*) AS cnt
-  FROM <baseline_table>
-  WHERE <partition_filter>
+  SELECT <column_expression> AS val, COUNT(*) AS cnt
+  FROM <baseline_table_or_subquery>
+  WHERE <baseline_partition_filter>
   GROUP BY 1
 ),
 test AS (
-  SELECT <col> AS val, COUNT(*) AS cnt
-  FROM <test_table>
-  WHERE <partition_filter>
+  SELECT <column_expression> AS val, COUNT(*) AS cnt
+  FROM <test_table_or_subquery>
+  WHERE <test_partition_filter>
   GROUP BY 1
 ),
-b_total AS (SELECT SUM(cnt) AS n FROM baseline),
-t_total AS (SELECT SUM(cnt) AS n FROM test)
+totals AS (
+  SELECT
+    (SELECT SUM(cnt) FROM baseline) AS baseline_n,
+    (SELECT SUM(cnt) FROM test) AS test_n
+)
 SELECT
   COALESCE(b.val, t.val) AS val,
-  ROUND(100.0 * b.cnt / (SELECT n FROM b_total), 2) AS baseline_pct,
-  ROUND(100.0 * t.cnt / (SELECT n FROM t_total), 2) AS test_pct,
-  ROUND(100.0 * t.cnt / (SELECT n FROM t_total) - 100.0 * b.cnt / (SELECT n FROM b_total), 2) AS shift_pp
+  b.cnt AS baseline_count,
+  t.cnt AS test_count,
+  100.0 * COALESCE(b.cnt, 0) / NULLIF(totals.baseline_n, 0) AS baseline_pct,
+  100.0 * COALESCE(t.cnt, 0) / NULLIF(totals.test_n, 0) AS test_pct,
+  100.0 * COALESCE(t.cnt, 0) / NULLIF(totals.test_n, 0)
+    - 100.0 * COALESCE(b.cnt, 0) / NULLIF(totals.baseline_n, 0) AS shift_pp
 FROM baseline b
-FULL OUTER JOIN test t ON b.val = t.val
-ORDER BY ABS(shift_pp) DESC NULLS LAST;
+FULL OUTER JOIN test t
+  ON b.val IS NOT DISTINCT FROM t.val
+CROSS JOIN totals
+ORDER BY ABS(shift_pp) DESC NULLS LAST, val
+FETCH FIRST <top_n> ROWS ONLY;
 ```
 
-## Numeric Mode (continuous columns)
-
-Compare quantiles instead of values:
+Numeric mode:
 
 ```sql
 SELECT
   'baseline' AS source,
-  approx_percentile(<col>, ARRAY[0.50, 0.90, 0.99]) AS p50_p90_p99
-FROM <baseline_table>
-WHERE <partition_filter>
+  COUNT(*) AS row_count,
+  AVG(<column_expression>) AS avg_value,
+  approx_percentile(<column_expression>, ARRAY[0.50, 0.90, 0.99]) AS p50_p90_p99
+FROM <baseline_table_or_subquery>
+WHERE <baseline_partition_filter>
 UNION ALL
 SELECT
   'test' AS source,
-  approx_percentile(<col>, ARRAY[0.50, 0.90, 0.99])
-FROM <test_table>
-WHERE <partition_filter>;
+  COUNT(*) AS row_count,
+  AVG(<column_expression>) AS avg_value,
+  approx_percentile(<column_expression>, ARRAY[0.50, 0.90, 0.99]) AS p50_p90_p99
+FROM <test_table_or_subquery>
+WHERE <test_partition_filter>;
 ```
 
-## Thresholds
+If the engine lacks `approx_percentile`, use its nearest percentile function and state the substitution.
+
+## Interpretation and thresholds
 
 | Condition | Outcome |
 |---|---|
-| All categories \|shift_pp\| ≤ 2pp, no new/missing values | PASS |
-| Any category 2pp < \|shift_pp\| ≤ 5pp | WARN |
-| Any category \|shift_pp\| > 5pp | FAIL |
-| Any baseline value missing from test (baseline_pct > 0.1%) | FAIL - category dropped |
-| Any test value missing from baseline (test_pct > 0.1%) | FAIL - new category appeared |
-| Numeric: any percentile shifts > 5% relative | WARN; > 10% | FAIL |
+| Categorical: every value has `ABS(shift_pp) <= 2` and no new or missing material values | PASS |
+| Categorical: any `2 < ABS(shift_pp) <= 5` | WARN |
+| Categorical: any `ABS(shift_pp) > 5` | FAIL |
+| Categorical: baseline value missing in test with `baseline_pct > 0.1` | FAIL |
+| Categorical: test value missing in baseline with `test_pct > 0.1` | FAIL |
+| Numeric: every tracked percentile shifts by `<= 5%` relative | PASS |
+| Numeric: any percentile shifts by `> 5%` and `<= 10%` relative | WARN |
+| Numeric: any percentile shifts by `> 10%` relative | FAIL |
+| Either slice has zero rows | FAIL unless row-count or freshness checks established that an empty slice is expected |
 
+## Output format
 
-## Output
+Return JSON:
 
 ```json
 {
   "check": "distribution",
-  "column": "<col>",
-  "mode": "categorical",
+  "column": "<column_alias>",
+  "mode": "categorical|numeric",
+  "baseline_rows": 0,
+  "test_rows": 0,
   "top_shifts": [
-    {"val": "<v>", "baseline_pct": 0.0, "test_pct": 0.0, "shift_pp": 0.0},
-    {"val": "<v>", "baseline_pct": 0.0, "test_pct": null, "shift_pp": null, "note": "missing in test"}
+    {"val": "<v>", "baseline_pct": 0.0, "test_pct": 0.0, "shift_pp": 0.0, "note": ""}
   ],
-  "result": "PASS"
+  "percentiles": {},
+  "threshold_source": "default|local_context",
+  "result": "PASS|WARN|FAIL"
 }
 ```
+
+## Completion criterion
+
+Complete when the chosen mode matches the column type, baseline and test filters are recorded, zero-row slices are handled explicitly, top categorical shifts or numeric percentile shifts are included, and the JSON result explains every WARN or FAIL.

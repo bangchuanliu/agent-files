@@ -2,7 +2,7 @@
 name: review-self
 kind: leaf
 agents: claude, copilot
-description: "Use when: review my code, self review, review changes, pre-PR check, PR comment triage. Covers code, docs, and agent/skill domains, with optional domain-specific checks supplied by local context."
+description: "Self-review: check your own code or docs before PR, or triage review comments on your PR. Branches: pre-PR diff review; PR comment triage. Also covers agent/skill document changes with the agent-skill reference."
 ---
 
 # Code Review
@@ -13,23 +13,25 @@ Two modes:
 
 ## Usage
 
-```bash
-/review-self                    # Pre-PR review (default)
-/review-self domain=docs        # Force domain
-/review-self domain=agent       # Force domain
-/review-self comments           # PR comment triage
-/review-self comments #1234     # Triage specific PR
+```text
+review-self                    # Pre-PR review (default)
+review-self domain=docs        # Force domain
+review-self domain=agent       # Force domain
+review-self comments           # PR comment triage
+review-self comments #1234     # Triage specific PR
 ```
 
-## Step 0 - company context
+Use the host's skill invocation syntax if it has one; otherwise pass the same words as a normal prompt.
+
+## Step 0 - local context
 
 Read `~/.config/dotfiles/context/review-self/context.md` if it exists; it may route to further
 files in that directory. If it does not exist, skip this step - its absence is normal and the
 generic checks below are complete on their own.
 
-Company context may define additional domains, repository-specific risk rules, review helper
+Local context may define additional domains, repository-specific risk rules, review helper
 capabilities, or reference files. Treat those additions as optional. The generic review must still
-work when no company context is present.
+work when no local context is present.
 
 ## Mode 1: Pre-PR Review
 
@@ -57,7 +59,7 @@ git diff --name-only "$(git merge-base HEAD "$BASE_REF")"..HEAD
 | Domain | Patterns | Reference |
 |--------|----------|-----------|
 | Agent/Skill | agent configuration, skill files, command files, plan files | `references/agent-skill.md` |
-| Company-loaded domains | Patterns supplied by Step 0 context | References supplied by Step 0 context |
+| Local domains | Patterns supplied by Step 0 context | References supplied by Step 0 context |
 
 Classify risk generically:
 
@@ -71,7 +73,7 @@ Classify risk generically:
 
 If Step 0 supplied a parallel multi-reviewer review capability, delegate the broad file-by-file
 pass to that capability and read its structured findings. Name the capability by what it does,
-not by a company-specific skill or plugin identifier.
+not by a host-specific tool, skill, or plugin identifier.
 
 If no such capability exists, review the diff directly against the merge base:
 
@@ -92,7 +94,7 @@ For each changed file, check:
 Run only the domain checks that are available:
 
 - **Agent/Skill** -> read `references/agent-skill.md` and apply the full checklist.
-- **Company-loaded domains** -> apply any reference files and decision logic loaded in Step 0.
+- **Local domains** -> apply any reference files and decision logic loaded in Step 0.
 - **No matching domain context** -> skip domain-specific passes and rely on the generic review from Step 2. This is normal.
 
 For any refactor, regardless of domain, run these diff-based checks:
@@ -110,7 +112,7 @@ sources.
 ```markdown
 # Pre-PR Review Summary
 
-## Domains: [x] Agent/Skill (N files), [x] Company-loaded: <name>, [ ] Generic only
+## Domains: [x] Agent/Skill (N files), [x] Local: <name>, [ ] Generic only
 ## Sources: broad diff review + available domain references
 
 ## Blockers (P0) - must fix
@@ -195,5 +197,5 @@ Next: implement fixes, then re-run Mode 1 against the updated HEAD.
 ### Step 6: Improve the heuristic after misses
 
 If a human reviewer finds an issue this self-review should have caught, update the relevant generic
-or company-context heuristic. Keep company facts in the Step 0 context directory, not in this core
+or local-context heuristic. Keep project or organization facts in the Step 0 context directory, not in this core
 skill.

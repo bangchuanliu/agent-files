@@ -11,11 +11,14 @@ repo_roots_raw="${repo_roots_raw//:/ }"
 read -r -a REPO_ROOTS <<< "$repo_roots_raw"
 
 BRANCH=""; REPO_GROUP=""; BASE=""; FROM_CURRENT=0; PREFIX=1
+need_value() {
+  [[ $# -ge 2 && -n "$2" ]] || { echo "wtree-new: $1 requires a value" >&2; exit 2; }
+}
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --base) BASE="$2"; shift 2 ;;
-    --repo-group) REPO_GROUP="$2"; shift 2 ;;
-    --m[p]) REPO_GROUP="$2"; shift 2 ;; # deprecated hidden alias
+    --base) need_value "$@"; BASE="$2"; shift 2 ;;
+    --repo-group) need_value "$@"; REPO_GROUP="$2"; shift 2 ;;
+    --m[p]) need_value "$@"; REPO_GROUP="$2"; shift 2 ;; # deprecated hidden alias
     --from-current) FROM_CURRENT=1; shift ;;
     --no-prefix) PREFIX=0; shift ;;
     -*) echo "wtree-new: unknown flag $1" >&2; exit 2 ;;

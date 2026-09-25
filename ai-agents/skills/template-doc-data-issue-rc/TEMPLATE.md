@@ -20,10 +20,10 @@ Not for code files, design docs, or runbooks.
 
 | | |
 |---|---|
-| Author / Date | banliu / YYYY-MM-DD |
+| Author / Date | <author> / YYYY-MM-DD |
 | Status | Draft \| Under review \| Confirmed \| Closed |
 | Severity / Impact | e.g. P2 - 12% conversion undercount, 14 days |
-| Links | JIRA, PR, Slack thread, dashboard, upstream doc |
+| Links | ticket, PR/change, discussion thread, dashboard, upstream doc |
 
 ## 1. TLDR
 - **Symptom:** <one line, quantified>
@@ -38,7 +38,7 @@ investigation (alert, user report, launch), and what changed recently.
 
 ## 3. Scope & Method
 - Tables & partitions queried (FQN + date range)
-- Tools (Trino/Spark or notebook/query environment), environment (production vs development)
+- Tools (SQL engine, Spark, notebook, or query environment), environment (production vs development)
 - Assumptions
 - **Out of scope / not checked**
 

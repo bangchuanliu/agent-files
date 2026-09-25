@@ -8,7 +8,7 @@ Step 6's posting mechanics. Reached only after the Step 5 gate returns an explic
 - [Inline comment body template](#inline-comment-body-template)
 - [Thread reply body template](#thread-reply-body-template)
 - [Building the comments array](#building-the-comments-array)
-- [Publishing-agent prompt](#publishing-agent-prompt)
+- [Publisher instructions](#publisher-instructions)
 
 ## Verdict body template
 
@@ -52,9 +52,9 @@ One comment object per finding with no `thread_reply_to`. `path` is relative to 
 
 `side` is always `"RIGHT"`: anchors only ever land on added lines, which live in the post-change file.
 
-## Publishing-agent prompt
+## Publisher instructions
 
-Dispatch **one agent per confirmed PR, all in a single message**. Each agent posts the thread replies first, then the top-level review carrying every new inline finding in `comments[]`.
+Run once per confirmed PR. Use one worker per PR when the host supports workers; otherwise run the same steps directly. Each publisher posts the thread replies first, then the top-level review carrying every new inline finding in `comments[]`.
 
 ````
 Post a GitHub PR review for PR {PR_NUMBER} in {REPO}.
@@ -72,7 +72,8 @@ Step 1 - Post {K} thread reply(ies) (skip if K=0). For each:
     -f body="{thread_reply_body}"
 
 Step 2 - Post the top-level review with inline comments in one atomic call:
-  cat > /tmp/review_{PR_NUMBER}.json <<'EOF'
+  REVIEW_PAYLOAD="review-{PR_NUMBER}.json"
+  cat > "$REVIEW_PAYLOAD" <<'EOF'
   {
     "commit_id": "{HEAD_SHA}",
     "event": "{APPROVE|COMMENT}",
@@ -83,7 +84,8 @@ Step 2 - Post the top-level review with inline comments in one atomic call:
     ]
   }
   EOF
-  gh api repos/{REPO}/pulls/{PR_NUMBER}/reviews --method POST --input /tmp/review_{PR_NUMBER}.json
+  gh api repos/{REPO}/pulls/{PR_NUMBER}/reviews --method POST --input "$REVIEW_PAYLOAD"
+  rm -f "$REVIEW_PAYLOAD"
 
 The `comments` array is GitHub's standard inline-review mechanism - each entry becomes an inline file comment on the cited line(s). If `comments` is empty `[]`, the review posts with only the verdict body (LGTM case).
 

@@ -10,7 +10,7 @@
 #
 # hop never modifies git state. Creating a task stack (worktree + Herdr
 # session + agent) is the `start` skill's job; cleaning one up is `wtree clean`.
-set -uo pipefail
+set -euo pipefail
 
 SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WTREE_ROOT="${WTREE_ROOT:-$HOME/.worktree}"
@@ -31,17 +31,20 @@ ACTIVATE_NEW="--activate"
 # `copilot --autopilot --allow-all`; it resolves because the spawned tab runs an
 # interactive shell that sources ~/.zshrc. Override with HOP_AGENT_CMD.
 AGENT_CMD="${HOP_AGENT_CMD:-coya}"
+need_value() {
+  [[ $# -ge 2 && -n "$2" ]] || { echo "hop: $1 requires a value" >&2; exit 2; }
+}
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --repo-group) REPO_GROUP_HINT="$2"; shift 2 ;;
-    --m[p]) REPO_GROUP_HINT="$2"; shift 2 ;; # deprecated hidden alias
+    --repo-group) need_value "$@"; REPO_GROUP_HINT="$2"; shift 2 ;;
+    --m[p]) need_value "$@"; REPO_GROUP_HINT="$2"; shift 2 ;; # deprecated hidden alias
     --no-term) TERM_MODE="off"; shift ;;
     --focus) FOCUS=1; shift ;;
     --no-focus) ACTIVATE_NEW="--no-activate"; shift ;;
     --new-tab) FORCE_NEW=1; shift ;;
     --tmux) START_MODE="tmux"; shift ;;
     --no-agent) START_MODE="none"; shift ;;
-    --cmd) LAUNCH_CMD="$2"; shift 2 ;;
+    --cmd) need_value "$@"; LAUNCH_CMD="$2"; shift 2 ;;
     -*) echo "hop: unknown flag $1" >&2; exit 2 ;;
     *) [[ -z "$TARGET" ]] && TARGET="$1"; shift ;;
   esac
@@ -81,12 +84,14 @@ fi
 # 4. a repo checkout under any configured root
 if [[ -z "$DEST" ]]; then
   for root in "${REPO_ROOTS[@]}"; do
+    case "$root" in "~"/*) root="$HOME/${root#~/}";; esac
     [[ -d "$root/$TARGET" ]] && { DEST="$root/$TARGET"; break; }
   done
 fi
 # 4b. one level deeper, for nested layouts like <root>/<group>/<repo>
 if [[ -z "$DEST" ]]; then
   for root in "${REPO_ROOTS[@]}"; do
+    case "$root" in "~"/*) root="$HOME/${root#~/}";; esac
     for cand in "$root"/*/"$TARGET"; do
       [[ -d "$cand/.git" ]] && { DEST="$cand"; break 2; }
     done
@@ -155,13 +160,13 @@ if [[ "$TERM_MODE" != "off" ]]; then
     if [[ -n "$hsession" ]]; then
       say "no tab, but Herdr session '$hsession' is still alive here - resuming it"
       say "      (its agent and cwd survived the tab closing; not starting a second agent)"
-      launch="${HERDR_BIN:-herdr} --session $hsession"
+      printf -v launch '%q --session %q' "${HERDR_BIN:-herdr}" "$hsession"
     fi
   fi
   if [[ -z "$launch" ]]; then
     case "$START_MODE" in
       copilot) launch="$AGENT_CMD" ;;
-      tmux)    launch="tmux new-session -A -s $(basename "$DEST")" ;;
+      tmux)    printf -v launch 'tmux new-session -A -s %q' "$(basename "$DEST")" ;;
       none)    launch="" ;;
     esac
   fi

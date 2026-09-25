@@ -1,14 +1,14 @@
 ---
 name: hop
 kind: orchestrator
-description: "Find or open the terminal tab for a git worktree, repo checkout or directory - resolves a branch / worktree / repo name to a path, reports any tab already sitting there and which agent is running in it (including agents inside Herdr sessions), or opens a new tab and starts coya. Read-only with respect to git. Use when: hop, go to, goto, switch worktree, jump to branch, open a tab for this branch, is there a tab for this worktree, take me to that worktree. NOT for: starting a new task stack - worktree + Herdr session + agent (start), listing which agents need follow-up (yell), or creating and cleaning worktrees (wtree)."
+description: "Hop: resolve a branch, worktree, repo checkout, or directory to its path and terminal tab; report an existing tab/agent, focus it, or open/resume a tab. Use when: hop, go to, goto, switch worktree, jump to branch, open tab for this branch, is there a tab for this worktree, take me there. NOT for: starting a task stack with worktree + Herdr + agent (start), live agent triage (yell), long-horizon project status (where-are-we), or creating/cleaning worktrees (wtree)."
 ---
 
 # hop - find or open the terminal tab for a directory
 
 **An agent cannot change your shell's directory**, so hop works at the *terminal tab*
 level: it finds a tab already sitting in the destination (and which agent is running in
-it), or opens a new tab there and starts `coya` (Copilot CLI in autopilot mode).
+it), or opens a new tab there and starts the configured agent command.
 
 **The current session is left completely alone**, and hop never touches git state - no
 commit, no stash, no checkout. Worktrees are independent checkouts, so moving between
@@ -49,7 +49,7 @@ tab, `--no-focus` stops a **newly opened** one from grabbing the screen - which 
    defaults to `$HOME/project`. Nothing resolves? hop
    stops and points at `wtree show` / `start <name>`; it does not create anything.
 2. **Terminal** - find tabs already in the destination and report them with any running
-   agent, or open a new tab there and start `coya` (`$HOP_AGENT_CMD`).
+   agent, or open a new tab there and start `$HOP_AGENT_CMD` (default `coya`).
 
 ## Terminal tabs
 
@@ -94,9 +94,9 @@ When no tab exists, hop opens one. What it runs there depends on what it finds:
   resumes it. Closing a tab does not kill a Herdr session: the session, its cwd and its
   agent all survive. Starting a fresh agent would strand the original and leave two
   agents on one worktree, so hop resumes instead.
-- **Nothing there** - hop runs **`coya`**, the zsh alias for
-  `copilot --autopilot --allow-all`. The alias resolves because the spawned tab runs an
-  interactive shell that sources `~/.zshrc`; override with `HOP_AGENT_CMD`.
+- **Nothing there** - hop runs `$HOP_AGENT_CMD` (default `coya`, the local zsh alias for
+  Copilot CLI autopilot). Set `HOP_AGENT_CMD` to the equivalent command for the host
+  agent if that alias is unavailable.
 
 Use `--tmux` for `tmux new-session -A -s <dir>`, `--no-agent` for a bare shell, or
 `--cmd` for anything else - all three bypass the resume path.
@@ -132,10 +132,3 @@ last line of stdout, with all commentary on stderr.
   session still owns its agent, so hop resumes the session rather than launching a rival
   agent beside it.
 - Never kill a pane, a tmux session, a Herdr session, or an agent process.
-
-## Related
-
-`start` starts a whole task stack - worktree + Herdr session + agent - and depends on this
-skill's `hop-term.py` to open its tab. `yell` reports which agents need follow-up.
-`wtree` creates and safely cleans worktrees. hop only *moves between* what already
-exists: it resolves and opens tabs, nothing more.
