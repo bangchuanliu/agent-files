@@ -4,8 +4,8 @@
     python3 scripts/test_spec_check.py
 
 Every case here is a bug that actually shipped. Four of them were false
-positives — a checker that cries wolf gets ignored, which is worse than not
-having one — so each fix is pinned by a test that fails without it.
+positives - a checker that cries wolf gets ignored, which is worse than not
+having one - so each fix is pinned by a test that fails without it.
 
 Exit 0 = all pass, 1 = failures.
 """
@@ -13,7 +13,6 @@ import os
 import shutil
 import subprocess
 import sys
-import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CHECKER = os.path.join(HERE, "spec_check.py")
@@ -89,7 +88,7 @@ def link_title_is_not_part_of_the_path(root):
 def literal_markdown_example_is_not_a_link(root):
     """A skill documenting markdown syntax contains `[text](url)` as an example."""
     d = build(root, "literal", GOOD_FM.format(name="literal")
-              + "Do NOT use: `[text](url)` in Slack.\n\n~~~\n[other](nope.md)\n~~~\n")
+              + "Do NOT use: `[text](url)` in chat.\n\n~~~\n[other](nope.md)\n~~~\n")
     _, out = run(d)
     return "broken link" not in out, out
 
@@ -183,6 +182,35 @@ def dangling_route_is_flagged(root):
 
 
 @case
+def user_invoked_description_is_not_house_routed(root):
+    fm = ('---\nname: manual\nkind: leaf\ndisable-model-invocation: true\n'
+          'description: "Manual-only maintenance helper."\n---\n\nbody\n')
+    d = build(root, "manual", fm)
+    _, out = run(d, "--house")
+    return "description does not start" not in out and "has no 'NOT for:'" not in out, out
+
+
+@case
+def agents_frontmatter_accepts_supported_filter(root):
+    fm = ('---\nname: filtered\nkind: leaf\nagents: claude, copilot\n'
+          'description: "Use when: filtered demos. NOT for: creation -> use skill-creator"\n---\n\nbody\n')
+    d = build(root, "filtered", fm)
+    _, out = run(d)
+    return "agents" not in out, out
+
+
+@case
+def all_discovery_skips_data_heavy_dirs(root):
+    parent = os.path.join(root, "discover_parent")
+    os.makedirs(parent, exist_ok=True)
+    build(parent, "skill-creator", GOOD_FM.format(name="skill-creator") + "stub\n")
+    build(parent, "real", GOOD_FM.format(name="real") + "body\n")
+    build(parent, "data", "not frontmatter\n")
+    code, out = run(parent, "--all")
+    return code == 0 and "real" in out and "data" not in out, f"exit={code} {out}"
+
+
+@case
 def missing_kind_is_flagged(root):
     fm = ('---\nname: nokind\n'
           'description: "Use when: x. NOT for: y (z-skill)"\n---\n\nbody\n')
@@ -192,7 +220,9 @@ def missing_kind_is_flagged(root):
 
 
 def main():
-    root = tempfile.mkdtemp(prefix="spec_check_fixtures_")
+    root = os.path.join(HERE, ".spec_check_fixtures")
+    shutil.rmtree(root, ignore_errors=True)
+    os.makedirs(root, exist_ok=True)
     failures = []
     try:
         for fn in CASES:

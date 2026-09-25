@@ -1,12 +1,12 @@
 ---
 name: gsheet
 kind: leaf
-description: "Read from and write to Google Sheets from the terminal using Google Application Default Credentials by default, or a custom client from GSHEET_CLIENT_MODULE. Covers gid→title resolution, ragged-row handling, safe full-range rewrites, column insert/delete, tab creation, and batchUpdate formatting (freeze, merge, banding, number formats, gradients). Use when: read a google sheet, write to a google sheet, update a spreadsheet tab, google sheets API, spreadsheetId, gid, read a tab, append rows, delete a column, format a sheet, freeze header, conditional formatting, sheet says gid not found, update the impact sheet, build a tracking sheet."
+description: "Sheets: read, write, restructure, and format Google Sheets from the terminal with Application Default Credentials or GSHEET_CLIENT_MODULE. Covers gid-to-title resolution, ragged rows, full-range rewrites, column insert/delete, tab creation, and batchUpdate formatting. Use when: read a Google Sheet, write a Google Sheet, update a tab, spreadsheetId, gid, append rows, delete a column, freeze headers, conditional formatting, gid not found, impact sheet, or tracking sheet."
 ---
 
 # Google Sheets read/write
 
-There is **no Sheets MCP tool**. Use the bundled `sheets` package for everything. Drop to raw API calls only for operations it does not implement.
+Use the bundled `sheets` package for repeatable sheet work. Prefer it over host-specific integrations; drop to raw API calls only for operations it does not implement.
 
 ## Authentication
 
@@ -95,7 +95,7 @@ F.apply(svc, SS, [F.freeze(gid), F.header_row(gid, len(header))])
 
 | Need | Call |
 |---|---|
-| gid → title map | `sheets.tab_map(svc, SS)` |
+| gid to title map | `sheets.tab_map(svc, SS)` |
 | resolve gid **or** title → title | `sheets.resolve_tab(svc, SS, gid=..., tab=...)` |
 | rows, squared to the range width | `sheets.read_range(...)` |
 | header-keyed dicts | `sheets.read_records(...)` |

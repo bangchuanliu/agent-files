@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Read input from stdin
 input=$(cat)
@@ -27,8 +27,8 @@ fi
 short_cwd=$(basename "$cwd")
 
 # Format token counts: e.g. 44200 -> "44.2k", 1000000 -> "1m"
-tokens_used_fmt=$(awk "BEGIN { n=$tokens_used/1000; if(n>=100) printf \"%dk\",int(n); else printf \"%.1fk\",n }")
-tokens_total_fmt=$(awk "BEGIN { n=$tokens_total; if(n>=1000000) printf \"%dm\",int(n/1000000); else printf \"%dk\",int(n/1000) }")
+tokens_used_fmt=$(awk -v t="$tokens_used" 'BEGIN { n=(t+0)/1000; if(n>=100) printf "%dk",int(n); else printf "%.1fk",n }')
+tokens_total_fmt=$(awk -v t="$tokens_total" 'BEGIN { n=t+0; if(n>=1000000) printf "%dm",int(n/1000000); else printf "%dk",int(n/1000) }')
 token_info="${tokens_used_fmt}/${tokens_total_fmt} tokens (${tokens_pct}%)"
 
 # Build title string: path | tokens | model | effort

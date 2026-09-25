@@ -14,16 +14,16 @@ Use for features whose triage verdict is `complex` (any dimension is `complex`).
 feature_name: <kebab-case-name>
 complexity: complex
 needs_qa: <true | false>
-route: "<route string from triage - see triage agent's route table>"
+route: "<route string from triage - see triage route table>"
 ticket: <TICKET-123 or "none">   # resolved by triage, copied from spec.md
 
 # added by generate-plan skill
 branch: <user/feature-name>
 created: YYYY-MM-DD
 phases:
-  - "Group A: <one-line summary>"
-  - "Group B: <one-line summary>"
-  - "Group C: <one-line summary>"
+ - "Group A: <one-line summary>"
+ - "Group B: <one-line summary>"
+ - "Group C: <one-line summary>"
 ---
 ```
 
@@ -53,14 +53,14 @@ phases:
 Files: `path/one.yml`, `path/two.json`
 
 - [ ] Task A1: <description>
-  - File: `path/one.yml`
-  - Action: create | modify | delete
-  - Details: <fields to add/change, dependencies on other tasks>
+ - File: `path/one.yml`
+ - Action: create | modify | delete
+ - Details: <fields to add/change, dependencies on other tasks>
 
 - [ ] Task A2: <description>
-  - File: `path/two.json`
-  - Action: modify
-  - Details: <...>
+ - File: `path/two.json`
+ - Action: modify
+ - Details: <...>
 
 ### Group B: <name - e.g., "Core Scala logic">
 Files: `src/.../Foo.scala`, `src/.../Bar.scala`
@@ -85,10 +85,10 @@ Files: `src/test/.../FooSpec.scala`, `airflow/dags/foo_dag.py`
 
 - **Up to 3 groups, distinct files.** No file appears in two groups; same-file tasks share a group. Aim for 2–3 groups roughly equal in task count and risk.
 - **Group names describe scope, not order.** Groups run in parallel - Group A is not "first", just "first listed".
-- **Within a group, order matters.** Same-group tasks run sequentially in one dev agent; earlier tasks must not depend on later ones.
+- **Within a group, order matters.** Same-group tasks run sequentially in one implementer; earlier tasks must not depend on later ones.
 - **Common starter shapes** (adapt to the actual file set):
-  - Group A: Config YAML, generated resources, schema files
-  - Group B: Core logic - job classes, models, utilities
-  - Group C: Tests, Airflow DAG definitions, integration glue
+ - Group A: Config YAML, generated resources, schema files
+ - Group B: Core logic - job classes, models, utilities
+ - Group C: Tests, Airflow DAG definitions, integration glue
 - **Acceptance Criteria is the contract.** If the requirement has 5 criteria, the plan has ≥ 5 criteria. Map each criterion to ≥ 1 task; cite the criterion number in task details when helpful.
 - **Risks are real, not boilerplate.** Skip the section if there are none - don't pad with "code review may catch issues". List concrete failure modes: schema migration on a 50M-row table, dual-write window, downstream consumer in another repository or service, etc.

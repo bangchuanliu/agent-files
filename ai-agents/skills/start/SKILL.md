@@ -1,14 +1,15 @@
 ---
 name: start
 kind: orchestrator
-description: "Start or resume the dedicated Herdr workspace for a task - derives a slug from the requirement, opens a terminal tab at ~, brings up a named Herdr session, cuts a worktree via wtree, and launches coya in it; resumes a detached session in a new tab, or reports and does nothing when the session is already up and attached. Use when: start task, start a new task, do task, new session for this, spin up a workspace for X, resume the X session. NOT for: creating a worktree alone (wtree), finding or focusing a tab for a directory that already exists (hop), or committing finished work."
+description: "Start: create or resume one task stack: slug, Herdr session, wtree-created worktree, terminal tab, and agent command. Use when: start task, start a new task, do task, new session for this, spin up a workspace for X, resume the X session. NOT for: creating a worktree alone (wtree), moving to a known tab or path (hop), live agent triage (yell), long-horizon project status (where-are-we), or committing finished work."
 ---
 
 # do - one tab, one session, one worktree, one agent per task
 
-Every task gets its own Herdr session named after it, its own git worktree, and its own
-`coya` (Copilot CLI autopilot). `start` makes that whole stack exist - or tells you it
-already does.
+Every task gets its own Herdr session, git worktree, terminal tab, and configured agent
+command. `start` makes that whole stack exist - or tells you it already does. The default
+fallback command is `coya`; set `START_AGENT_CMD` or `HOP_AGENT_CMD` when that alias is
+unavailable in the host agent's shell.
 
 ## Usage
 
@@ -122,8 +123,8 @@ Report the final stdout line to the user; everything else is commentary on stder
 3. Poll `session list` until the new session reports running.
 4. Session-scoped from here on (`herdr --session <slug> ...`): `cd` its pane into the
    worktree, then `agent start <slug> --kind copilot -- --autopilot --allow-all`. If
-   `agent start` will not confirm readiness, fall back to running `coya` in the pane -
-   the alias resolves because the pane runs an interactive shell.
+   `agent start` will not confirm readiness, run `START_AGENT_CMD` (or
+   `HOP_AGENT_CMD`, then `coya`) in the pane.
 
 **The tab must be a real terminal tab, not `herdr tab create`.** Herdr refuses to nest
 ("nested herdr is disabled by default"), so a session can only be launched from a pane
@@ -151,8 +152,3 @@ steal - being taken to an existing tab is `hop --focus`, not `start`.
   a stack behind.
 - Outside WezTerm, `hop-term.py` cannot open a tab; `start` reports that and stops rather
   than guessing at a terminal.
-
-## Related
-
-`wtree` creates and cleans the worktrees `start` consumes, and `hop` finds or focuses a
-tab for one that already exists - `hop` moves between tasks, `start` starts them.

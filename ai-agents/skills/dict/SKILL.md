@@ -1,18 +1,17 @@
 ---
 name: dict
 kind: leaf
-description: "Use when user asks to save, add, look up, list, or extract vocabulary (words, verbs, phrases, idioms) in their personal dictionary, OR to rewrite/flag/fix their own draft sentences for language-learning practice (practice on the user's OWN English; to compose a message to actually send a coworker, use slack-msg instead), OR to update learning progress / graduate an entry / preview the dict files in a browser / start or stop the local progress server, OR to polish/tighten a draft prompt for an AI agent, OR for a workplace conversation scenario (small talk, debate, meeting, presentation, technical). Trigger phrases: \"vocab\", \"dict\", \"save word\", \"look up\", \"define\", \"extract verbs\", \"tech verbs\", \"review my sentences\", \"fix sentences in this thread\", \"preview\", \"browse dict\", \"start/stop dict server\", \"I used X today\", \"graduate X\", \"show progress\", \"polish prompt\", \"tighten prompt\", \"small talk\", \"debate\", \"meeting scenario\", \"demo scenario\"."
+description: "Practice the user's own English: personal vocabulary capture, sentence rewrites for language learning, learning progress, dictionary preview, prompt polish, and workplace dialogue drills. Use when: vocab, save word, look up word, extract verbs, tech verbs, review my sentences, fix my sentences in this thread, I used X today, graduate X, show progress, preview dict, start dict server, stop dict server, polish prompt, tighten prompt, small talk, debate, meeting scenario, demo scenario. NOT for: drafting an outgoing coworker Slack/IM/DM to send - use slack-msg; peer review or self-review writing; general grammar checking detached from the user's learning dictionary."
 ---
 
 # Personal Dictionary & Communication Coach
 
-This skill has three modes. Pick the matching one and follow its rubric.
+Pick one mode from the user's request, then read its rubric before responding. The rubrics carry the exact operation specs, output format, and storage rules.
 
-| Mode | Trigger | Rubric |
+| Mode | Use for | Rubric |
 |------|---------|--------|
-| **Vocab capture, sentence rewrite, progress, preview** — add/lookup/list/extract/curate words & verbs (Op 1–5), rewrite the user's own conversation sentences (Op 6), update learning progress / graduate (Op 7), start the local browser preview server (Op 8), stop the server (Op 9) | "save word", "add to vocab", "extract vocab", "tech verbs", "look up", "list dict", "review my sentences", "rewrite my sentences", "flag rough sentences", "fix sentences in this thread", "I used X today", "bump X", "graduate X", "review my progress", "preview", "open dict in browser", "browse dict", "start dict server", "stop dict server" | [`vocab.md`](vocab.md) |
-| **Prompt polish** — rewrite a draft prompt to be agent-friendly | "polish prompt", "rewrite prompt", "tighten prompt" | [`polish.md`](polish.md) |
-| **Scenario coaching** — generate workplace dialogues with word banks | "small talk", "debate", "meeting", "demo", "technical scenario" | [`coach.md`](coach.md) |
+| **Dictionary practice** | Save, look up, list, extract, or curate vocabulary; rewrite the user's own sentences for language practice; update progress; preview or stop the dictionary server. | [`vocab.md`](vocab.md) |
+| **Prompt polish** | Rewrite a draft prompt for an AI agent while preserving the user's scope. | [`polish.md`](polish.md) |
+| **Scenario coaching** | Generate workplace dialogue drills with word banks. | [`coach.md`](coach.md) |
 
-**Read the linked rubric file before responding** — each file contains the full operation specs, output format, and inclusion standards. Don't try to reconstruct from memory.
-
+Boundary: this skill practices the user's own English and prompt-writing. If the user is composing a real outgoing message to a coworker, route to `slack-msg`.

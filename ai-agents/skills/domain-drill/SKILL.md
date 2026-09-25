@@ -1,31 +1,24 @@
 ---
 name: domain-drill
 kind: leaf
-description: "Three modes for learning any technical domain at staff/principal depth. (1) learn — Socratic L1→L6 session with persistent index. Use when: \"I want to learn X\", \"explore X\", \"map out X\", \"resume learning X\". (2) teach-back — user explains a concept, graded against L1–L6. Use when: \"let me explain X\", \"teach-back on X\", \"grade my understanding\". (3) quick-frame — 5-question problem framing in 2–3 min. Use when: \"frame this\", \"quick frame\", \"think through X\"."
+description: "Learn a technical domain at staff/principal depth. Use when: I want to learn X, explore X, map out X, resume learning X. Teach-back: grade the user's explanation against L1-L6. Use when: let me explain X, teach-back on X, grade my understanding. Quick-frame: 5-question problem framing in 2-3 minutes. Use when: frame this, quick frame, think through X. NOT for: system-design interview practice - use sysdesign-drill; self-review, peer feedback, or Slack message drafting."
 ---
 
-# Domain Drill — Staff/Principal Learning
+# Domain Drill
 
-Three modes — read the rubric file before responding.
+Pick one mode, read the linked rubric, then run only that mode.
 
-| Mode | When the user says… | Rubric |
-|------|---------------------|--------|
-| **learn** | "I want to learn X", "explore X", "map out X", "resume learning X", "what do I still not know about X" | [`modes/learn.md`](modes/learn.md) |
-| **teach-back** | "let me explain X", "teach-back on X", "grade my understanding of X", "resume teach-back" | [`modes/teach-back.md`](modes/teach-back.md) |
-| **quick-frame** | "frame this: [problem]", "quick frame", "think through X" | [`modes/quick-frame.md`](modes/quick-frame.md) |
+| Mode | Use for | Completion |
+|------|---------|------------|
+| **learn** | Socratic L1-L6 learning map for a technical domain. | Current layer captured and next focus recorded. |
+| **teach-back** | The user explains; you grade transfer against L1-L6. | Grade saved with strengths, gaps, score, and next drill focus. |
+| **quick-frame** | 2-3 minute framing for one problem. | Three-line constraint/tension/direction summary. |
 
-**Default**: ambiguous intent → **learn** mode.
+Rubrics:
+- [`modes/learn.md`](modes/learn.md)
+- [`modes/teach-back.md`](modes/teach-back.md)
+- [`modes/quick-frame.md`](modes/quick-frame.md)
 
-### Resume Commands
+Default: ambiguous intent means **learn** mode.
 
-Paste to continue a saved session:
-- `resume learning on [topic]` — e.g., `resume learning on stream processing`
-- `resume teach-back on [concept]` — e.g., `resume teach-back on event-time joins`
-
-### Progress Files
-
-```
-~/.claude/learning/<topic>/
-  index.md                    # learning index (learn mode)
-  teach-back-<concept>.md     # per-concept teach-back results
-```
+Progress storage: use `learning/<topic>/` inside this skill directory unless the user names another persistent location. Keep paths portable across host agents.

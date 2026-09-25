@@ -2,7 +2,7 @@
 # Print a table of every worktree under $WTREE_ROOT plus its agent sessions.
 #
 # Usage: wtree-show.sh [--repo-group NAME] [--idle-mins N] [--no-pr] [--json]
-set -uo pipefail
+set -euo pipefail
 
 SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WTREE_ROOT="${WTREE_ROOT:-$HOME/.worktree}"
@@ -47,7 +47,7 @@ fi
 # ---- registered-but-missing worktrees (prunable) ----
 mapfile -t MAINS < <(jq -r 'select(.main_repo != "") | .main_repo' <<<"$ROWS" | sort -u)
 missing=()
-for main in ${MAINS[@]+"${MAINS[@]}"}; do
+for main in "${MAINS[@]}"; do
   while read -r wt; do
     [[ "$wt" == "$WTREE_ROOT"/* ]] || continue
     [[ -d "$wt" ]] || missing+=("$wt")

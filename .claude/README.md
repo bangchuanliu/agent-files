@@ -13,7 +13,7 @@ Wires shared `ai-agents/` content and Claude-native config into `~/.claude/`.
 | `skills/<name>` | per-skill symlink into `ai-agents/skills/<name>` |
 | `agents` | optional symlink to `ai-agents/agents` when present |
 | `docs/core` | symlink to `ai-agents/docs` |
-| `CLAUDE.md` | symlink to `ai-agents/.generated/AGENTS.md` |
+| `CLAUDE.md` | symlink to `ai-agents/.generated/AGENTS.md` (owned by `render-rules.sh`) |
 | `settings.json`, `statusline-command.sh` | symlinks to `.claude/*` |
 
 The skills directory is a real merge directory so other repos can add their own symlinks.
@@ -23,5 +23,8 @@ Docs are namespaced under `docs/core` so a company layer can add `docs/<layer>` 
 
 - `settings.json` - permissions, hooks, statusLine, enabled plugins.
 - `statusline-command.sh` - status line script.
+
+The installer also adds a managed `cla` alias block to `~/.zshrc` and `~/.bashrc`; reruns replace the
+block instead of appending.
 
 These are not shared with other agents because each agent has its own config schema.

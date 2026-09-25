@@ -259,9 +259,7 @@ def find(target):
 
 def open_tab(target, cmd=None, activate=True):
     if not have_wezterm():
-        # Fall back to the OS opener; it cannot set a cwd reliably, so report that.
-        run(["open", "-a", "WezTerm"])
-        return {"ok": False, "reason": "wezterm cli unavailable; opened terminal without cwd"}
+        return {"ok": False, "reason": "wezterm cli unavailable; open a terminal manually and cd there"}
     target = os.path.realpath(target)
     res = run([WEZTERM, "cli", "spawn", "--cwd", target])
     if res.returncode != 0:

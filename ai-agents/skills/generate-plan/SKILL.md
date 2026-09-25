@@ -1,16 +1,16 @@
 ---
 name: generate-plan
 kind: leaf
-description: "Generate an execution plan (plan.md) for a triaged feature from its spec.md. Use when: write plan, execution plan, decompose feature, parallel groups, tech lead plan."
+description: "Plan: generate plan.md from a triaged spec.md. Branches: simple plan; complex grouped plan; tiny constrained plan; revision feedback. Use when: execution plan, decompose feature, parallel groups, tech lead plan."
 ---
 
 # generate-plan - Execution Plan Generator
 
 Produce an implementation plan for a feature whose `spec.md` already contains a triaged `## Requirement` and `## Triage`. Picks the matching template (simple or complex), decomposes the work, and writes a **separate** `plan.md`. `spec.md` is read-only - never edited, and `plan.md` does NOT duplicate Requirement/Triage.
 
-**Inputs from the calling agent:**
+**Inputs from the caller:**
 - `feature_name`
-- `skip_review` (default `false`) - when `true`, skip the Step 6 review and write `plan.md` directly. Used when the caller (e.g., an orchestrating pipeline skill supplied by a company layer) owns user-facing review at a higher level.
+- `skip_review` (default `false`) - when `true`, skip the Step 6 review and write `plan.md` directly. Used when the caller owns user-facing review at a higher level.
 - `revision_feedback` (optional) - free-text feedback from a prior rejection. Incorporate into Steps 3–4 before re-writing.
 - Targeted-read codebase context (repo-specific style/architecture references + affected-file notes)
 
@@ -45,7 +45,7 @@ Then check whether `plans/features/<feature_name>/plan.md` already exists with a
 | `complex` | `complex-plan.md` |
 | `tiny` | `simple-plan.md` (linear tasks, no groups) |
 
-Read the matching file from `.claude/skills/generate-plan/<template>` (relative to repo root, falling back to `~/.claude/skills/generate-plan/<template>`).
+Read the matching file from this skill directory (`simple-plan.md` or `complex-plan.md`). If the host exposes skills through a mirror directory, use that only as a fallback after checking the repository copy.
 
 The template defines the section structure and frontmatter fields the final `plan.md` must contain.
 
@@ -66,12 +66,12 @@ Using `spec.md`'s `## Requirement`, `## Triage`, `## Affected Files`, and the ta
 Skip for simple/tiny - single linear task list.
 
 For complex plans:
-- Group tasks for concurrent execution by up to **3 dev agents** (`A`, `B`, `C`).
+- Group tasks for concurrent execution by up to **3 implementers** (`A`, `B`, `C`).
 - **Different groups MUST touch completely distinct files.** Two tasks touching the same file share a group.
 - Aim for 2–3 roughly equal groups by task count and risk.
-- Same-group tasks execute sequentially by one agent.
+- Same-group tasks execute sequentially by one implementer.
 
-The calling agent may supply repo-specific group patterns (e.g., Config YAML / Core Scala / Tests + Airflow). Use them as a starting point but adapt to the actual file set.
+The caller may supply repo-specific group patterns (e.g., Config YAML / Core Scala / Tests + Airflow). Use them as a starting point but adapt to the actual file set.
 
 ## Step 5: Determine Branch Name
 
@@ -88,7 +88,7 @@ This value goes into the frontmatter `branch:` field. Do not switch branches fro
 1. Caller passed `skip_review: true` (e.g., an orchestrating pipeline skill owns review at the manager level).
 2. Frontmatter already has `created:` (re-enrichment pass).
 
-**Otherwise** (standalone invocation), present the full draft via `AskUserQuestion` **before writing to disk**:
+**Otherwise** (standalone invocation), present the full draft through the host's user-prompt capability **before writing to disk**:
 
 ```
 ## Plan: <feature_name>
@@ -104,7 +104,7 @@ Created: YYYY-MM-DD
 Approve? Type "yes" to proceed, or describe what to change.
 ```
 
-If rejected: read the feedback, revise (loop back to Step 3 or Step 4), and re-present until approved. **Do not write `plan.md` without approval** in this mode.
+If rejected: read the feedback, revise (loop back to Step 3 or Step 4), and re-present until approved. If the host has no user-prompt capability or is non-interactive, stop with the draft inline and leave `plan.md` unwritten in this mode.
 
 **`skip_review: true` mode:** write `plan.md` directly (Step 7). The caller reads it and appends `approved: <date>` on approval, or re-invokes with `revision_feedback` on rejection.
 
@@ -113,9 +113,9 @@ If rejected: read the feedback, revise (loop back to Step 3 or Step 4), and re-p
 Write a **fresh** `plans/features/<feature_name>/plan.md` (separate from `spec.md`). Do NOT edit `spec.md`.
 
 1. **Frontmatter** - copy routing fields from `spec.md` (`feature_name`, `complexity`, `needs_qa`, `route`, `ticket`), then add:
-   - `branch: <branch_name>` (Step 5)
-   - `created: YYYY-MM-DD`
-   - Complex only: `phases:` (list of group summaries)
+  - `branch: <branch_name>` (Step 5)
+  - `created: YYYY-MM-DD`
+  - Complex only: `phases:` (list of group summaries)
 2. **Body** - rendered template body only. Do **NOT** copy `## Requirement` or `## Triage` into `plan.md`; those stay in `spec.md`. `spec.md`'s `## Affected Files` informs each task's `File:` line.
 
 Final structure:
@@ -135,7 +135,7 @@ Final structure:
 - Every task has `file` + `action` + `details`.
 - (Complex) No file appears in more than one group.
 - (Complex) Tasks within a group are ordered by dependency.
-- **(Tiny) The `## Constraints` section is present.** A tiny plan without it is invalid - the Constraints section is the only scope guard for the implementing agent. If missing, add it before writing.
+- **(Tiny) The `## Constraints` section is present.** A tiny plan without it is invalid - the Constraints section is the scope guard for the implementer. If missing, add it before writing.
 
 If any check fails, fix and re-present (Step 6).
 
@@ -166,7 +166,7 @@ For `simple` or `complex`, omit `## Constraints`.
 
 ## Step 8: Return
 
-Return to the calling agent:
+Return to the caller:
 - Path to `plan.md`.
 - Number of tasks (and groups, for complex).
 - Branch name.
@@ -179,7 +179,7 @@ Ticket is resolved by **triage** (the `ticket:` field is copied from `spec.md`);
 
 1. **`spec.md` is read-only.** Never edit it. `## Requirement` and `## Triage` stay there; do not copy them into `plan.md`.
 2. **Copy routing fields from `spec.md`** (`feature_name`, `complexity`, `needs_qa`, `route`, `ticket`) into `plan.md` frontmatter, then add the TL fields (`branch`, `created`, `phases` for complex). `ticket` comes from `spec.md` (triage owns it) - never derive it from the requirement.
-3. **Plan review is caller-controlled.** `skip_review: true` → write directly, no `AskUserQuestion`. Omitted/false → run the in-skill review loop.
+3. **Plan review is caller-controlled.** `skip_review: true` → write directly, no user-prompt. Omitted/false → run the in-skill review loop.
 4. **Do not fabricate requirements.** If the requirement is ambiguous, surface it in risks/notes - do not guess.
 5. **No file in two groups.** Same-file tasks share a group.
 6. **One section per concern.** Tasks under `## Tasks`; risks under `## Risks`. No scattered TODOs.

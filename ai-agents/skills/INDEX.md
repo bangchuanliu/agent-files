@@ -1,49 +1,82 @@
-# Personal Skills Index
+# Skills Index
 
-My own skills, grouped by **intent** (what I'm trying to do), not by topic. This is the
-human lookup — when auto-recall misses, scan here and invoke the skill explicitly with
-`/<name>`. Two other kinds of skills are **not** listed here: general/work skills that live
-in this same directory (`wtree`, `git-pull`, `table-*`, `jira-create`, …) — scan
-`ls ai-agents/skills/` or match by description; and company-layer plugin skills
-(`attribution-*`, `qa-*`, `data-*`, `commit-pr`, …) — find those with
-`li-plugin-tool:recommend` ("is there a skill for X?").
+Every skill in `ai-agents/skills/`, grouped by **intent** (what I'm trying to do). This is the
+human lookup: when auto-recall misses, scan here and invoke the skill by name. The agent
+matches intent against each skill's `description`, not this file, so keep descriptions sharp
+and each row here to one line.
 
-> The agent matches your intent against each skill's `description`, not against this file.
-> This index is for *you*. Keep descriptions sharp; keep this list short.
+## Learn & drill
 
-## 🎓 Learn & drill — deliberate practice
+| Skill | Reach for it when... |
+|---|---|
+| `domain-drill` | Learn, map, or teach back a technical domain at staff depth. |
+| `sysdesign-drill` | Do a timed, interview-condition system-design rep (not a study session). |
+| `dict` | Capture vocabulary, or practice on **my own** English drafts. |
 
-| Skill | Reach for it when… |
-|-------|--------------------|
-| `domain-drill` | I want to learn / map / teach-back a technical domain at staff depth (Socratic L1→L6). |
-| `sysdesign-drill` | I want a timed, interview-condition system-design rep — not a study session. |
-| `dict` | Vocabulary capture, polishing my *own* English as a learner, prompt-polish, or workplace conversation practice. |
+## Career writing
 
-## ✍️ Career writing — raw work → polished artifact
+| Skill | Reach for it when... |
+|---|---|
+| `self-assessment` | Reframe **my own** work against the career principles. |
+| `peer-feedback` | Write feedback about **a colleague**. |
+| `slack-msg` | Draft or reword a short message I'm about to **send**. |
+| `template-general-readout` | Skeleton for a readout: strategy, launch, GA, research, program review, postmortem. |
+| `template-doc-data-issue-rc` | Write or review a data investigation / RCA write-up. |
 
-| Skill | Reach for it when… |
-|-------|--------------------|
-| `self-assessment` | Reframe **my own** work against the 11 career principles, highlight quantified impact. |
-| `peer-feedback` | Write feedback about **a colleague** (the person) — Strengths / Growth / Development. |
-| `slack-msg` | Draft or reword a short, polite message I'm about to **send** to a coworker. |
+## Code review & planning
 
-## 🛠 Personal infra — tools the other skills lean on
+| Skill | Reach for it when... |
+|---|---|
+| `review-self` | Review **my own** diff before a PR, or triage comments left on my PR. |
+| `review-others` | Review **someone else's** PR, or batch the PRs awaiting my review. |
+| `generate-plan` | Turn a triaged `spec.md` into an execution `plan.md`. |
+| `skill-improver` | Write, audit, or tighten a skill, `AGENTS.md`, or `CLAUDE.md`. |
+| `jira-create` | File agent-optimized JIRA tickets. |
 
-| Skill | Reach for it when… |
-|-------|--------------------|
-| `local-server` | Start/stop/check the tiny local HTTP server that serves & saves my HTML data files. |
-| `file-organization` | Decide where a doc/file belongs, name it, or clean up a messy directory (lifecycle taxonomy). |
+## Worktrees, terminals & sessions
+
+| Skill | Reach for it when... |
+|---|---|
+| `start` | Kick off a new task: workspace, worktree, and agent in one go. |
+| `wtree` | Create, list, show, or clean git worktrees for a repo group. |
+| `hop` | Jump to the terminal tab for a worktree, repo, or directory. |
+| `yell` | See every running coding-agent session and which need me. |
+| `where-are-we` | Status of every long-running project across days and weeks. |
+| `git-pull` | Pull latest for all local repos under my roots. |
+
+## Data checks (source vs target)
+
+| Skill | Reach for it when... |
+|---|---|
+| `table-row-count` | Compare row totals. |
+| `table-schema-check` | Detect schema drift. |
+| `table-null-check` | Null rate per critical column. |
+| `table-duplicate-check` | Uniqueness by natural key. |
+| `table-distribution-check` | Category drift or top-N reshuffle in a column. |
+| `table-freshness-check` | Latest partition on time and complete. |
+| `table-traceability-check` | Orphans, coverage, field-level integrity. |
+
+## Personal infra
+
+| Skill | Reach for it when... |
+|---|---|
+| `gsheet` | Read or write a Google Sheet from the terminal. |
+| `local-server` | Start, stop, or check the local server behind my HTML data files. |
+| `docs-preview` | Build and serve a Docusaurus site locally. |
+| `file-organization` | Decide where a file belongs, name it, or tidy a directory. |
 
 ## Boundaries that trip auto-recall
 
-- **`dict` vs `slack-msg`** — both touch "rewrite my text." `dict` = practice on **my own English**
-  (I'm the learner). `slack-msg` = an **outgoing message** I'll send. If it ships to a person, it's `slack-msg`.
-- **`self-assessment` vs `peer-feedback`** — `self-assessment` is about **me**; `peer-feedback` is about
-  **someone else**. Self vs other is the dividing line.
+- **`dict` vs `slack-msg`**: both rewrite my text. If it ships to a person, it's `slack-msg`;
+  if I'm practicing my English, it's `dict`.
+- **`self-assessment` vs `peer-feedback`**: about me vs about someone else.
+- **`review-self` vs `review-others`**: whose PR it is.
+- **`yell` vs `where-are-we` vs `wtree show`**: live agent sessions now vs projects across
+  weeks vs the worktrees of one repo group.
 
 ## Maintenance
 
-- Audit descriptions with `skill-improver` when recall feels off or after adding a skill.
-- New skill = new dir under `ai-agents/skills/` with a `SKILL.md`; the root `./install.sh`
-  (via `.claude/install.sh` / `.copilot/install.sh`) auto-discovers and symlinks it.
-  Add a one-line row here in the same change.
+- New skill = new dir with a `SKILL.md`, a row here in the same change, then `./install.sh`.
+- Parked skills live in `ai-agents/experimental/` and are not installed.
+- `tests/run.sh` must pass before committing; it lints every skill with `skill-improver`'s
+  `spec_check.py`.

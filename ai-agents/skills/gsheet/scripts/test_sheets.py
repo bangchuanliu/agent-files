@@ -16,7 +16,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from sheets.client import a1, col_index, col_letter, has_row_bounds  # noqa: E402
-from sheets.read import pad  # noqa: E402
+from sheets.read import pad, to_number  # noqa: E402
 
 CASES = []
 
@@ -78,6 +78,15 @@ def table_rect_offsets_both_ends_by_start():
     data = [[1, 2, 3]] * 10
     assert _rect("A1", data) == "A1:C10"
     assert _rect("C5", data) == "C5:E14"
+
+
+@case
+def display_number_parser_handles_common_non_numbers():
+    assert to_number("") is None
+    assert to_number("-") is None
+    assert to_number("N/A") is None
+    assert to_number("n/a") is None
+    assert to_number("$1,234.50") == 1234.5
 
 
 def main():

@@ -1,7 +1,7 @@
 ---
 name: template-doc-data-issue-rc
 kind: leaf
-description: "Write or review a data investigation / RCA write-up - count discrepancy, parity gap, pipeline anomaly, oncall data incident. Use when: data investigation doc, investigation write-up, RCA, root cause doc, discrepancy doc, parity gap report, why did counts drop, write up findings, postmortem for data issue, review my investigation doc. NOT for: rendering precomputed check results, building the root-cause evidence spreadsheet, assigning root causes to entities, or a ship/hold decision document - this is the written narrative only."
+description: "Data RCA doc: write or review a query-backed investigation narrative for a count discrepancy, parity gap, pipeline anomaly, or data incident. Branches: author from evidence; review an existing doc. NOT for: rendering check results, root-cause spreadsheets, entity-level RC assignment, or ship/hold readouts."
 ---
 
 # Data Investigation Doc

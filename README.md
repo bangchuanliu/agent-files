@@ -15,16 +15,19 @@ ai-agents/
   AGENTS.core.md          # personal, company-agnostic rules source
   render-rules.sh         # renders core + registered layers
   .generated/AGENTS.md    # generated, ignored, deployed to agents
-  skills/                 # <name>/SKILL.md, shared by both agents
+  skills/                 # <name>/SKILL.md, shared by both agents; INDEX.md lists them
+  experimental/           # parked skills, never installed
   docs/                   # maintainer/reference docs for this repo
 .claude/                  # Claude Code adapter and Claude-native config
 .copilot/                 # Copilot CLI adapter
-lib/links.sh              # shared installer helpers
+lib/links.sh              # shared installer helpers (link, prune, skill merge, alias block)
 install.sh                # root installer, delegates to both adapters
+tests/
+  run.sh                  # all repo checks; run before committing
+  test_install.sh         # installers + render-rules against a sandboxed $HOME
 ```
 
-This repo currently has no `ai-agents/agents/` directory. The installers treat shared
-agents as optional.
+Shared agents (`ai-agents/agents/`) are optional; the installers skip them when absent.
 
 ## Install
 
@@ -39,6 +42,16 @@ The root installer runs both adapters:
 
 Both adapters first run `ai-agents/render-rules.sh` so the deployed rules are generated
 from the current core and any registered layers.
+
+## Checks
+
+```bash
+bash tests/run.sh
+```
+
+Runs shell syntax, shellcheck (when installed), Python compile, `spec_check.py` over every
+skill, each skill's `test_*.py`, and the installer test. The installer test never touches
+your real `$HOME`.
 
 ## Rules rendering
 
@@ -81,7 +94,9 @@ Skills are installed into real merge directories:
 - `~/.claude/skills/<skill>`
 - `~/.copilot/skills/<skill>`
 
-Each entry is a symlink to one source skill directory. This allows this repo, personal
+Each entry is a symlink to one source skill directory; only directories containing a
+`SKILL.md` are linked, and a skill whose frontmatter has `agents:` is linked only for the
+agents it lists. This allows this repo, personal
 skill repos, and company layer repos to contribute side by side without any repo containing
 another repo's links. Removing or renaming a skill only prunes broken symlinks owned by that
 path; live external links are left alone.

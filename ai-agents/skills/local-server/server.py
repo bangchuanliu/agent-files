@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """Generic local HTTP server for personal data files.
 
-Pure dumb server — has no domain knowledge of progress dots, rows, or any
+Pure dumb server - has no domain knowledge of progress dots, rows, or any
 particular HTML schema. Three responsibilities:
 
-  1. GET  /<file.html>  — serve a static file from the configured directory.
-  2. POST /save-file    — overwrite a file in the configured directory with
+  1. GET  /<file.html>  - serve a static file from the configured directory.
+  2. POST /save-file    - overwrite a file in the configured directory with
                           the body's content. Refuses path traversal.
-  3. GET  /sse          — Server-Sent Events stream; fires "reload" whenever
+  3. GET  /sse          - Server-Sent Events stream; fires "reload" whenever
                           any .html file in the directory changes on disk.
-     GET  /hot-reload.js — tiny JS snippet; add to HTML to enable hot-reload.
+     GET  /hot-reload.js - tiny JS snippet; add to HTML to enable hot-reload.
 
 All HTML mutation logic lives in the consuming skill's prompt and in the JS
 embedded in the HTML files themselves. The server is intentionally
@@ -23,7 +23,7 @@ Run:
     python3 server.py --dir ~/personal/notes       # serve a different dir
     python3 server.py --port 9000                  # different port
 
-Stop with Ctrl-C, or `pkill -f personal/skills/local-server/server.py`.
+Stop with Ctrl-C, or terminate the specific server PID.
 """
 
 import argparse
@@ -33,6 +33,7 @@ import threading
 import time
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
 
 # ---------------------------------------------------------------------------
@@ -78,16 +79,58 @@ def _watch_files(serve_dir: Path, interval: float = 0.5):
 # File save helper
 # ---------------------------------------------------------------------------
 
+def _inside(child: Path, root: Path) -> bool:
+    try:
+        child.relative_to(root)
+        return True
+    except ValueError:
+        return False
+
+
+def _safe_save_child(serve_dir: Path, file_path: str) -> Path:
+    """Return a direct child of serve_dir, refusing traversal and symlinks."""
+    if not file_path:
+        raise ValueError("missing path")
+    decoded = unquote(file_path)
+    if "\\" in decoded:
+        raise ValueError(f"invalid path: {file_path!r}")
+    candidate = Path(decoded)
+    if candidate.name != decoded or candidate.is_absolute():
+        raise ValueError(f"invalid path: {file_path!r}")
+    if not decoded.endswith(".html"):
+        raise ValueError(f"only .html files allowed: {file_path!r}")
+    if ".." in candidate.parts:
+        raise ValueError(f"invalid path: {file_path!r}")
+
+    root = serve_dir.resolve()
+    target = root / decoded
+    if target.exists() and target.resolve().parent != root:
+        raise ValueError(f"invalid path: {file_path!r}")
+    return target
+
+
+def _safe_serve_path(serve_dir: Path, url_path: str) -> Path:
+    """Return a path under serve_dir for GET, refusing traversal and escapes."""
+    decoded = unquote(urlsplit(url_path).path).lstrip("/")
+    candidate = Path(decoded)
+    if candidate.is_absolute() or ".." in candidate.parts:
+        raise ValueError(f"invalid path: {url_path!r}")
+
+    root = serve_dir.resolve()
+    target = root / candidate
+    resolved = target.resolve() if target.exists() else target.parent.resolve() / target.name
+    if not _inside(resolved, root):
+        raise ValueError(f"invalid path: {url_path!r}")
+    return target
+
+
 def save_file(serve_dir: Path, file_path: str, content: str):
     """Overwrite serve_dir/file_path with content. Refuses path traversal."""
-    if not file_path:
-        return "error", "missing path"
-    if not file_path.endswith(".html"):
-        return "error", f"only .html files allowed: {file_path!r}"
-    if "/" in file_path or "\\" in file_path or ".." in file_path:
-        return "error", f"invalid path: {file_path!r}"
-    target = serve_dir / file_path
-    target.write_text(content)
+    try:
+        target = _safe_save_child(serve_dir, file_path)
+    except ValueError as exc:
+        return "error", str(exc)
+    target.write_text(content, encoding="utf-8")
     return "ok", f"saved {file_path}"
 
 
@@ -168,7 +211,10 @@ def make_handler(serve_dir: Path):
             self.wfile.write(json.dumps({"status": status, "message": message}).encode())
 
         def translate_path(self, path):
-            return str(serve_dir / path.lstrip("/").split("?")[0])
+            try:
+                return str(_safe_serve_path(serve_dir, path))
+            except ValueError:
+                return str(serve_dir / "__invalid_path__")
 
         def log_message(self, fmt, *args):
             # Suppress noisy SSE heartbeat logs

@@ -131,7 +131,7 @@ def herdr_managed_pids(table: dict[str, dict[str, Any]], args: dict[str, str]) -
 
     A Herdr agent always runs inside a pty owned by a `herdr server`, so
     descending from a server process is the authoritative test. The previous
-    proxy — "some process named herdr shares this tty" — was wrong in both
+    proxy - "some process named herdr shares this tty" - was wrong in both
     directions: a herdr *client* tab has no agent on its tty to begin with, and
     a plain agent tab that merely shells out to `herdr` was dropped entirely.
     """
@@ -242,7 +242,7 @@ def birth_age_seconds(path: str | None) -> int | None:
 
 
 def fmt_started(age_seconds: int | None) -> str:
-    """'Sep 14 (9d)' — when this agent came up, and how long ago."""
+    """'Sep 14 (9d)' - when this agent came up, and how long ago."""
     if age_seconds is None:
         return "?"
     started = datetime.fromtimestamp(time.time() - age_seconds)
@@ -405,7 +405,7 @@ def next_step(record: dict[str, Any]) -> tuple[str, str]:
 
 
 def clean_title(text: str) -> str:
-    for suffix in (" - GitHub Copilot", " - Claude", " — GitHub Copilot"):
+    for suffix in (" - GitHub Copilot", " - Claude"):
         if text.endswith(suffix):
             text = text[: -len(suffix)]
     return text.strip()
@@ -715,7 +715,7 @@ def print_overview(data: dict[str, Any]) -> None:
     summary = data["summary"]
     counts = summary.get("by_next_step", {})
     print(
-        f"yell @ {data['generated_at']}: {len(records)} agent session(s) — "
+        f"yell @ {data['generated_at']}: {len(records)} agent session(s) - "
         f"{counts.get('follow-up', 0)} follow-up, {counts.get('waiting', 0)} waiting, {counts.get('clean-up', 0)} clean-up"
     )
     print()
@@ -783,7 +783,7 @@ def print_candidates(query: str, matches: list[dict[str, Any]]) -> None:
 
 def print_detail(r: dict[str, Any]) -> None:
     git = r.get("git", {})
-    print(f"{r.get('name')} [{r.get('type')}] — {r.get('status')} ({r.get('importance')})")
+    print(f"{r.get('name')} [{r.get('type')}] - {r.get('status')} ({r.get('importance')})")
     print(f"agent:    {r.get('agent')}")
     print(f"cwd:      {short_path(r.get('cwd', ''))}")
     print(f"branch:   {r.get('branch') or '-'}")
@@ -791,7 +791,7 @@ def print_detail(r: dict[str, Any]) -> None:
     print(f"attached: {'yes' if r.get('attached') else 'no'}")
     print(f"age:      {r.get('agent_age', '?')}")
     print(f"idle:     {r.get('idle', '?')}")
-    print(f"next:     {r.get('next_step', '?')} — {r.get('next_reason', '')}")
+    print(f"next:     {r.get('next_step', '?')} - {r.get('next_reason', '')}")
     if r.get("pane_id"):
         print(f"pane:     {r.get('pane_id')}  tab: {r.get('tab_id') or '-'}")
     if r.get("title"):

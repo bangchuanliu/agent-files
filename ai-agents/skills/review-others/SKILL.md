@@ -2,7 +2,7 @@
 name: review-others
 kind: orchestrator
 agents: claude, copilot
-description: "Use when: review someone else's PR, review the PRs awaiting your review, batch-review a repo's open PRs, approve a teammate's PR. NOT for: reviewing your own PR, or triaging review comments left on it -> use review-self."
+description: "Peer PR review: review someone else's GitHub PR, a requested-review queue, or a repo batch. Branches: single PR; batch queue; confirmed publish. NOT for: your own PR or comments on it -> use review-self."
 ---
 
 # Review Others' PRs
@@ -169,9 +169,9 @@ Store the pair as `PR_REVIEW_CONTEXT[PR_NUMBER]`. `top_id` is the thread root, w
 
 **You are the reviewer.** Read the diff and apply your own judgement - this skill delegates the reviewing to you, not to a named agent.
 
-For a batch, fan out if your host supports it: one subagent per PR, all launched in a single message, each given the constraints below. Review in sequence otherwise. Any general-purpose subagent works, since the reviewing is yours either way.
+For a batch, fan out if your host supports parallel workers: one worker per PR, all launched in a single message, each given the constraints below. Review in sequence otherwise. Use any worker that can read the remote PR diff; if none exists, do the review directly.
 
-One trap when picking a subagent: prefer one that reviews **a pull request**, and skip any that reviews *staged, unstaged, or branch-local changes*. Copilot CLI ships a built-in agent type named `code-review` that does the latter - despite the matching name it reads the local working tree, which this skill never checks out, so it would report on whatever branch happens to be checked out instead of the PR.
+Worker selection trap: prefer a worker that reviews **a pull request**. A worker that reviews staged, unstaged, or branch-local changes reads the local checkout, which this skill never updates, so it can report on the wrong branch. If only branch-local review exists, fetch and review the PR diff directly in the current session.
 
 Fetch the diff and metadata:
 
@@ -255,7 +255,7 @@ Post these reviews? (y/n, or tell me which to drop/edit)
 
 **Dry run** (`--no-post`, explicit or inferred): present the findings and stop. Omit the "Post these reviews?" question, since there is nothing to confirm, and end with `Dry-run complete - no reviews posted. Report: {path}`
 
-**Otherwise:** ask for confirmation via your host's user-prompt tool (`AskUserQuestion` on Claude Code, `ask_user` on Copilot CLI) and **wait**. Proceed to Step 6 only on an explicit affirmative response per the Autonomy contract's table. On any other outcome, end with `Awaiting confirmation - no reviews posted. Report: {path}` This hard stop holds under autopilot and in `--ship` mode alike.
+**Otherwise:** ask for confirmation through the host's user-prompt capability and **wait**. If the host has no such capability or is non-interactive, treat that as dry run. Proceed to Step 6 only on an explicit affirmative response per the Autonomy contract's table. On any other outcome, end with `Awaiting confirmation - no reviews posted. Report: {path}` This hard stop holds under autopilot and in `--ship` mode alike.
 
 ## Step 6: Publish confirmed reviews
 
@@ -280,7 +280,7 @@ Zero kept findings of any kind post the LGTM `APPROVE` with the empty verdict. Z
 
 ### Dispatch
 
-Body templates, the `comments[]` construction, the per-PR publishing-agent prompt, and 422 handling are in [`references/publish.md`](references/publish.md). Dispatch one publishing agent per confirmed PR, all in a single message.
+Body templates, the `comments[]` construction, the per-PR publisher instructions, and 422 handling are in [`references/publish.md`](references/publish.md). Dispatch one publisher worker per confirmed PR when the host supports workers; otherwise run the same publishing steps directly, one PR at a time.
 
 ## Step 7: Summary report
 
