@@ -1,6 +1,6 @@
 # Career Principles - Reference
 
-Source-of-truth for the 11 principles used by `self-assessment` and `self-assessment-li`. Structure follows L -> E -> C. Both skills read this before scoring.
+Source-of-truth for the 11 principles used by `self-assessment`. Structure follows L -> E -> C. Read this before scoring.
 
 **Every bullet must follow the strict format for its principle (see below) and must close with a quantified impact.**
 

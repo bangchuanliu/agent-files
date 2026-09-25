@@ -18,7 +18,6 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --base) need_value "$@"; BASE="$2"; shift 2 ;;
     --repo-group) need_value "$@"; REPO_GROUP="$2"; shift 2 ;;
-    --m[p]) need_value "$@"; REPO_GROUP="$2"; shift 2 ;; # deprecated hidden alias
     --from-current) FROM_CURRENT=1; shift ;;
     --no-prefix) PREFIX=0; shift ;;
     -*) echo "wtree-new: unknown flag $1" >&2; exit 2 ;;

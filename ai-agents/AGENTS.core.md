@@ -52,7 +52,7 @@ Paths are relative to `ai-agents/`. Read when relevant.
 
 | Topic | Doc |
 |---|---|
-| fan-out dispatch, `/fleet`, todo graph | `docs/fleet-dispatch.md` |
+| fan-out dispatch to parallel sub-agents (incl. Copilot `/fleet`) | `docs/fleet-dispatch.md` |
 | syncing this file between agents | `docs/agent-config-sync.md` |
 
 ## Maintaining This File

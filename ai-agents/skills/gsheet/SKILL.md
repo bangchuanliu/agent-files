@@ -39,7 +39,8 @@ Run with a Python environment that has `google-auth` and `google-api-python-clie
 
 ```bash
 PYBIN=python3
-G=~/.copilot/skills/gsheet/scripts/gsheet.py
+export SKILL_DIR=<this skill's directory>   # the Python snippets below read it too
+G="$SKILL_DIR/scripts/gsheet.py"
 ```
 
 All subcommands print JSON on stdout; noise goes to stderr, so `2>/dev/null` is safe. A refused operation exits **4** with the reason on stderr.
@@ -77,7 +78,7 @@ All subcommands print JSON on stdout; noise goes to stderr, so `2>/dev/null` is 
 
 ```python
 import os, sys
-sys.path.insert(0, os.path.expanduser("~/.copilot/skills/gsheet/scripts"))
+sys.path.insert(0, os.path.join(os.environ["SKILL_DIR"], "scripts"))
 import sheets
 from sheets import format as F
 
@@ -116,7 +117,7 @@ For anything the script does not cover:
 
 ```python
 import os, sys
-sys.path.insert(0, os.path.expanduser("~/.copilot/skills/gsheet/scripts"))
+sys.path.insert(0, os.path.join(os.environ["SKILL_DIR"], "scripts"))
 import sheets
 
 client = sheets.client(read_only=False)        # True = read scope, False = write scope
@@ -160,7 +161,7 @@ merge, banding, number formats, gradients, widths. Every function returns a **re
 compose a list and hand it to `apply()`.
 
 ```python
-import os, sys; sys.path.insert(0, os.path.expanduser("~/.copilot/skills/gsheet/scripts"))
+import os, sys; sys.path.insert(0, os.path.join(os.environ["SKILL_DIR"], "scripts"))
 from sheets import format as F
 
 n = len(rows)                                     # incl. header

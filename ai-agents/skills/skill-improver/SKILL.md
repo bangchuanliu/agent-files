@@ -10,7 +10,7 @@ Every such document must be agent-agnostic: it must work under any host agent (e
 
 When the document you're writing is a skill, read [`SKILL-MECHANICS.md`](SKILL-MECHANICS.md) for frontmatter, invocation choice, and router skills.
 
-Run `python3 scripts/spec_check.py <skill-dir>` (or `--all ~/.copilot/skills`) before and after editing a skill. It settles the mechanical half - frontmatter shape, name and description rules, body size, link resolution, script hygiene - so your attention goes to the levers below, which need judgement. Its regression fixtures run with `python3 scripts/test_spec_check.py`.
+Run `python3 scripts/spec_check.py <skill-dir>` (or `--all <skills-root>`) before and after editing a skill. It settles the mechanical half - frontmatter shape, name and description rules, body size, link resolution, script hygiene - so your attention goes to the levers below, which need judgement. Its regression fixtures run with `python3 scripts/test_spec_check.py`.
 
 Forked from the `writing-for-agents` skill.
 

@@ -23,7 +23,6 @@ while [[ $# -gt 0 ]]; do
     --keep-branch) KEEP_BRANCH=1; shift ;;
     --allow-local-commits) ALLOW_LOCAL=1; shift ;;
     --repo-group|--idle-mins) [[ $# -ge 2 && -n "$2" ]] || { echo "wtree-clean: $1 requires a value" >&2; exit 2; }; LIST_ARGS+=("$1" "$2"); shift 2 ;;
-    --m[p]) [[ $# -ge 2 && -n "$2" ]] || { echo "wtree-clean: --mp requires a value" >&2; exit 2; }; LIST_ARGS+=(--repo-group "$2"); shift 2 ;; # deprecated hidden alias
     *) echo "wtree-clean: unknown arg $1" >&2; exit 2 ;;
   esac
 done

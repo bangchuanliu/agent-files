@@ -212,7 +212,7 @@ Point here only when the user hits an open question - not before:
 
 1. **Foundational papers** - Dynamo, Bigtable, Raft, Spanner, MapReduce - explain WHY a design was made
 2. **DDIA** - best L2/L3/L4 treatment for data systems
-3. **Engineering blogs** - Netflix, Uber, LinkedIn, Stripe, Cloudflare, DoorDash
+3. **Engineering blogs** - Netflix, Uber, Stripe, Cloudflare, DoorDash, Discord
 4. **Conference talks** - Strange Loop, VLDB, OSDI, QCon, NeurIPS
 5. **Postmortems** - real failures reveal which tension was violated
 

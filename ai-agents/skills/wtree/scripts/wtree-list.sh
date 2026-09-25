@@ -16,7 +16,6 @@ WANT_PR=1
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --repo-group) [[ $# -ge 2 && -n "$2" ]] || { echo "wtree-list: --repo-group requires a value" >&2; exit 2; }; REPO_GROUP_FILTER="$2"; shift 2 ;;
-    --m[p]) [[ $# -ge 2 && -n "$2" ]] || { echo "wtree-list: --mp requires a value" >&2; exit 2; }; REPO_GROUP_FILTER="$2"; shift 2 ;; # deprecated hidden alias
     --idle-mins) [[ $# -ge 2 && -n "$2" ]] || { echo "wtree-list: --idle-mins requires a value" >&2; exit 2; }; IDLE_MINS="$2"; shift 2 ;;
     --no-pr) WANT_PR=0; shift ;;
     *) echo "wtree-list: unknown arg $1" >&2; exit 2 ;;

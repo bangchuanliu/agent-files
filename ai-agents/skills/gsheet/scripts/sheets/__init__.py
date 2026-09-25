@@ -1,7 +1,7 @@
 """Google Sheets I/O using the configured Google client provider.
 
-    import os, sys
-    sys.path.insert(0, os.path.expanduser("~/.copilot/skills/gsheet/scripts"))
+    import sys
+    sys.path.insert(0, "<skill-dir>/scripts")
     import sheets
     from sheets import format as F
 
