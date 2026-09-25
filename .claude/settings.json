@@ -2,7 +2,6 @@
   "permissions": {
     "allow": [
       "mcp__playwright__*",
-      "mcp__glean_default__*",
       "Bash(git:*)",
       "Bash(gh:*)",
       "Bash(./gradlew:*)",
@@ -13,10 +12,8 @@
       "Bash(python:*)",
       "Bash(claude:*)",
       "Bash(curl:*)",
-      "Bash(curli:*)",
       "Bash(mkdir:*)",
       "Bash(open:*)",
-      "Bash(picli:*)",
       "Bash(tmux:*)",
       "Bash(cd:*)",
       "Bash(kill:*)",

@@ -22,22 +22,24 @@ repo_roots_raw="${repo_roots_raw//:/ }"
 read -r -a REPO_ROOTS <<< "$repo_roots_raw"
 
 TARGET=""; REPO_GROUP_HINT=""
-TERM_MODE="on"; FOCUS=0; FORCE_NEW=0; START_MODE="copilot"; LAUNCH_CMD=""
+TERM_MODE="on"; FOCUS=0; FORCE_NEW=0; START_MODE="agent"; LAUNCH_CMD=""
 # Whether a NEWLY opened tab grabs focus. --focus above is about jumping to an
 # EXISTING tab; this is about not being yanked when one is created for you.
 ACTIVATE_NEW="--activate"
 
-# Command used to start the agent in a new tab. `coya` is the zsh alias for
-# `copilot --autopilot --allow-all`; it resolves because the spawned tab runs an
-# interactive shell that sources ~/.zshrc. Override with HOP_AGENT_CMD.
-AGENT_CMD="${HOP_AGENT_CMD:-coya}"
+# Command used to start the agent in a new tab. Defaults to the installer's
+# alias for whichever agent CLI is on PATH (`coya` for Copilot CLI, `cla` for
+# Claude Code); it runs in an interactive shell that sources your rc file.
+# Override with HOP_AGENT_CMD.
+if [[ -n "${HOP_AGENT_CMD:-}" ]]; then AGENT_CMD="$HOP_AGENT_CMD"
+elif command -v copilot >/dev/null 2>&1; then AGENT_CMD="coya"
+else AGENT_CMD="cla"; fi
 need_value() {
   [[ $# -ge 2 && -n "$2" ]] || { echo "hop: $1 requires a value" >&2; exit 2; }
 }
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --repo-group) need_value "$@"; REPO_GROUP_HINT="$2"; shift 2 ;;
-    --m[p]) need_value "$@"; REPO_GROUP_HINT="$2"; shift 2 ;; # deprecated hidden alias
     --no-term) TERM_MODE="off"; shift ;;
     --focus) FOCUS=1; shift ;;
     --no-focus) ACTIVATE_NEW="--no-activate"; shift ;;
@@ -155,7 +157,7 @@ if [[ "$TERM_MODE" != "off" ]]; then
   # agent here would create a second agent on the same worktree and strand the
   # first, so resume the session instead. `start` owns that path.
   launch="$LAUNCH_CMD"
-  if [[ -z "$launch" && "$START_MODE" == "copilot" ]]; then
+  if [[ -z "$launch" && "$START_MODE" == "agent" ]]; then
     hsession="$(python3 "$SKILL_DIR/hop-term.py" herdr-session-for "$DEST" 2>/dev/null)"
     if [[ -n "$hsession" ]]; then
       say "no tab, but Herdr session '$hsession' is still alive here - resuming it"
@@ -165,7 +167,7 @@ if [[ "$TERM_MODE" != "off" ]]; then
   fi
   if [[ -z "$launch" ]]; then
     case "$START_MODE" in
-      copilot) launch="$AGENT_CMD" ;;
+      agent)   launch="$AGENT_CMD" ;;
       tmux)    printf -v launch 'tmux new-session -A -s %q' "$(basename "$DEST")" ;;
       none)    launch="" ;;
     esac

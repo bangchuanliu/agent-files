@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# start.sh - one terminal tab + one Herdr session + one worktree + one coya, per task.
+# start.sh - one terminal tab + one Herdr session + one worktree + one agent, per task.
 #
 #   start.sh <slug> [repo-group] [flags]
 #
@@ -13,11 +13,20 @@
 set -euo pipefail
 
 HERDR_BIN="${HERDR_BIN:-herdr}"
-WTREE_NEW="${WTREE_NEW:-$HOME/.copilot/skills/wtree/scripts/wtree-new.sh}"
-HOP_TERM="${HOP_TERM:-$HOME/.copilot/skills/hop/scripts/hop-term.py}"
-AGENT_KIND="${DO_AGENT_KIND:-copilot}"
-AGENT_ARGS=(--autopilot --allow-all)
-FALLBACK_AGENT_CMD="${START_AGENT_CMD:-${HOP_AGENT_CMD:-coya}}"
+SKILLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+WTREE_NEW="${WTREE_NEW:-$SKILLS_DIR/wtree/scripts/wtree-new.sh}"
+HOP_TERM="${HOP_TERM:-$SKILLS_DIR/hop/scripts/hop-term.py}"
+# Agent to launch: DO_AGENT_KIND wins, else Copilot CLI if on PATH, else Claude Code.
+if [[ -n "${DO_AGENT_KIND:-}" ]]; then AGENT_KIND="$DO_AGENT_KIND"
+elif command -v copilot >/dev/null 2>&1; then AGENT_KIND="copilot"
+else AGENT_KIND="claude"; fi
+case "$AGENT_KIND" in
+  copilot) AGENT_ARGS=(--autopilot --allow-all); DEFAULT_ALIAS="coya" ;;
+  claude)  AGENT_ARGS=(--dangerously-skip-permissions); DEFAULT_ALIAS="cla" ;;
+  *)       AGENT_ARGS=(); DEFAULT_ALIAS="$AGENT_KIND" ;;
+esac
+if [[ -n "${START_AGENT_ARGS:-}" ]]; then read -r -a AGENT_ARGS <<<"$START_AGENT_ARGS"; fi
+FALLBACK_AGENT_CMD="${START_AGENT_CMD:-${HOP_AGENT_CMD:-$DEFAULT_ALIAS}}"
 START_DIR="${DO_START_DIR:-$HOME}"
 WAIT_SECS="${DO_WAIT_SECS:-30}"
 
@@ -30,7 +39,7 @@ usage: start.sh <slug> [repo-group] [--repo-group <name>] [--base <ref>] [--no-w
                   (wtree prefixes it with $USER/)
   --status        report state only, create nothing
   --no-worktree   skip the wtree step (session starts in $HOME)
-  --no-agent      open the session but do not start coya
+  --no-agent      open the session but do not start the agent
   --dry-run       print the plan, touch nothing
 EOF
   exit 2
@@ -48,7 +57,6 @@ WANT_WORKTREE=1; WANT_AGENT=1; DRY=0; STATUS_ONLY=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --repo-group) need_value "$@"; REPO_GROUP="$2"; shift 2 ;;
-    --m[p]) need_value "$@"; REPO_GROUP="$2"; shift 2 ;; # deprecated hidden alias
     --base) need_value "$@"; BASE="$2"; shift 2 ;;
     --no-worktree) WANT_WORKTREE=0; shift ;;
     --no-agent) WANT_AGENT=0; shift ;;

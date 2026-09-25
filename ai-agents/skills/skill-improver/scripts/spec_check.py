@@ -2,7 +2,7 @@
 """Spec conformance check for a skill directory. Deterministic checks only.
 
     python3 scripts/spec_check.py <skill-dir> [<skill-dir> ...]
-    python3 scripts/spec_check.py --all ~/.copilot/skills
+    python3 scripts/spec_check.py --all <skills-root>
 
 Covers the mechanically-detectable half of the agentskills.io v1 spec and the
 community pitfall list: frontmatter shape, name/description rules, body size,

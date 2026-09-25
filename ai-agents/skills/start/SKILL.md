@@ -7,9 +7,10 @@ description: "Start: create or resume one task stack: slug, Herdr session, wtree
 # do - one tab, one session, one worktree, one agent per task
 
 Every task gets its own Herdr session, git worktree, terminal tab, and configured agent
-command. `start` makes that whole stack exist - or tells you it already does. The default
-fallback command is `coya`; set `START_AGENT_CMD` or `HOP_AGENT_CMD` when that alias is
-unavailable in the host agent's shell.
+command. `start` makes that whole stack exist - or tells you it already does. The agent kind
+is `DO_AGENT_KIND`, else `copilot` if on PATH, else `claude`; its launch args and fallback
+alias (`coya` / `cla`) follow the kind, overridable with `START_AGENT_ARGS` and
+`START_AGENT_CMD` (or `HOP_AGENT_CMD`).
 
 ## Usage
 
@@ -122,9 +123,9 @@ Report the final stdout line to the user; everything else is commentary on stder
    never tied to a repo that may later be cleaned away.
 3. Poll `session list` until the new session reports running.
 4. Session-scoped from here on (`herdr --session <slug> ...`): `cd` its pane into the
-   worktree, then `agent start <slug> --kind copilot -- --autopilot --allow-all`. If
-   `agent start` will not confirm readiness, run `START_AGENT_CMD` (or
-   `HOP_AGENT_CMD`, then `coya`) in the pane.
+   worktree, then `agent start <slug> --kind <kind> -- <args>` (Copilot: `--autopilot --allow-all`;
+   Claude: `--dangerously-skip-permissions`). If `agent start` will not confirm readiness,
+   run the fallback command (`START_AGENT_CMD`, `HOP_AGENT_CMD`, then `coya`/`cla`) in the pane.
 
 **The tab must be a real terminal tab, not `herdr tab create`.** Herdr refuses to nest
 ("nested herdr is disabled by default"), so a session can only be launched from a pane

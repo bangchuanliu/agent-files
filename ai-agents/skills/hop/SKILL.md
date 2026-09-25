@@ -49,7 +49,7 @@ tab, `--no-focus` stops a **newly opened** one from grabbing the screen - which 
    defaults to `$HOME/project`. Nothing resolves? hop
    stops and points at `wtree show` / `start <name>`; it does not create anything.
 2. **Terminal** - find tabs already in the destination and report them with any running
-   agent, or open a new tab there and start `$HOP_AGENT_CMD` (default `coya`).
+   agent, or open a new tab there and start the agent command.
 
 ## Terminal tabs
 
@@ -94,9 +94,8 @@ When no tab exists, hop opens one. What it runs there depends on what it finds:
   resumes it. Closing a tab does not kill a Herdr session: the session, its cwd and its
   agent all survive. Starting a fresh agent would strand the original and leave two
   agents on one worktree, so hop resumes instead.
-- **Nothing there** - hop runs `$HOP_AGENT_CMD` (default `coya`, the local zsh alias for
-  Copilot CLI autopilot). Set `HOP_AGENT_CMD` to the equivalent command for the host
-  agent if that alias is unavailable.
+- **Nothing there** - hop runs `$HOP_AGENT_CMD`, defaulting to the installer alias for
+  whichever agent CLI is on PATH (`coya` for Copilot CLI, else `cla` for Claude Code).
 
 Use `--tmux` for `tmux new-session -A -s <dir>`, `--no-agent` for a bare shell, or
 `--cmd` for anything else - all three bypass the resume path.
@@ -114,7 +113,7 @@ lives elsewhere.
 For plain `cd`-in-place behaviour without the tab machinery:
 
 ```bash
-echo 'source ~/.copilot/skills/hop/scripts/hop-shell-init.sh' >> ~/.zshrc
+echo "source $SKILL_DIR/scripts/hop-shell-init.sh" >> ~/.zshrc
 ```
 
 Then `hop <branch> --no-term` cds the current shell; the destination path is always the
