@@ -11,7 +11,6 @@ and each row here to one line.
 |---|---|
 | `domain-drill` | Learn, map, or teach back a technical domain at staff depth. |
 | `sysdesign-drill` | Do a timed, interview-condition system-design rep (not a study session). |
-| `dict` | Capture vocabulary, or practice on **my own** English drafts. |
 
 ## Career writing
 
@@ -61,14 +60,12 @@ and each row here to one line.
 | Skill | Reach for it when... |
 |---|---|
 | `gsheet` | Read or write a Google Sheet from the terminal. |
-| `local-server` | Start, stop, or check the local server behind my HTML data files. |
+| `local-server` | Start, stop, or check a local server for personal HTML files. |
 | `docs-preview` | Build and serve a Docusaurus site locally. |
 | `file-organization` | Decide where a file belongs, name it, or tidy a directory. |
 
 ## Boundaries that trip auto-recall
 
-- **`dict` vs `slack-msg`**: both rewrite my text. If it ships to a person, it's `slack-msg`;
-  if I'm practicing my English, it's `dict`.
 - **`self-assessment` vs `peer-feedback`**: about me vs about someone else.
 - **`review-self` vs `review-others`**: whose PR it is.
 - **`yell` vs `where-are-we` vs `wtree show`**: live agent sessions now vs projects across
