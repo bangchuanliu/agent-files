@@ -234,8 +234,8 @@ if __name__ == "__main__":
     p.add_argument(
         "--dir",
         type=lambda s: Path(s).expanduser(),
-        default=Path.home() / "personal/dict",
-        help="Directory to serve (default: ~/personal/dict)",
+        default=Path.cwd(),
+        help="Directory to serve (default: current directory)",
     )
     p.add_argument("--port", type=int, default=8765)
     args = p.parse_args()

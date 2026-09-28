@@ -16,6 +16,7 @@ ai-agents/
   render-rules.sh         # renders core + registered layers
   .generated/AGENTS.md    # generated, ignored, deployed to agents
   skills/                 # <name>/SKILL.md, shared by both agents; INDEX.md lists them
+  prompts/                # standalone, shareable prompt files; not installed
   experimental/           # parked skills, never installed
   docs/                   # maintainer/reference docs for this repo
 .claude/                  # Claude Code adapter and Claude-native config

@@ -54,7 +54,7 @@ http://localhost:$PORT/file1.html
 http://localhost:$PORT/file2.html
 ```
 
-**Defaults:** `--port 8765`. Pass `--dir DIR` to choose the directory.
+**Defaults:** `--port 8765`. Pass `--dir DIR` to choose the directory (default: current directory).
 
 ### Op 2 - Stop
 

@@ -1,7 +1,7 @@
 ---
 name: slack-msg
 kind: leaf
-description: "Outgoing Slack/IM/DM message drafting for a coworker: rewrite or draft the short message the user is about to send, with clear meaning, polite tone, professional register, and Slack-native formatting. Use when: slack message, IM, DM, message a coworker, draft a message to send, make this message more polite/concise, reword before I send it, reply to a thread. NOT for: practicing the user's own English - use dict; polishing an AI-agent prompt - use dict; self-review or peer-feedback docs."
+description: "Outgoing Slack/IM/DM message drafting for a coworker: rewrite or draft the short message the user is about to send, with clear meaning, polite tone, professional register, and Slack-native formatting. Use when: slack message, IM, DM, message a coworker, draft a message to send, make this message more polite/concise, reword before I send it, reply to a thread. NOT for: self-review or peer-feedback docs."
 ---
 
 # Slack Message Writer
