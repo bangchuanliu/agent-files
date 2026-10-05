@@ -1,18 +1,15 @@
 #!/usr/bin/env bash
-# Installer + render-rules smoke test in a throwaway HOME. Never touches the real ~/.claude,
+# Installer smoke test in a throwaway HOME. Never touches the real ~/.claude,
 # ~/.copilot, ~/.pi, or shell rc files.
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SANDBOX="$(mktemp -d)"
-GEN="$REPO/ai-agents/.generated/AGENTS.md"
-GEN_BACKUP=""
+CORE="$REPO/ai-agents/AGENTS.core.md"
 cleanup() {
   rm -rf "$SANDBOX"
-  if [ -n "$GEN_BACKUP" ]; then mv "$GEN_BACKUP" "$GEN"; fi
 }
 trap cleanup EXIT
-if [ -f "$GEN" ]; then GEN_BACKUP="$(mktemp)"; cp "$GEN" "$GEN_BACKUP"; fi
 export HOME="$SANDBOX"
 
 fails=0
@@ -35,11 +32,10 @@ for d in "$REPO"/ai-agents/skills/*/; do
   done
 done
 
-check "CLAUDE.md is a symlink to generated rules" test "$(readlink "$HOME/.claude/CLAUDE.md")" = "$GEN"
-check "Pi AGENTS.md is a symlink to generated rules" test "$(readlink "$HOME/.pi/agent/AGENTS.md")" = "$GEN"
+check "CLAUDE.md is a symlink to core rules" test "$(readlink "$HOME/.claude/CLAUDE.md")" = "$CORE"
+check "Pi AGENTS.md is a symlink to core rules" test "$(readlink "$HOME/.pi/agent/AGENTS.md")" = "$CORE"
 check "copilot-instructions.md is a regular file" test -f "$HOME/.copilot/copilot-instructions.md" -a ! -L "$HOME/.copilot/copilot-instructions.md"
-check "no layers: generated equals core" cmp -s "$GEN" "$REPO/ai-agents/AGENTS.core.md"
-check "render-rules --check in sync" bash "$REPO/ai-agents/render-rules.sh" --check
+check "Copilot instructions equal core rules" cmp -s "$HOME/.copilot/copilot-instructions.md" "$CORE"
 check "docs/core linked" test "$(readlink "$HOME/.claude/docs/core")" = "$REPO/ai-agents/docs"
 check "cla alias block once in .zshrc" test "$(grep -c '>>> agent-files cla alias >>>' "$HOME/.zshrc")" = 1
 
@@ -53,20 +49,10 @@ check "dangling skill link pruned" test ! -L "$HOME/.copilot/skills/gone"
 check "alias blocks not duplicated on re-run" test "$(grep -c '>>> agent-files coya alias >>>' "$HOME/.bashrc")" = 1
 check "re-run makes no new links" bash -c "! grep -q '^link: .*/skills/' '$SANDBOX/install2.log'"
 
-# Drift detection: a hand-edited Copilot copy must fail --check.
+# Re-running restores a hand-edited Copilot copy from the core rules.
 echo "drift" >> "$HOME/.copilot/copilot-instructions.md"
-check "render-rules --check detects drift" bash -c "! bash '$REPO/ai-agents/render-rules.sh' --check >/dev/null 2>&1"
-
-# A registered layer is appended under its heading.
-layer="$SANDBOX/layer"; mkdir -p "$layer" "$HOME/.config/dotfiles"
-printf 'LAYER_NAME="Acme"\n' > "$layer/layer.conf"
-printf '# Acme rules\n- be acme\n' > "$layer/AGENTS.md"
-echo "$layer" > "$HOME/.config/dotfiles/layers"
-bash "$REPO/ai-agents/render-rules.sh" > /dev/null
-check "layer heading rendered" grep -q '^## Layer: Acme$' "$GEN"
-check "layer body rendered" grep -q '^- be acme$' "$GEN"
-printf 'LAYER_RULES="../escape.md"\n' > "$layer/layer.conf"
-check "unsafe LAYER_RULES rejected" bash -c "! bash '$REPO/ai-agents/render-rules.sh' >/dev/null 2>&1"
+bash "$REPO/install.sh" > "$SANDBOX/install3.log" 2>&1 || { cat "$SANDBOX/install3.log"; fail "third install.sh exits 0"; }
+check "re-run refreshes Copilot rules" cmp -s "$HOME/.copilot/copilot-instructions.md" "$CORE"
 
 echo ""
 if [ "$fails" -eq 0 ]; then echo "test_install: all passed"; else echo "test_install: $fails failed"; exit 1; fi

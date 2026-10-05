@@ -11,8 +11,10 @@ __pycache__/
 .claude/.claude/
 .claude/*/.claude/
 
-# Rendered rules
-ai-agents/.generated/
+# Checkout-local company/project instructions (keep the usage guide tracked)
+.context/*
+!.context/README.md
+
 
 # Skill/agent generated artifacts (evals, feedback, messages)
 ai-agents/skills/*/evals/

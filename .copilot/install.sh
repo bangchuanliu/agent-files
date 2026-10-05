@@ -13,9 +13,10 @@ mkdir -p "$COPILOT"
 
 link_skills "$SHARED/skills" "$COPILOT/skills" copilot
 
-# Rules: render-rules.sh copies (not links) ~/.copilot/copilot-instructions.md, because the
-# Copilot toolchain rewrites that path in place and would destroy a symlink.
-bash "$SHARED/render-rules.sh"
+# Copilot rewrites this path in place, so it must be a regular copy rather than a symlink.
+COPILOT_RULES="$COPILOT/copilot-instructions.md"
+if [ -L "$COPILOT_RULES" ]; then rm "$COPILOT_RULES"; fi
+cp "$SHARED/AGENTS.core.md" "$COPILOT_RULES"
 
 # Agents: per-file symlink with Copilot's .agent.md extension.
 if [ -d "$SHARED/agents" ]; then

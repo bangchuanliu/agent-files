@@ -12,8 +12,8 @@ mkdir -p "$CLAUDE"
 
 link_skills "$SHARED/skills" "$CLAUDE/skills" claude
 
-# Rules: render-rules.sh owns ~/.claude/CLAUDE.md (symlink to the generated file).
-bash "$SHARED/render-rules.sh"
+# Rules: global, company-agnostic instructions only.
+link "$SHARED/AGENTS.core.md" "$CLAUDE/CLAUDE.md"
 
 if [ -d "$SHARED/agents" ]; then
   link "$SHARED/agents" "$CLAUDE/agents"
