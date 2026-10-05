@@ -33,7 +33,7 @@ correlation stated as causation, and missing magnitude check.
 
 ## Related
 
-- Use a data-validation readout skill, if your environment supplies one, when the work ends in a ship/hold decision about data.
-- `template-general-readout` - genre skeletons for non-data readouts.
+- Use a domain-specific data-validation readout skill, if your environment supplies one, when the work ends in a ship/hold decision about data.
+- `template-general-readout` - readout section skeletons, including data validation, and restructuring an existing readout.
 - Use relevant validation or comparison skills to produce the evidence this doc consumes.
 - Use notebook or report-rendering skills for appendix result sets when available.

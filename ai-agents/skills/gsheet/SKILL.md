@@ -8,6 +8,9 @@ description: "Sheets: read, write, restructure, and format Google Sheets from th
 
 Use the bundled `sheets` package for repeatable sheet work. Prefer it over host-specific integrations; drop to raw API calls only for operations it does not implement.
 
+An approved integration may handle spreadsheet creation and small reads/writes. For bulk
+rows, prefer the Python service or file-backed CLI input rather than large inline tool calls.
+
 ## Authentication
 
 By default, `sheets.service()` uses Google Application Default Credentials via `google.auth.default` and `googleapiclient.discovery.build`.
@@ -19,6 +22,13 @@ def get_client(read_only: bool): ...
 ```
 
 The returned object must expose `sheets_service` and `drive_service` attributes. Provider import and construction stdout is captured and replayed to stderr so CLI JSON output stays clean.
+
+### Missing credentials
+
+On `DefaultCredentialsError`, stop and follow the approved ADC setup or the active
+company's provider instructions. Installing libraries does not fix missing credentials.
+Do not search another tool's private token cache or substitute a different identity.
+An unavailable provider must produce an explicit error, not an unauthenticated fallback.
 
 ```
 scripts/
@@ -226,6 +236,20 @@ silently stops covering it.
 
 These have each cost real debugging time.
 
+- **A new tab is only ~1000-2000 rows tall, and writes past that are rejected.** Adding a tab
+  gives it a default grid; a bulk write fails partway with
+  `Range ('Tab'!A2001) exceeds grid limits. Max rows: 2000, max columns: 26`. The failure is
+  *mid-write*, so earlier chunks have already landed and the tab is left half-populated.
+  Resize **before** writing, then chunk (~2000 rows per `values().update`):
+
+  ```python
+  {"updateSheetProperties": {
+      "properties": {"sheetId": gid,
+                     "gridProperties": {"rowCount": len(rows) + 10, "columnCount": 12}},
+      "fields": "gridProperties.rowCount,gridProperties.columnCount"}}
+  ```
+
+  `write_table` handles this for you; raw `values().update` does not.
 - **Ragged rows - the expensive one.** `values().get` **omits trailing empty cells**, so rows
   come back at different lengths and a fully-empty trailing column vanishes entirely. Every
   downstream index then shifts left. Never do a read-modify-write on a partial range: it

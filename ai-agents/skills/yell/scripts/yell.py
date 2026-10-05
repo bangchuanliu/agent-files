@@ -21,6 +21,17 @@ from urllib.parse import unquote, urlparse
 HERDR = os.environ.get("HERDR_BIN", "herdr")
 WEZTERM = os.environ.get("WEZTERM_BIN", "/Applications/WezTerm.app/Contents/MacOS/wezterm")
 AGENT_COMMS = tuple(c for c in os.environ.get("YELL_AGENT_COMMS", "copilot,claude").split(",") if c)
+# Executable paths that share an agent's basename but are not a session: the
+# GitHub Copilot desktop app spawns a fleet of embedded SDK workers named
+# `copilot`, and an editor extension host does the same.
+EMBEDDED_AGENT_MARKERS = tuple(
+    m
+    for m in os.environ.get(
+        "YELL_EMBEDDED_MARKERS",
+        "github-copilot-sdk,/GitHub Copilot.app/,.vscode/extensions,Code Helper",
+    ).split(",")
+    if m
+)
 READY_STATUSES = {"blocked", "idle", "done"}
 ALL_STATUSES = READY_STATUSES | {"working", "unknown"}
 
@@ -174,6 +185,17 @@ def agent_roots(table: dict[str, dict[str, Any]]) -> dict[str, dict[str, Any]]:
         if not nested:
             roots[pid] = row
     return roots
+
+
+def is_embedded_agent(pid: str, args: dict[str, str]) -> bool:
+    """True when a process merely shares an agent's basename.
+
+    The GitHub Copilot desktop app runs many embedded SDK workers whose argv[0]
+    basename is `copilot`. They are not sessions, and reporting them buries the
+    real rows under noise.
+    """
+    argv = args.get(pid, "")
+    return any(marker in argv for marker in EMBEDDED_AGENT_MARKERS)
 
 
 def pid_cwd(pid: str) -> str:
@@ -538,19 +560,35 @@ def collect_unmanaged(panes: list[dict[str, Any]], table: dict[str, dict[str, An
     return records
 
 
-def collect_orphans(table: dict[str, dict[str, Any]], herdr_pids: set[str], claimed: set[str]) -> list[dict[str, Any]]:
+def collect_orphans(
+    table: dict[str, dict[str, Any]],
+    herdr_pids: set[str],
+    claimed: set[str],
+    args: dict[str, str] | None = None,
+) -> list[dict[str, Any]]:
     """Agents that neither collector claimed.
 
     Pane enumeration is the weak link: an agent is invisible to it when it runs
     outside WezTerm, inside tmux or another multiplexer, or in a pane WezTerm
     reports without a tty. Sweeping the process table last means a running agent
     can never be missing from the inventory, only described less richly.
+
+    Two gates keep the sweep honest. A session is something you can type at, so
+    it holds a controlling tty -- a Herdr agent on the server's pty, a plain
+    agent on its tab's. Anything with no tty at all is a background worker, not
+    a session. The embedded-marker gate then catches a worker that does own a
+    tty, so the desktop app's SDK fleet can never masquerade as 17 sessions.
     """
+    args = args or {}
     records: list[dict[str, Any]] = []
     for pid, row in sorted(agent_roots(table).items(), key=lambda kv: kv[0]):
         if pid in herdr_pids or pid in claimed:
             continue
         tty = row.get("tty") or ""
+        if not tty or tty == "??":
+            continue
+        if is_embedded_agent(pid, args):
+            continue
         tty_path = f"/dev/{tty}" if tty and tty != "??" else ""
         cwd = pid_cwd(pid)
         git = git_context(cwd)
@@ -590,11 +628,12 @@ def collect() -> dict[str, Any]:
     panes = wezterm_panes()
     rows = ps_rows()
     table = proc_table()
-    herdr_pids = herdr_managed_pids(table, ps_args())
+    args = ps_args()
+    herdr_pids = herdr_managed_pids(table, args)
     herdr_records, meta = collect_herdr(panes, rows, table)
     unmanaged = collect_unmanaged(panes, table, herdr_pids)
     claimed = {str(p) for r in unmanaged for p in r.get("pids", []) if p}
-    orphans = collect_orphans(table, herdr_pids, claimed)
+    orphans = collect_orphans(table, herdr_pids, claimed, args)
     records = herdr_records + unmanaged + orphans
     # Sort once for stable JSON and human output.
     records.sort(key=lambda r: (NEXT_ORDER.get(r.get("next_step", ""), 9), r.get("importance_rank", 9), -(r.get("idle_seconds") or -1), r.get("name", "")))
