@@ -20,3 +20,12 @@
 - When rules conflict, resolve in this order: correctness and security, then simplicity and
   clarity, then performance (when justified by scale), then style and conventions.
 - Always write tests; never ask whether they are wanted. Every bug fix needs a regression test.
+
+## Machine-local configuration
+
+Use `~/.agent/AGENTS.md.local` for private agent instructions and
+`~/.agent/skills.local/` for private skills. Never commit, print, or copy their
+contents into tracked or public files.
+
+Never store secret values in agent instructions or skills. Use the approved
+secret-management system instead.

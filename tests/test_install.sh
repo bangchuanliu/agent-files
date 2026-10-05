@@ -6,11 +6,14 @@ set -euo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SANDBOX="$(mktemp -d)"
 CORE="$REPO/ai-agents/AGENTS.core.md"
+LOCAL_AGENT_DIR="$SANDBOX/.agent"
+GENERATED="$LOCAL_AGENT_DIR/generated/AGENTS.md"
 cleanup() {
   rm -rf "$SANDBOX"
 }
 trap cleanup EXIT
 export HOME="$SANDBOX"
+export AGENT_FILES_LOCAL_DIR="$LOCAL_AGENT_DIR"
 
 fails=0
 pass() { echo "ok   - $1"; }
@@ -40,10 +43,11 @@ for agent in claude copilot pi; do
   check "$agent experimental skills are not installed" test ! -e "$skills_dir/code-simplify"
 done
 
-check "CLAUDE.md is a symlink to core rules" test "$(readlink "$HOME/.claude/CLAUDE.md")" = "$CORE"
-check "Pi AGENTS.md is a symlink to core rules" test "$(readlink "$HOME/.pi/agent/AGENTS.md")" = "$CORE"
+check "no overlay: generated rules equal core" cmp -s "$GENERATED" "$CORE"
+check "CLAUDE.md is a symlink to generated rules" test "$(readlink "$HOME/.claude/CLAUDE.md")" = "$GENERATED"
+check "Pi AGENTS.md is a symlink to generated rules" test "$(readlink "$HOME/.pi/agent/AGENTS.md")" = "$GENERATED"
 check "copilot-instructions.md is a regular file" test -f "$HOME/.copilot/copilot-instructions.md" -a ! -L "$HOME/.copilot/copilot-instructions.md"
-check "Copilot instructions equal core rules" cmp -s "$HOME/.copilot/copilot-instructions.md" "$CORE"
+check "Copilot instructions equal generated rules" cmp -s "$HOME/.copilot/copilot-instructions.md" "$GENERATED"
 check "docs/core linked" test "$(readlink "$HOME/.claude/docs/core")" = "$REPO/ai-agents/docs"
 check "cla alias block once in .zshrc" test "$(grep -c '>>> agent-files cla alias >>>' "$HOME/.zshrc")" = 1
 
@@ -57,10 +61,31 @@ check "dangling skill link pruned" test ! -L "$HOME/.copilot/skills/gone"
 check "alias blocks not duplicated on re-run" test "$(grep -c '>>> agent-files coya alias >>>' "$HOME/.bashrc")" = 1
 check "re-run makes no new links" bash -c "! grep -q '^link: .*/skills/' '$SANDBOX/install2.log'"
 
-# Re-running restores a hand-edited Copilot copy from the core rules.
+# Re-running restores a hand-edited Copilot copy from the generated rules.
 echo "drift" >> "$HOME/.copilot/copilot-instructions.md"
 bash "$REPO/install.sh" > "$SANDBOX/install3.log" 2>&1 || { cat "$SANDBOX/install3.log"; fail "third install.sh exits 0"; }
-check "re-run refreshes Copilot rules" cmp -s "$HOME/.copilot/copilot-instructions.md" "$CORE"
+check "re-run refreshes Copilot rules" cmp -s "$HOME/.copilot/copilot-instructions.md" "$GENERATED"
+
+# A private overlay and private skill are installed only from the local agent directory.
+mkdir -p "$LOCAL_AGENT_DIR/skills.local/acme-helper"
+printf '# Acme context\n- use Acme conventions\n' > "$LOCAL_AGENT_DIR/AGENTS.md.local"
+printf '%s\n' '---' 'name: acme-helper' '---' '# Acme helper' > "$LOCAL_AGENT_DIR/skills.local/acme-helper/SKILL.md"
+bash "$REPO/install.sh" > "$SANDBOX/install4.log" 2>&1 || { cat "$SANDBOX/install4.log"; fail "install with local overlay exits 0"; }
+check "local context heading rendered" grep -q '^## Local Context$' "$GENERATED"
+check "local context rendered" grep -q '^- use Acme conventions$' "$GENERATED"
+check "local context copied to Copilot" grep -q '^- use Acme conventions$' "$HOME/.copilot/copilot-instructions.md"
+for agent in claude copilot pi; do
+  case "$agent" in
+    pi) skills_dir="$HOME/.pi/agent/skills" ;;
+    *)  skills_dir="$HOME/.$agent/skills" ;;
+  esac
+  check "$agent private skill linked" test "$(readlink "$skills_dir/acme-helper")" = "$LOCAL_AGENT_DIR/skills.local/acme-helper"
+done
+
+# A private skill cannot silently override a shared skill.
+mkdir -p "$LOCAL_AGENT_DIR/skills.local/docs-preview"
+printf '# duplicate\n' > "$LOCAL_AGENT_DIR/skills.local/docs-preview/SKILL.md"
+check "private skill collision rejected" bash -c "! bash '$REPO/install.sh' >/dev/null 2>&1"
 
 echo ""
 if [ "$fails" -eq 0 ]; then echo "test_install: all passed"; else echo "test_install: $fails failed"; exit 1; fi

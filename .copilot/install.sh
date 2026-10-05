@@ -6,17 +6,23 @@ set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SHARED="$REPO/ai-agents"
+LOCAL_AGENT_DIR="${AGENT_FILES_LOCAL_DIR:-$HOME/.agent}"
+LOCAL_SKILLS="$LOCAL_AGENT_DIR/skills.local"
+GENERATED_RULES="$LOCAL_AGENT_DIR/generated/AGENTS.md"
 COPILOT="$HOME/.copilot"
 # shellcheck source=../lib/links.sh
 source "$REPO/lib/links.sh"
 mkdir -p "$COPILOT"
 
+assert_no_skill_collisions "$SHARED/skills" "$LOCAL_SKILLS"
 link_skills "$SHARED/skills" "$COPILOT/skills" copilot
+if [ -d "$LOCAL_SKILLS" ]; then link_skills "$LOCAL_SKILLS" "$COPILOT/skills" copilot; fi
 
 # Copilot rewrites this path in place, so it must be a regular copy rather than a symlink.
+bash "$SHARED/sync-rules.sh"
 COPILOT_RULES="$COPILOT/copilot-instructions.md"
 if [ -L "$COPILOT_RULES" ]; then rm "$COPILOT_RULES"; fi
-cp "$SHARED/AGENTS.core.md" "$COPILOT_RULES"
+cp "$GENERATED_RULES" "$COPILOT_RULES"
 
 # Agents: per-file symlink with Copilot's .agent.md extension.
 if [ -d "$SHARED/agents" ]; then

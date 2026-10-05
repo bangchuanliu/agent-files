@@ -1,45 +1,33 @@
 # agent-files
 
-Personal, company-agnostic AI-agent configuration for Claude Code, GitHub Copilot CLI, and Pi.
-Each checkout can also carry private working notes in `.context/context.md`, without adding them
-to any agent's global instructions.
+Shareable AI-agent configuration for Claude Code, GitHub Copilot CLI, and Pi. The repository
+contains only general rules and publishable skills. Company or machine-specific instructions and
+skills live in `~/.agent/`, outside the repository.
 
 ## Layout
 
-```
-.context/
-  README.md               # how to add the ignored context.md file
-  context.md              # local company/project reference notes (created by you, ignored)
-ai-agents/
-  AGENTS.core.md          # git-tracked, company-agnostic global rules
-  skills/                 # <name>/SKILL.md, shared by all supported agents
-  prompts/                # standalone, shareable prompt files; not installed
-  experimental/           # parked skills, never installed
-  docs/                   # maintainer/reference docs for this repo
-.claude/                  # Claude Code adapter and Claude-native config
-.copilot/                 # Copilot CLI adapter
-.pi/                      # Pi adapter
-lib/links.sh              # shared installer helpers
-install.sh                # root installer, delegates to all adapters
-tests/                    # repository checks
-```
+```text
+agent-files/
+  ai-agents/
+    AGENTS.core.md        # tracked shared rules
+    sync-rules.sh         # combines core rules with the optional private overlay
+    skills/               # tracked, safe-to-share skills
+    experimental/         # parked skills, never installed
+    docs/                 # maintainer/reference docs
+  .claude/                # Claude Code adapter
+  .copilot/               # Copilot CLI adapter
+  .pi/                    # Pi adapter
+  lib/links.sh            # shared installer helpers
+  install.sh              # root installer
 
-Shared agents (`ai-agents/agents/`) are optional; installers skip them when absent.
-
-## Use a checkout for a new context
-
-```bash
-git clone <repository-url> agent-files-acme
-cd agent-files-acme
-mkdir -p .context
-$EDITOR .context/context.md
-./install.sh
+~/.agent/
+  AGENTS.md.local         # optional private company/machine instructions
+  skills.local/           # optional private skills; each contains SKILL.md
+  generated/AGENTS.md     # generated combined rules, never source-controlled
 ```
 
-`.context/context.md` is ignored by Git and is local reference material only. It is never merged
-into Claude, Copilot, or Pi global instruction files, preventing company-specific guidance from
-leaking into unrelated work. Put instructions that must apply to a codebase in that codebase's
-own agent instruction file.
+`~/.agent/` is local to the machine and is not part of this repository. Do not put secrets in
+its instruction files or skills. Reference the approved secret-management system instead.
 
 ## Install
 
@@ -47,39 +35,45 @@ own agent instruction file.
 ./install.sh
 ```
 
-The root installer runs all adapters:
+The installer runs the Claude, Copilot, and Pi adapters. It renders rules to
+`~/.agent/generated/AGENTS.md` (or `$AGENT_FILES_LOCAL_DIR/generated/AGENTS.md`) and installs
+skills into each agent's normal skill directory.
 
-- `.claude/install.sh`
-- `.copilot/install.sh`
-- `.pi/install.sh`
+Rules render as follows:
 
-All three install only `ai-agents/AGENTS.core.md`, the shared company-agnostic rules.
+1. `ai-agents/AGENTS.core.md` is always included.
+2. `~/.agent/AGENTS.md.local` is appended under `## Local Context` when it exists and is
+   non-empty.
 
-| Agent | Deployed rules path | Mechanism |
-|---|---|---|
-| Claude Code | `~/.claude/CLAUDE.md` | symlink to `ai-agents/AGENTS.core.md` |
-| Copilot CLI | `~/.copilot/copilot-instructions.md` | copied regular file |
-| Pi | `~/.pi/agent/AGENTS.md` (or `$PI_CODING_AGENT_DIR/AGENTS.md`) | symlink to `ai-agents/AGENTS.core.md` |
+Without a local overlay, the generated file is byte-for-byte identical to `AGENTS.core.md`.
+Claude and Pi link to the generated file; Copilot receives a regular copy because it rewrites
+its instructions file in place.
 
-Copilot gets a copy because its toolchain rewrites that path in place and would destroy a
-symlink. Re-run `./install.sh` after changing the core rules to refresh its copy.
+| Agent | Deployed rules path |
+|---|---|
+| Claude Code | `~/.claude/CLAUDE.md` |
+| Copilot CLI | `~/.copilot/copilot-instructions.md` |
+| Pi | `~/.pi/agent/AGENTS.md` (or `$PI_CODING_AGENT_DIR/AGENTS.md`) |
 
-## Merge-directory design
+## Private company setup
 
-Skills are installed into real merge directories:
+On a company-specific machine, create the optional local overlay:
 
-- `~/.claude/skills/<skill>`
-- `~/.copilot/skills/<skill>`
-- `~/.pi/agent/skills/<skill>` (or `$PI_CODING_AGENT_DIR/skills/<skill>`)
+```bash
+mkdir -p ~/.agent/skills.local
+$EDITOR ~/.agent/AGENTS.md.local
+./install.sh
+```
 
-Each entry is a symlink to one source skill directory; only directories containing a
-`SKILL.md` are linked, and a skill whose frontmatter has `agents:` is linked only for the
-agents it lists. This allows this repo and other local skill repos to contribute side by side
-without any repo containing another repo's links. Removing or renaming a skill only prunes
-broken symlinks owned by that path; live external links are left alone.
+Private skills are installed from `~/.agent/skills.local/<skill>/SKILL.md` alongside the shared
+skills. A private skill cannot use the same directory name as a shared skill; installation fails
+rather than silently choosing one.
 
-Claude docs use the same merge shape: this repo links its docs at `~/.claude/docs/core`, so
-other local sources can add their own namespaced directories alongside it.
+To test a separate local-agent directory without changing `~/.agent/`, set:
+
+```bash
+AGENT_FILES_LOCAL_DIR=/path/to/private-agent-files ./install.sh
+```
 
 ## Checks
 
@@ -87,6 +81,5 @@ other local sources can add their own namespaced directories alongside it.
 bash tests/run.sh
 ```
 
-Runs shell syntax, shellcheck (when installed), Python compile, `spec_check.py` over every
-skill, each skill's `test_*.py`, and the installer test. The installer test never touches your
-real `$HOME`.
+Runs shell syntax, shellcheck (when installed), Python compile, skill checks, and a sandboxed
+installer test. The installer test never touches your real `$HOME` or `~/.agent/`.

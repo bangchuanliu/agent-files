@@ -5,15 +5,21 @@ set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SHARED="$REPO/ai-agents"
+LOCAL_AGENT_DIR="${AGENT_FILES_LOCAL_DIR:-$HOME/.agent}"
+LOCAL_SKILLS="$LOCAL_AGENT_DIR/skills.local"
+GENERATED_RULES="$LOCAL_AGENT_DIR/generated/AGENTS.md"
 CLAUDE="$HOME/.claude"
 # shellcheck source=../lib/links.sh
 source "$REPO/lib/links.sh"
 mkdir -p "$CLAUDE"
 
+assert_no_skill_collisions "$SHARED/skills" "$LOCAL_SKILLS"
 link_skills "$SHARED/skills" "$CLAUDE/skills" claude
+if [ -d "$LOCAL_SKILLS" ]; then link_skills "$LOCAL_SKILLS" "$CLAUDE/skills" claude; fi
 
-# Rules: global, company-agnostic instructions only.
-link "$SHARED/AGENTS.core.md" "$CLAUDE/CLAUDE.md"
+# Rules: shared core plus this machine's optional private overlay.
+bash "$SHARED/sync-rules.sh"
+link "$GENERATED_RULES" "$CLAUDE/CLAUDE.md"
 
 if [ -d "$SHARED/agents" ]; then
   link "$SHARED/agents" "$CLAUDE/agents"

@@ -56,6 +56,21 @@ link_skills() {
   prune_dangling "$merged"
 }
 
+# assert_no_skill_collisions <shared-skills> <local-skills>: fail rather than silently choosing
+# one source when a private skill uses the same name as a shared skill.
+assert_no_skill_collisions() {
+  local shared="$1" local_skills="$2" d b
+  [ -d "$local_skills" ] || return 0
+  for d in "$local_skills"/*/; do
+    [ -f "${d}SKILL.md" ] || continue
+    b="$(basename "$d")"
+    if [ -f "$shared/$b/SKILL.md" ]; then
+      echo "skill collision: $b exists in both $shared and $local_skills" >&2
+      return 2
+    fi
+  done
+}
+
 # replace_managed_block <file> <begin-marker> <end-marker> <block>: replace the lines between
 # (and including) the markers with block, appended at the end of file.
 replace_managed_block() {
