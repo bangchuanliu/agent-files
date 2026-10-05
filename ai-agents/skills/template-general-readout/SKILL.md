@@ -1,7 +1,7 @@
 ---
 name: template-general-readout
 kind: leaf
-description: "Readout structure: emit a genre skeleton or restructure an existing readout without changing its content. Genres: data validation (technical, leadership, one-pager), strategy, launch, research, program, postmortem. Use for readout templates, section selection, or reformatting. NOT for: domain methodology, RCA narratives (template-doc-data-issue-rc), or executing validation."
+description: "Readout structure: emit a genre skeleton or restructure an existing readout without changing its content. Genres: data validation (technical, leadership, one-pager), strategy, launch, research, program, postmortem. Use for readout templates, section selection, or reformatting. NOT for: domain methodology, data-incident RCA narratives, or executing validation."
 ---
 
 # General Readout Template

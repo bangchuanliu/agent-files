@@ -20,7 +20,6 @@ and each row here to one line.
 | `peer-feedback` | Write feedback about **a colleague**. |
 | `slack-msg` | Draft or reword a short message I'm about to **send**. |
 | `template-general-readout` | Skeleton for a readout: strategy, launch, GA, research, program review, postmortem. |
-| `template-doc-data-issue-rc` | Write or review a data investigation / RCA write-up. |
 
 ## Code review & planning
 
@@ -59,7 +58,6 @@ and each row here to one line.
 
 | Skill | Reach for it when... |
 |---|---|
-| `gsheet` | Read or write a Google Sheet from the terminal. |
 | `local-server` | Start, stop, or check a local server for personal HTML files. |
 | `docs-preview` | Build and serve a Docusaurus site locally. |
 | `file-organization` | Decide where a file belongs, name it, or tidy a directory. |
