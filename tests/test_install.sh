@@ -32,6 +32,14 @@ for d in "$REPO"/ai-agents/skills/*/; do
   done
 done
 
+for agent in claude copilot pi; do
+  case "$agent" in
+    pi) skills_dir="$HOME/.pi/agent/skills" ;;
+    *)  skills_dir="$HOME/.$agent/skills" ;;
+  esac
+  check "$agent experimental skills are not installed" test ! -e "$skills_dir/code-simplify"
+done
+
 check "CLAUDE.md is a symlink to core rules" test "$(readlink "$HOME/.claude/CLAUDE.md")" = "$CORE"
 check "Pi AGENTS.md is a symlink to core rules" test "$(readlink "$HOME/.pi/agent/AGENTS.md")" = "$CORE"
 check "copilot-instructions.md is a regular file" test -f "$HOME/.copilot/copilot-instructions.md" -a ! -L "$HOME/.copilot/copilot-instructions.md"
