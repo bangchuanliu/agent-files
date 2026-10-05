@@ -19,6 +19,7 @@ agent-files/
   .pi/                    # Pi adapter
   lib/links.sh            # shared installer helpers
   install.sh              # root installer
+  tests/run.sh            # all repo checks; run before committing
 
 ~/.agent/
   AGENTS.md.local         # optional private company/machine instructions
@@ -34,6 +35,11 @@ its instruction files or skills. Reference the approved secret-management system
 ```bash
 ./install.sh
 ```
+
+Requires Python 3.9+ and Bash on macOS or Linux. Obtain and authenticate the supported
+agent clients through your organization's approved channels first. The installer does not
+download clients, packages, plugins, hooks, or MCP servers, and it leaves client settings
+and shell aliases unchanged.
 
 The installer runs the Claude, Copilot, and Pi adapters. It renders rules to
 `~/.agent/generated/AGENTS.md` (or `$AGENT_FILES_LOCAL_DIR/generated/AGENTS.md`) and installs
