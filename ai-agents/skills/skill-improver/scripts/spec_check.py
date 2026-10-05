@@ -26,7 +26,7 @@ except ImportError:
 
 NAME_RE = re.compile(r"[a-z0-9]+(-[a-z0-9]+)*")
 VALID_KINDS = ("leaf", "orchestrator")
-VALID_AGENTS = {"claude", "copilot", "openai"}
+VALID_AGENTS = {"claude", "copilot", "openai", "pi"}
 SKIP_DISCOVERY_DIRS = {
     ".git", ".hg", ".svn", "node_modules", "data", "assets", "dist",
     "build", "target", "__pycache__",

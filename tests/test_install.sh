@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Installer + render-rules smoke test in a throwaway HOME. Never touches the real ~/.claude,
-# ~/.copilot or shell rc files.
+# ~/.copilot, ~/.pi, or shell rc files.
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -24,14 +24,19 @@ bash "$REPO/install.sh" > "$SANDBOX/install1.log" 2>&1 || { cat "$SANDBOX/instal
 
 for d in "$REPO"/ai-agents/skills/*/; do
   b="$(basename "$d")"
-  for agent in claude copilot; do
+  for agent in claude copilot pi; do
     if (source "$REPO/lib/links.sh"; supports "${d}SKILL.md" "$agent"); then
-      check "$agent skill $b linked" test "$(readlink "$HOME/.$agent/skills/$b")" = "${d%/}"
+      case "$agent" in
+        pi) skills_dir="$HOME/.pi/agent/skills" ;;
+        *)  skills_dir="$HOME/.$agent/skills" ;;
+      esac
+      check "$agent skill $b linked" test "$(readlink "$skills_dir/$b")" = "${d%/}"
     fi
   done
 done
 
 check "CLAUDE.md is a symlink to generated rules" test "$(readlink "$HOME/.claude/CLAUDE.md")" = "$GEN"
+check "Pi AGENTS.md is a symlink to generated rules" test "$(readlink "$HOME/.pi/agent/AGENTS.md")" = "$GEN"
 check "copilot-instructions.md is a regular file" test -f "$HOME/.copilot/copilot-instructions.md" -a ! -L "$HOME/.copilot/copilot-instructions.md"
 check "no layers: generated equals core" cmp -s "$GEN" "$REPO/ai-agents/AGENTS.core.md"
 check "render-rules --check in sync" bash "$REPO/ai-agents/render-rules.sh" --check

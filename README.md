@@ -1,6 +1,6 @@
 # agent-files
 
-Personal AI-agent configuration for Claude Code and GitHub Copilot CLI. This repo is
+Personal AI-agent configuration for Claude Code, GitHub Copilot CLI, and Pi. This repo is
 standalone-first: a fresh clone with no company layer installed must render rules,
 install skills, and run normally.
 
@@ -21,8 +21,9 @@ ai-agents/
   docs/                   # maintainer/reference docs for this repo
 .claude/                  # Claude Code adapter and Claude-native config
 .copilot/                 # Copilot CLI adapter
+.pi/                      # Pi adapter
 lib/links.sh              # shared installer helpers (link, prune, skill merge, alias block)
-install.sh                # root installer, delegates to both adapters
+install.sh                # root installer, delegates to all adapters
 tests/
   run.sh                  # all repo checks; run before committing
   test_install.sh         # installers + render-rules against a sandboxed $HOME
@@ -36,12 +37,13 @@ Shared agents (`ai-agents/agents/`) are optional; the installers skip them when 
 ./install.sh
 ```
 
-The root installer runs both adapters:
+The root installer runs all adapters:
 
 - `.claude/install.sh`
 - `.copilot/install.sh`
+- `.pi/install.sh`
 
-Both adapters first run `ai-agents/render-rules.sh` so the deployed rules are generated
+All adapters first run `ai-agents/render-rules.sh` so the deployed rules are generated
 from the current core and any registered layers.
 
 ## Checks
@@ -84,6 +86,7 @@ Deployment differs by agent:
 |---|---|---|
 | Claude Code | `~/.claude/CLAUDE.md` | symlink to `ai-agents/.generated/AGENTS.md` |
 | Copilot CLI | `~/.copilot/copilot-instructions.md` | copied regular file |
+| Pi | `~/.pi/agent/AGENTS.md` (or `$PI_CODING_AGENT_DIR/AGENTS.md`) | symlink to `ai-agents/.generated/AGENTS.md` |
 
 Copilot gets a copy because its toolchain rewrites that path in place and would destroy a
 symlink. Run `ai-agents/render-rules.sh --check` to detect drift.
@@ -94,6 +97,7 @@ Skills are installed into real merge directories:
 
 - `~/.claude/skills/<skill>`
 - `~/.copilot/skills/<skill>`
+- `~/.pi/agent/skills/<skill>` (or `$PI_CODING_AGENT_DIR/skills/<skill>`)
 
 Each entry is a symlink to one source skill directory; only directories containing a
 `SKILL.md` are linked, and a skill whose frontmatter has `agents:` is linked only for the
