@@ -82,6 +82,31 @@ for agent in claude copilot pi; do
   check "$agent private skill linked" test "$(readlink "$skills_dir/acme-helper")" = "$LOCAL_AGENT_DIR/skills.local/acme-helper"
 done
 
+# Private agents install from agents.local as per-file links; opt-outs are honoured.
+mkdir -p "$LOCAL_AGENT_DIR/agents.local"
+printf '%s\n' '---' 'name: acme-agent' '---' '# Acme agent' > "$LOCAL_AGENT_DIR/agents.local/acme-agent.md"
+printf '%s\n' '---' 'name: acme-claude' 'agents: claude' '---' '# Claude only' > "$LOCAL_AGENT_DIR/agents.local/acme-claude.md"
+bash "$REPO/install.sh" > "$SANDBOX/install5.log" 2>&1 || { cat "$SANDBOX/install5.log"; fail "install with local agents exits 0"; }
+check "claude agents dir is a real dir" test -d "$HOME/.claude/agents" -a ! -L "$HOME/.claude/agents"
+check "claude private agent linked" test "$(readlink "$HOME/.claude/agents/acme-agent.md")" = "$LOCAL_AGENT_DIR/agents.local/acme-agent.md"
+check "copilot private agent linked as .agent.md" test "$(readlink "$HOME/.copilot/agents/acme-agent.agent.md")" = "$LOCAL_AGENT_DIR/agents.local/acme-agent.md"
+check "claude-only private agent linked for claude" test -L "$HOME/.claude/agents/acme-claude.md"
+check "claude-only private agent skipped for copilot" test ! -e "$HOME/.copilot/agents/acme-claude.agent.md"
+rm "$LOCAL_AGENT_DIR/agents.local/acme-agent.md"
+bash "$REPO/install.sh" > "$SANDBOX/install6.log" 2>&1 || { cat "$SANDBOX/install6.log"; fail "install after removing agent exits 0"; }
+check "removed private agent pruned (claude)" test ! -L "$HOME/.claude/agents/acme-agent.md"
+check "removed private agent pruned (copilot)" test ! -L "$HOME/.copilot/agents/acme-agent.agent.md"
+
+# A private agent cannot silently override a shared agent.
+mkdir -p "$SANDBOX/shared-agents" "$SANDBOX/local-agents"
+printf '# shared\n' > "$SANDBOX/shared-agents/dup.md"
+printf '# private\n' > "$SANDBOX/local-agents/dup.md"
+printf '# private\n' > "$SANDBOX/local-agents/unique.md"
+check "private agent collision rejected" bash -c "source '$REPO/lib/links.sh'; ! assert_no_agent_collisions '$SANDBOX/shared-agents' '$SANDBOX/local-agents' 2>/dev/null"
+rm "$SANDBOX/local-agents/dup.md"
+check "distinct private agent accepted" bash -c "source '$REPO/lib/links.sh'; assert_no_agent_collisions '$SANDBOX/shared-agents' '$SANDBOX/local-agents'"
+check "missing shared agents dir accepted" bash -c "source '$REPO/lib/links.sh'; assert_no_agent_collisions '$SANDBOX/none' '$SANDBOX/local-agents'"
+
 # A private skill cannot silently override a shared skill.
 mkdir -p "$LOCAL_AGENT_DIR/skills.local/docs-preview"
 printf '# duplicate\n' > "$LOCAL_AGENT_DIR/skills.local/docs-preview/SKILL.md"

@@ -8,6 +8,7 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SHARED="$REPO/ai-agents"
 LOCAL_AGENT_DIR="${AGENT_FILES_LOCAL_DIR:-$HOME/.agent}"
 LOCAL_SKILLS="$LOCAL_AGENT_DIR/skills.local"
+LOCAL_AGENTS="$LOCAL_AGENT_DIR/agents.local"
 GENERATED_RULES="$LOCAL_AGENT_DIR/generated/AGENTS.md"
 COPILOT="$HOME/.copilot"
 # shellcheck source=../lib/links.sh
@@ -15,6 +16,7 @@ source "$REPO/lib/links.sh"
 mkdir -p "$COPILOT"
 
 assert_no_skill_collisions "$SHARED/skills" "$LOCAL_SKILLS"
+assert_no_agent_collisions "$SHARED/agents" "$LOCAL_AGENTS"
 link_skills "$SHARED/skills" "$COPILOT/skills" copilot
 if [ -d "$LOCAL_SKILLS" ]; then link_skills "$LOCAL_SKILLS" "$COPILOT/skills" copilot; fi
 
@@ -24,23 +26,10 @@ COPILOT_RULES="$COPILOT/copilot-instructions.md"
 if [ -L "$COPILOT_RULES" ]; then rm "$COPILOT_RULES"; fi
 cp "$GENERATED_RULES" "$COPILOT_RULES"
 
-# Agents: per-file symlink with Copilot's .agent.md extension.
-if [ -d "$SHARED/agents" ]; then
-  mkdir -p "$COPILOT/agents"
-  for f in "$SHARED/agents"/*.md; do
-    [ -e "$f" ] || continue
-    base="$(basename "$f" .md)"
-    if supports "$f" copilot; then
-      link "$f" "$COPILOT/agents/$base.agent.md"
-    else
-      unlink_if_symlink "$COPILOT/agents/$base.agent.md"
-      echo "skip: $base (not for copilot)"
-    fi
-  done
-  prune_dangling "$COPILOT/agents"
-else
-  echo "skip: $SHARED/agents missing"
-fi
+# Agents: per-file symlinks with Copilot's .agent.md extension, shared then private.
+link_agents "$SHARED/agents" "$COPILOT/agents" copilot .agent.md
+link_agents "$LOCAL_AGENTS" "$COPILOT/agents" copilot .agent.md
+prune_dangling "$COPILOT/agents"
 
 install_shell_alias coya "copilot --autopilot --allow-all" \
   "coya = Copilot CLI in autopilot mode with all tools auto-allowed."

@@ -23,9 +23,10 @@
 
 ## Machine-local configuration
 
-Use `~/.agent/AGENTS.md.local` for private agent instructions and
-`~/.agent/skills.local/` for private skills. Never commit, print, or copy their
-contents into tracked or public files.
+Use `~/.agent/AGENTS.md.local` for private agent instructions,
+`~/.agent/skills.local/` for private skills, and `~/.agent/agents.local/` for
+private agents. Never commit, print, or copy their contents into tracked or
+public files.
 
 Never store secret values in agent instructions or skills. Use the approved
 secret-management system instead.

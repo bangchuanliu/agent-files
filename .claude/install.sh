@@ -7,6 +7,7 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SHARED="$REPO/ai-agents"
 LOCAL_AGENT_DIR="${AGENT_FILES_LOCAL_DIR:-$HOME/.agent}"
 LOCAL_SKILLS="$LOCAL_AGENT_DIR/skills.local"
+LOCAL_AGENTS="$LOCAL_AGENT_DIR/agents.local"
 GENERATED_RULES="$LOCAL_AGENT_DIR/generated/AGENTS.md"
 CLAUDE="$HOME/.claude"
 # shellcheck source=../lib/links.sh
@@ -14,6 +15,7 @@ source "$REPO/lib/links.sh"
 mkdir -p "$CLAUDE"
 
 assert_no_skill_collisions "$SHARED/skills" "$LOCAL_SKILLS"
+assert_no_agent_collisions "$SHARED/agents" "$LOCAL_AGENTS"
 link_skills "$SHARED/skills" "$CLAUDE/skills" claude
 if [ -d "$LOCAL_SKILLS" ]; then link_skills "$LOCAL_SKILLS" "$CLAUDE/skills" claude; fi
 
@@ -21,11 +23,10 @@ if [ -d "$LOCAL_SKILLS" ]; then link_skills "$LOCAL_SKILLS" "$CLAUDE/skills" cla
 bash "$SHARED/sync-rules.sh"
 link "$GENERATED_RULES" "$CLAUDE/CLAUDE.md"
 
-if [ -d "$SHARED/agents" ]; then
-  link "$SHARED/agents" "$CLAUDE/agents"
-else
-  echo "skip: $SHARED/agents missing"
-fi
+# Agents: a real merge directory of per-file symlinks, shared then private.
+link_agents "$SHARED/agents" "$CLAUDE/agents" claude .md
+link_agents "$LOCAL_AGENTS" "$CLAUDE/agents" claude .md
+prune_dangling "$CLAUDE/agents"
 if [ -d "$SHARED/commands" ]; then link "$SHARED/commands" "$CLAUDE/commands"; fi
 
 # Docs are namespaced under docs/core so a company layer can add docs/<layer> alongside.

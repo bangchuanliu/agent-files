@@ -71,6 +71,41 @@ assert_no_skill_collisions() {
   done
 }
 
+# link_agents <src-agents-dir> <merge-dir> <agent> <suffix>: one symlink per <name>.md agent file
+# into a real merge directory as <name><suffix> (Copilot needs ".agent.md"). Agents whose
+# frontmatter opts out of <agent> are unlinked. A missing source dir is a no-op.
+link_agents() {
+  local src="$1" merged="$2" agent="$3" suffix="$4" f base
+  unlink_if_symlink "$merged"   # retire legacy whole-dir symlink
+  mkdir -p "$merged"
+  [ -d "$src" ] || return 0
+  for f in "$src"/*.md; do
+    [ -e "$f" ] || continue
+    base="$(basename "$f" .md)"
+    if supports "$f" "$agent"; then
+      link "$f" "$merged/$base$suffix"
+    else
+      unlink_if_symlink "$merged/$base$suffix"
+      echo "skip: $base (not for $agent)"
+    fi
+  done
+}
+
+# assert_no_agent_collisions <shared-agents> <local-agents>: fail when a private agent uses the
+# same file name as a shared agent.
+assert_no_agent_collisions() {
+  local shared="$1" local_agents="$2" f b
+  [ -d "$local_agents" ] || return 0
+  for f in "$local_agents"/*.md; do
+    [ -e "$f" ] || continue
+    b="$(basename "$f")"
+    if [ -f "$shared/$b" ]; then
+      echo "agent collision: $b exists in both $shared and $local_agents" >&2
+      return 2
+    fi
+  done
+}
+
 # replace_managed_block <file> <begin-marker> <end-marker> <block>: replace the lines between
 # (and including) the markers with block, appended at the end of file.
 replace_managed_block() {

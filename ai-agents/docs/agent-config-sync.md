@@ -10,6 +10,7 @@ and lives outside the repository.
 | `ai-agents/AGENTS.core.md` | tracked source | Shared company-agnostic rules |
 | `~/.agent/AGENTS.md.local` | optional private source | Company or machine-specific rules |
 | `~/.agent/skills.local/<name>/SKILL.md` | optional private source | Company or machine-specific skills |
+| `~/.agent/agents.local/<name>.md` | optional private source | Company or machine-specific agents (Claude, Copilot) |
 | `~/.agent/generated/AGENTS.md` | generated local file | Core rules plus optional local overlay |
 
 Set `AGENT_FILES_LOCAL_DIR` to replace `~/.agent/`, for example in tests or on a machine that
@@ -34,6 +35,13 @@ The adapters merge skills from the tracked `ai-agents/skills/` directory and opt
 `~/.agent/skills.local/` into each agent's skill directory. Experimental skills are never
 installed. Shared and private skill names must not collide; the installer exits with an error if
 they do.
+
+## Agents
+
+Claude and Copilot merge per-file agent links from the tracked `ai-agents/agents/` directory (if
+present) and optional `~/.agent/agents.local/` into `~/.claude/agents/` and `~/.copilot/agents/`
+(Copilot as `<name>.agent.md`). Pi has no agents. Name collisions fail the install, and links to
+removed agents are pruned.
 
 Keep private skills and company instructions out of this repository. Never put secret values in
 agent instructions or skills; use approved secret-management tooling.

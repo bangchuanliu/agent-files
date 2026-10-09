@@ -24,6 +24,7 @@ agent-files/
 ~/.agent/
   AGENTS.md.local         # optional private company/machine instructions
   skills.local/           # optional private skills; each contains SKILL.md
+  agents.local/           # optional private agents; one <name>.md each (Claude, Copilot)
   generated/AGENTS.md     # generated combined rules, never source-controlled
 ```
 
@@ -74,6 +75,10 @@ $EDITOR ~/.agent/AGENTS.md.local
 Private skills are installed from `~/.agent/skills.local/<skill>/SKILL.md` alongside the shared
 skills. A private skill cannot use the same directory name as a shared skill; installation fails
 rather than silently choosing one.
+
+Private agents are installed from `~/.agent/agents.local/<name>.md` into `~/.claude/agents/` and,
+as `<name>.agent.md`, into `~/.copilot/agents/`. Pi has no agents. An `agents:` frontmatter line
+limits which tools get an agent, and names must not collide with shared agents.
 
 To test a separate local-agent directory without changing `~/.agent/`, set:
 
