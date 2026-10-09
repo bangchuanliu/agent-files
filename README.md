@@ -2,7 +2,7 @@
 
 Shareable AI-agent configuration for Claude Code, GitHub Copilot CLI, and Pi. The repository
 contains only general rules and publishable skills. Company or machine-specific instructions and
-skills live in `~/.agent/`, outside the repository.
+skills live in `~/.agents-local/`, outside the repository.
 
 ## Layout
 
@@ -21,16 +21,16 @@ agent-files/
   install.sh              # root installer
   tests/run.sh            # all repo checks; run before committing
 
-~/.agent/
-  AGENTS.md.local         # optional private company/machine instructions
-  skills.local/           # optional private skills; each contains SKILL.md
-  agents.local/           # optional private agents; one <name>.md each (Claude, Copilot)
+~/.agents-local/
+  AGENTS.md               # optional private company/machine instructions
+  skills/                 # optional private skills; each contains SKILL.md
+  agents/                 # optional private agents; one <name>.md each (Claude, Copilot)
   docs/                   # optional private reference docs, read by path (not installed)
     skill-context/<skill>/context.md  # optional company notes a shared skill reads first
   generated/AGENTS.md     # generated combined rules, never source-controlled
 ```
 
-`~/.agent/` is local to the machine and is not part of this repository. Do not put secrets in
+`~/.agents-local/` is local to the machine and is not part of this repository. Do not put secrets in
 its instruction files or skills. Reference the approved secret-management system instead.
 
 ## Install
@@ -45,13 +45,13 @@ download clients, packages, plugins, hooks, or MCP servers, and it leaves client
 and shell aliases unchanged.
 
 The installer runs the Claude, Copilot, and Pi adapters. It renders rules to
-`~/.agent/generated/AGENTS.md` (or `$AGENT_FILES_LOCAL_DIR/generated/AGENTS.md`) and installs
+`~/.agents-local/generated/AGENTS.md` (or `$AGENT_FILES_LOCAL_DIR/generated/AGENTS.md`) and installs
 skills into each agent's normal skill directory.
 
 Rules render as follows:
 
 1. `ai-agents/AGENTS.core.md` is always included.
-2. `~/.agent/AGENTS.md.local` is appended under `## Local Context` when it exists and is
+2. `~/.agents-local/AGENTS.md` is appended under `## Local Context` when it exists and is
    non-empty.
 
 Without a local overlay, the generated file is byte-for-byte identical to `AGENTS.core.md`.
@@ -69,20 +69,20 @@ its instructions file in place.
 On a company-specific machine, create the optional local overlay:
 
 ```bash
-mkdir -p ~/.agent/skills.local
-$EDITOR ~/.agent/AGENTS.md.local
+mkdir -p ~/.agents-local/skills
+$EDITOR ~/.agents-local/AGENTS.md
 ./install.sh
 ```
 
-Private skills are installed from `~/.agent/skills.local/<skill>/SKILL.md` alongside the shared
+Private skills are installed from `~/.agents-local/skills/<skill>/SKILL.md` alongside the shared
 skills. A private skill cannot use the same directory name as a shared skill; installation fails
 rather than silently choosing one.
 
-Private agents are installed from `~/.agent/agents.local/<name>.md` into `~/.claude/agents/` and,
+Private agents are installed from `~/.agents-local/agents/<name>.md` into `~/.claude/agents/` and,
 as `<name>.agent.md`, into `~/.copilot/agents/`. Pi has no agents. An `agents:` frontmatter line
 limits which tools get an agent, and names must not collide with shared agents.
 
-To test a separate local-agent directory without changing `~/.agent/`, set:
+To test a separate local-agent directory without changing `~/.agents-local/`, set:
 
 ```bash
 AGENT_FILES_LOCAL_DIR=/path/to/private-agent-files ./install.sh
@@ -95,4 +95,4 @@ bash tests/run.sh
 ```
 
 Runs shell syntax, shellcheck (when installed), Python compile, skill checks, and a sandboxed
-installer test. The installer test never touches your real `$HOME` or `~/.agent/`.
+installer test. The installer test never touches your real `$HOME` or `~/.agents-local/`.

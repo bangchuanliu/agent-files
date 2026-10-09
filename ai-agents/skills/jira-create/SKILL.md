@@ -10,7 +10,7 @@ Create tickets with fields that enable efficient agent processing. Every ticket 
 
 ## Step 0 - company context
 
-Read `~/.agent/docs/skill-context/jira-create/context.md` if it exists. If it does not exist,
+Read `~/.agents-local/docs/skill-context/jira-create/context.md` if it exists. If it does not exist,
 skip this step - its absence is normal and the generic guidance below is complete on its own.
 
 ## Process

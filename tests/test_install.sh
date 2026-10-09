@@ -6,7 +6,7 @@ set -euo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SANDBOX="$(mktemp -d)"
 CORE="$REPO/ai-agents/AGENTS.core.md"
-LOCAL_AGENT_DIR="$SANDBOX/.agent"
+LOCAL_AGENT_DIR="$SANDBOX/custom-overlay"
 GENERATED="$LOCAL_AGENT_DIR/generated/AGENTS.md"
 cleanup() {
   rm -rf "$SANDBOX"
@@ -67,9 +67,9 @@ bash "$REPO/install.sh" > "$SANDBOX/install3.log" 2>&1 || { cat "$SANDBOX/instal
 check "re-run refreshes Copilot rules" cmp -s "$HOME/.copilot/copilot-instructions.md" "$GENERATED"
 
 # A private overlay and private skill are installed only from the local agent directory.
-mkdir -p "$LOCAL_AGENT_DIR/skills.local/acme-helper"
-printf '# Acme context\n- use Acme conventions\n' > "$LOCAL_AGENT_DIR/AGENTS.md.local"
-printf '%s\n' '---' 'name: acme-helper' '---' '# Acme helper' > "$LOCAL_AGENT_DIR/skills.local/acme-helper/SKILL.md"
+mkdir -p "$LOCAL_AGENT_DIR/skills/acme-helper"
+printf '# Acme context\n- use Acme conventions\n' > "$LOCAL_AGENT_DIR/AGENTS.md"
+printf '%s\n' '---' 'name: acme-helper' '---' '# Acme helper' > "$LOCAL_AGENT_DIR/skills/acme-helper/SKILL.md"
 bash "$REPO/install.sh" > "$SANDBOX/install4.log" 2>&1 || { cat "$SANDBOX/install4.log"; fail "install with local overlay exits 0"; }
 check "local context heading rendered" grep -q '^## Local Context$' "$GENERATED"
 check "local context rendered" grep -q '^- use Acme conventions$' "$GENERATED"
@@ -79,20 +79,20 @@ for agent in claude copilot pi; do
     pi) skills_dir="$HOME/.pi/agent/skills" ;;
     *)  skills_dir="$HOME/.$agent/skills" ;;
   esac
-  check "$agent private skill linked" test "$(readlink "$skills_dir/acme-helper")" = "$LOCAL_AGENT_DIR/skills.local/acme-helper"
+  check "$agent private skill linked" test "$(readlink "$skills_dir/acme-helper")" = "$LOCAL_AGENT_DIR/skills/acme-helper"
 done
 
-# Private agents install from agents.local as per-file links; opt-outs are honoured.
-mkdir -p "$LOCAL_AGENT_DIR/agents.local"
-printf '%s\n' '---' 'name: acme-agent' '---' '# Acme agent' > "$LOCAL_AGENT_DIR/agents.local/acme-agent.md"
-printf '%s\n' '---' 'name: acme-claude' 'agents: claude' '---' '# Claude only' > "$LOCAL_AGENT_DIR/agents.local/acme-claude.md"
+# Private agents install from the overlay agents/ dir as per-file links; opt-outs are honoured.
+mkdir -p "$LOCAL_AGENT_DIR/agents"
+printf '%s\n' '---' 'name: acme-agent' '---' '# Acme agent' > "$LOCAL_AGENT_DIR/agents/acme-agent.md"
+printf '%s\n' '---' 'name: acme-claude' 'agents: claude' '---' '# Claude only' > "$LOCAL_AGENT_DIR/agents/acme-claude.md"
 bash "$REPO/install.sh" > "$SANDBOX/install5.log" 2>&1 || { cat "$SANDBOX/install5.log"; fail "install with local agents exits 0"; }
 check "claude agents dir is a real dir" test -d "$HOME/.claude/agents" -a ! -L "$HOME/.claude/agents"
-check "claude private agent linked" test "$(readlink "$HOME/.claude/agents/acme-agent.md")" = "$LOCAL_AGENT_DIR/agents.local/acme-agent.md"
-check "copilot private agent linked as .agent.md" test "$(readlink "$HOME/.copilot/agents/acme-agent.agent.md")" = "$LOCAL_AGENT_DIR/agents.local/acme-agent.md"
+check "claude private agent linked" test "$(readlink "$HOME/.claude/agents/acme-agent.md")" = "$LOCAL_AGENT_DIR/agents/acme-agent.md"
+check "copilot private agent linked as .agent.md" test "$(readlink "$HOME/.copilot/agents/acme-agent.agent.md")" = "$LOCAL_AGENT_DIR/agents/acme-agent.md"
 check "claude-only private agent linked for claude" test -L "$HOME/.claude/agents/acme-claude.md"
 check "claude-only private agent skipped for copilot" test ! -e "$HOME/.copilot/agents/acme-claude.agent.md"
-rm "$LOCAL_AGENT_DIR/agents.local/acme-agent.md"
+rm "$LOCAL_AGENT_DIR/agents/acme-agent.md"
 bash "$REPO/install.sh" > "$SANDBOX/install6.log" 2>&1 || { cat "$SANDBOX/install6.log"; fail "install after removing agent exits 0"; }
 check "removed private agent pruned (claude)" test ! -L "$HOME/.claude/agents/acme-agent.md"
 check "removed private agent pruned (copilot)" test ! -L "$HOME/.copilot/agents/acme-agent.agent.md"
@@ -108,9 +108,18 @@ check "distinct private agent accepted" bash -c "source '$REPO/lib/links.sh'; as
 check "missing shared agents dir accepted" bash -c "source '$REPO/lib/links.sh'; assert_no_agent_collisions '$SANDBOX/none' '$SANDBOX/local-agents'"
 
 # A private skill cannot silently override a shared skill.
-mkdir -p "$LOCAL_AGENT_DIR/skills.local/docs-preview"
-printf '# duplicate\n' > "$LOCAL_AGENT_DIR/skills.local/docs-preview/SKILL.md"
+mkdir -p "$LOCAL_AGENT_DIR/skills/docs-preview"
+printf '# duplicate\n' > "$LOCAL_AGENT_DIR/skills/docs-preview/SKILL.md"
 check "private skill collision rejected" bash -c "! bash '$REPO/install.sh' >/dev/null 2>&1"
+
+# Without AGENT_FILES_LOCAL_DIR the overlay defaults to ~/.agents-local.
+mkdir -p "$HOME/.agents-local/skills/default-helper"
+printf '%s\n' '---' 'name: default-helper' '---' '# Default helper' > "$HOME/.agents-local/skills/default-helper/SKILL.md"
+printf -- '- default overlay rule\n' > "$HOME/.agents-local/AGENTS.md"
+env -u AGENT_FILES_LOCAL_DIR bash "$REPO/install.sh" > "$SANDBOX/install7.log" 2>&1 || { cat "$SANDBOX/install7.log"; fail "install with default overlay dir exits 0"; }
+check "default overlay skill linked" test "$(readlink "$HOME/.copilot/skills/default-helper")" = "$HOME/.agents-local/skills/default-helper"
+check "default overlay rules rendered" grep -q '^- default overlay rule$' "$HOME/.agents-local/generated/AGENTS.md"
+check "default overlay rules copied to Copilot" grep -q '^- default overlay rule$' "$HOME/.copilot/copilot-instructions.md"
 
 echo ""
 if [ "$fails" -eq 0 ]; then echo "test_install: all passed"; else echo "test_install: $fails failed"; exit 1; fi

@@ -5,9 +5,9 @@ set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SHARED="$REPO/ai-agents"
-LOCAL_AGENT_DIR="${AGENT_FILES_LOCAL_DIR:-$HOME/.agent}"
-LOCAL_SKILLS="$LOCAL_AGENT_DIR/skills.local"
-LOCAL_AGENTS="$LOCAL_AGENT_DIR/agents.local"
+LOCAL_AGENT_DIR="${AGENT_FILES_LOCAL_DIR:-$HOME/.agents-local}"
+LOCAL_SKILLS="$LOCAL_AGENT_DIR/skills"
+LOCAL_AGENTS="$LOCAL_AGENT_DIR/agents"
 GENERATED_RULES="$LOCAL_AGENT_DIR/generated/AGENTS.md"
 CLAUDE="$HOME/.claude"
 # shellcheck source=../lib/links.sh
