@@ -25,7 +25,7 @@ Use the host's skill invocation syntax if it has one; otherwise pass the same wo
 
 ## Step 0 - local context
 
-Read `~/.config/dotfiles/context/review-self/context.md` if it exists; it may route to further
+Read `~/.agent/docs/skill-context/review-self/context.md` if it exists; it may route to further
 files in that directory. If it does not exist, skip this step - its absence is normal and the
 generic checks below are complete on their own.
 

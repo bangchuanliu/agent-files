@@ -11,6 +11,8 @@ and lives outside the repository.
 | `~/.agent/AGENTS.md.local` | optional private source | Company or machine-specific rules |
 | `~/.agent/skills.local/<name>/SKILL.md` | optional private source | Company or machine-specific skills |
 | `~/.agent/agents.local/<name>.md` | optional private source | Company or machine-specific agents (Claude, Copilot) |
+| `~/.agent/docs/` | optional private docs | Reference docs read by path from the local rules; not installed |
+| `~/.agent/docs/skill-context/<skill>/context.md` | optional private docs | Company notes a shared skill reads before its generic steps |
 | `~/.agent/generated/AGENTS.md` | generated local file | Core rules plus optional local overlay |
 
 Set `AGENT_FILES_LOCAL_DIR` to replace `~/.agent/`, for example in tests or on a machine that
