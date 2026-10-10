@@ -5,7 +5,7 @@ set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SANDBOX="$(mktemp -d)"
-CORE="$REPO/ai-agents/AGENTS.core.md"
+CORE="$REPO/ai-agents/rules/AGENTS.core.md"
 LOCAL_AGENT_DIR="$SANDBOX/custom-overlay"
 GENERATED="$LOCAL_AGENT_DIR/generated/AGENTS.md"
 cleanup() {
@@ -43,7 +43,10 @@ for agent in claude copilot pi; do
   check "$agent experimental skills are not installed" test ! -e "$skills_dir/code-simplify"
 done
 
-check "no overlay: generated rules equal core" cmp -s "$GENERATED" "$CORE"
+check "no overlay: generated rules equal rendered core" cmp -s "$GENERATED" <(sed "s|{{RULES_DIR}}|$REPO/ai-agents/rules|g" "$CORE")
+check "rule index placeholder rendered" bash -c "! grep -q '{{RULES_DIR}}' '$GENERATED'"
+check "rule index lists every rule file" test "$(grep -o "$REPO/ai-agents/rules/[a-z-]*\.md" "$GENERATED" | sort -u | wc -l | tr -d ' ')" = "$(find "$REPO/ai-agents/rules" -name '*.md' ! -name AGENTS.core.md | wc -l | tr -d ' ')"
+for f in $(grep -o "$REPO/ai-agents/rules/[a-z-]*\.md" "$GENERATED"); do check "indexed rule file exists: $(basename "$f")" test -f "$f"; done
 check "CLAUDE.md is a symlink to generated rules" test "$(readlink "$HOME/.claude/CLAUDE.md")" = "$GENERATED"
 check "Pi AGENTS.md is a symlink to generated rules" test "$(readlink "$HOME/.pi/agent/AGENTS.md")" = "$GENERATED"
 check "copilot-instructions.md is a regular file" test -f "$HOME/.copilot/copilot-instructions.md" -a ! -L "$HOME/.copilot/copilot-instructions.md"

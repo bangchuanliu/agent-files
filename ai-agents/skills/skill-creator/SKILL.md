@@ -27,6 +27,7 @@ Terms in _italics_ are defined in [references/levers.md](references/levers.md). 
 - MUST write hard rules as `MUST`, defaults as `SHOULD`, and context-dependent behaviour as `IF` / `WHEN`. State the target behaviour positively (avoid _negation_). Reserve `MUST NOT` for hard guardrails that cannot be phrased positively, and pair it with the positive target.
 - MUST put constraints (scope, format, allowed operations) and guardrails (secrets, unauthorized writes, fabricated evidence) together under Rules. Add a separate `Safety Guardrails` section only for high-risk work.
 - MUST prescribe an ordered sequence only when skipping or reordering steps would compromise correctness, safety, recoverability, or an external protocol. Otherwise state the outcome and let the agent choose the steps.
+- MUST settle runtime questions while writing the skill.
 - MUST preserve every hard requirement, safety boundary, and critical check of the original document. Edits change how reliably it is followed, not what it asks for, unless the user asks otherwise. Never drop a check just to save tokens.
 - MUST keep the document agent-agnostic. Any instruction tied to one host agent's tools or features needs a portable fallback.
 - MUST keep each meaning in a _single source of truth_:

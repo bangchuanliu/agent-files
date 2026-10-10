@@ -7,7 +7,8 @@ and lives outside the repository.
 
 | Path | Kind | Contents |
 |---|---|---|
-| `ai-agents/AGENTS.core.md` | tracked source | Shared company-agnostic rules |
+| `ai-agents/rules/AGENTS.core.md` | tracked source | Shared company-agnostic global rules and topic rule index |
+| `ai-agents/rules/<topic>.md` | tracked source | Topic rules read on demand via the index |
 | `~/.agents-local/AGENTS.md` | optional private source | Company or machine-specific rules |
 | `~/.agents-local/skills/<name>/SKILL.md` | optional private source | Company or machine-specific skills |
 | `~/.agents-local/agents/<name>.md` | optional private source | Company or machine-specific agents (Claude, Copilot) |
@@ -21,8 +22,8 @@ uses a different local configuration directory.
 ## Rule sync
 
 `ai-agents/sync-rules.sh` writes the generated rules file. It always starts with
-`AGENTS.core.md`. If the overlay `AGENTS.md` exists and is non-empty, it appends it under a
-`## Local Context` heading. Without an overlay, the result is byte-identical to the core source.
+`AGENTS.core.md`, replacing `{{RULES_DIR}}` with the absolute `ai-agents/rules` path. If the overlay `AGENTS.md` exists and is non-empty, it appends it under a
+`## Local Context` heading. Without an overlay, the result is the rendered core source alone.
 
 Each adapter runs the sync script during `./install.sh`:
 

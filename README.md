@@ -9,7 +9,9 @@ skills live in `~/.agents-local/`, outside the repository.
 ```text
 agent-files/
   ai-agents/
-    AGENTS.core.md        # tracked shared rules
+    rules/
+      AGENTS.core.md      # tracked global guardrails plus an index of topic rule files
+      *.md                # topic rules (thinking, building, communicating) loaded on demand
     sync-rules.sh         # combines core rules with the optional private overlay
     skills/               # tracked, safe-to-share skills
     experimental/         # parked skills, never installed
@@ -50,11 +52,12 @@ skills into each agent's normal skill directory.
 
 Rules render as follows:
 
-1. `ai-agents/AGENTS.core.md` is always included.
+1. `ai-agents/rules/AGENTS.core.md` is always included, with `{{RULES_DIR}}` replaced by this clone's
+   absolute `ai-agents/rules` path so every agent can open the indexed topic rule files.
 2. `~/.agents-local/AGENTS.md` is appended under `## Local Context` when it exists and is
    non-empty.
 
-Without a local overlay, the generated file is byte-for-byte identical to `AGENTS.core.md`.
+Without a local overlay, the generated file is the rendered `AGENTS.core.md` and nothing else.
 Claude and Pi link to the generated file; Copilot receives a regular copy because it rewrites
 its instructions file in place.
 
