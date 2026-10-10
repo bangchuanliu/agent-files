@@ -1,7 +1,7 @@
 ---
 name: skill-improver
 kind: leaf
-description: "Skills, AGENTS.md and CLAUDE.md: how to write and improve any document an agent consumes. Use when: edit a skill, improve a skill, polish a skill, review a skill, simplify a skill, audit a skill, fix a skill description, a skill bloats context, check spec conformance, or edit AGENTS.md or CLAUDE.md. NOT for: running evals, or simplifying source code → use review-self."
+description: "Use when: write or improve any document an agent consumes (skills, AGENTS.md, CLAUDE.md) - edit a skill, improve a skill, polish a skill, review a skill, simplify a skill, audit a skill, fix a skill description, a skill bloats context, check spec conformance, or edit AGENTS.md or CLAUDE.md. NOT for: creating a skill or restructuring one into rules and conditional checks → use skill-creator; running evals; or simplifying source code → use review-self."
 ---
 
 Reference for writing any document an agent consumes: a skill, an `AGENTS.md` / `CLAUDE.md`, a doc reached by a pointer. The packaging differs; the writing does not: the same levers make each one predictable, since the agent takes the same _process_ every run rather than producing the same output.
