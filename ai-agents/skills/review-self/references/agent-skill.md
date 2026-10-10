@@ -20,7 +20,7 @@ Review checklist for agent-consumed documents: skills, commands, repository rule
 | **Rule** | `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, host rule folders | Markdown conventions |
 | **Plan** | `plans/features/<name>/plan.md` or project plan folders | Ordered implementation plan |
 
-For writing-quality levers - context pointers, progressive disclosure, co-location, completion criteria, leading words, positive prompting, and pruning - use `skill-improver` as the single source of truth. This file adds review gates and checklists for applying those levers to agent documents.
+For writing-quality levers - context pointers, progressive disclosure, co-location, completion criteria, leading words, positive prompting, and pruning - use `skill-creator` as the single source of truth. This file adds review gates and checklists for applying those levers to agent documents.
 
 ## Skill review
 
@@ -37,7 +37,7 @@ Check every `SKILL.md`:
 Run the local mechanical checker when this repo provides one, for example:
 
 ```bash
-python3 ai-agents/skills/skill-improver/scripts/spec_check.py ai-agents/skills/<name>
+python3 ai-agents/skills/skill-creator/scripts/spec_check.py ai-agents/skills/<name>
 ```
 
 ### Body and references

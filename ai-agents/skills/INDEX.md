@@ -28,8 +28,7 @@ and each row here to one line.
 | `review-self` | Review **my own** diff before a PR, or triage comments left on my PR. |
 | `review-others` | Review **someone else's** PR, or batch the PRs awaiting my review. |
 | `generate-plan` | Turn a triaged `spec.md` into an execution `plan.md`. |
-| `skill-creator` | Create or refactor a skill to the constraint-first standard; review checklist. |
-| `skill-improver` | Write, audit, or tighten a skill, `AGENTS.md`, or `CLAUDE.md`. |
+| `skill-creator` | Create, refactor, review, or tighten a skill, `AGENTS.md`, or `CLAUDE.md`. |
 | `jira-create` | File agent-optimized JIRA tickets. |
 
 ## Worktrees, terminals & sessions
@@ -74,5 +73,5 @@ and each row here to one line.
 
 - New skill = new dir with a `SKILL.md`, a row here in the same change, then `./install.sh`.
 - Parked skills live in `ai-agents/experimental/` and are not installed.
-- `tests/run.sh` must pass before committing; it lints every skill with `skill-improver`'s
+- `tests/run.sh` must pass before committing; it lints every skill with `skill-creator`'s
   `spec_check.py`.

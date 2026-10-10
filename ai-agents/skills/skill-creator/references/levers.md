@@ -1,6 +1,6 @@
 # Levers: definitions and rationale
 
-The terms and reasoning behind the rules in `SKILL.md`. The rules there are authoritative; this file explains them. Forked from the `writing-for-agents` skill.
+The terms and reasoning behind the rules in `SKILL.md`. Those rules are authoritative; this file explains them. Forked from the `writing-for-agents` skill.
 
 ## Context pointers
 

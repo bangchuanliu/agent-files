@@ -1,6 +1,6 @@
 # Skill mechanics
 
-The skill-specific branch of `skill-improver`: what changes when the document is a skill (frontmatter, the invocation choice, and router skills). Everything else about writing it is the rules in `SKILL.md` and the reference in `levers.md`.
+The skill-specific branch of `skill-creator`: what changes when the document is a skill (frontmatter, the invocation choice, and router skills). Everything else about writing it is the rules in `SKILL.md` and the reference in `levers.md`.
 
 ## Frontmatter
 

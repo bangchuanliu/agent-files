@@ -26,7 +26,7 @@ pycompile() {
   git ls-files -co --exclude-standard -z -- '*.py' \
     | xargs -0 python3 -c 'import sys; [compile(open(f, encoding="utf-8").read(), f, "exec") for f in sys.argv[1:]]'
 }
-spec() { python3 ai-agents/skills/skill-improver/scripts/spec_check.py --all ai-agents/skills; }
+spec() { python3 ai-agents/skills/skill-creator/scripts/spec_check.py --all ai-agents/skills; }
 skill_tests() {
   local t rc=0
   while IFS= read -r t; do

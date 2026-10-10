@@ -8,4 +8,4 @@ re-run `./install.sh`.
 
 | Skill | Parked because |
 |---|---|
-| `code-simplify` | Superseded for skill files by `skill-improver`, whose simplify pass has the "Do NOT cut" guards. Its source-code simplification role overlaps `review-self`. |
+| `code-simplify` | Superseded for skill files by `skill-creator`, whose simplify pass has the "Do NOT cut" guards. Its source-code simplification role overlaps `review-self`. |

@@ -2,7 +2,7 @@
 name: code-simplify
 kind: leaf
 description: >-
-  Simplify just-written or just-modified code for clarity, consistency and maintainability while preserving exact behavior. Use this skill right after finishing a coding task or a logical chunk of code — a new feature, a bug fix, a refactor, an optimization — and whenever the user says simplify, clean up, tidy, refine, make this more readable, reduce nesting, or "does this follow our conventions". Default scope is the current session's diff, not the whole repo. NOT for: hunting bugs and logic errors in a diff → use review-self or the code-review agent; Spark/Scala performance and scale correctness → use spark-scala-review; security vulnerabilities → use security-review; simplifying a SKILL.md or other agent-instruction file → use skill-improver, whose guards protect load-bearing rationalization counters.
+  Simplify just-written or just-modified code for clarity, consistency and maintainability while preserving exact behavior. Use this skill right after finishing a coding task or a logical chunk of code — a new feature, a bug fix, a refactor, an optimization — and whenever the user says simplify, clean up, tidy, refine, make this more readable, reduce nesting, or "does this follow our conventions". Default scope is the current session's diff, not the whole repo. NOT for: hunting bugs and logic errors in a diff → use review-self or the code-review agent; Spark/Scala performance and scale correctness → use spark-scala-review; security vulnerabilities → use security-review; simplifying a SKILL.md or other agent-instruction file → use skill-creator, whose guards protect load-bearing rationalization counters.
 ---
 
 # Code Simplifier
