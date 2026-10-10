@@ -28,6 +28,7 @@ and each row here to one line.
 | `review-self` | Review **my own** diff before a PR, or triage comments left on my PR. |
 | `review-others` | Review **someone else's** PR, or batch the PRs awaiting my review. |
 | `generate-plan` | Turn a triaged `spec.md` into an execution `plan.md`. |
+| `skill-creator` | Create or refactor a skill to the constraint-first standard; review checklist. |
 | `skill-improver` | Write, audit, or tighten a skill, `AGENTS.md`, or `CLAUDE.md`. |
 | `jira-create` | File agent-optimized JIRA tickets. |
 
