@@ -57,7 +57,7 @@ and each row here to one line.
 |---|---|
 | `local-server` | Start, stop, or check a local server for personal HTML files. |
 | `docs-preview` | Build and serve a Docusaurus site locally. |
-| `file-organization` | Decide where a file belongs, name it, or tidy a directory. |
+| `folder-layout` | Init or refactor folders: Mac home, personal goal/progress project, or code repo; file or name an item. |
 
 ## Boundaries that trip auto-recall
 
