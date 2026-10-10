@@ -1,7 +1,7 @@
 ---
 name: skill-creator
 kind: leaf
-description: "Use when: create, refactor, review, or tighten a document an agent consumes - a skill, a skill description, AGENTS.md, or CLAUDE.md; audit one for bloat, no-ops, unnecessary workflow, or spec conformance; evaluate a skill rewrite against the old version. NOT for: simplifying source code -> use review-self."
+description: "Use when: create, refactor, review, or tighten a document an agent consumes - a skill, a skill description, AGENTS.md, or CLAUDE.md; audit one for bloat, no-ops, unnecessary workflow, or spec conformance; evaluate a skill rewrite against the old version. NOT for: simplifying source code."
 ---
 
 # Skill Creator

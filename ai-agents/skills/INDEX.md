@@ -25,9 +25,7 @@ and each row here to one line.
 
 | Skill | Reach for it when... |
 |---|---|
-| `review-self` | Review **my own** diff before a PR, or triage comments left on my PR. |
 | `review-others` | Review **someone else's** PR, or batch the PRs awaiting my review. |
-| `generate-plan` | Turn a triaged `spec.md` into an execution `plan.md`. |
 | `skill-creator` | Create, refactor, review, or tighten a skill, `AGENTS.md`, or `CLAUDE.md`. |
 | `jira-create` | File agent-optimized JIRA tickets. |
 
@@ -40,7 +38,6 @@ and each row here to one line.
 | `hop` | Jump to the terminal tab for a worktree, repo, or directory. |
 | `yell` | See every running coding-agent session and which need me. |
 | `where-are-we` | Status of every long-running project across days and weeks. |
-| `git-pull` | Pull latest for all local repos under my roots. |
 
 ## Data checks (source vs target)
 
@@ -65,7 +62,6 @@ and each row here to one line.
 ## Boundaries that trip auto-recall
 
 - **`self-assessment` vs `peer-feedback`**: about me vs about someone else.
-- **`review-self` vs `review-others`**: whose PR it is.
 - **`yell` vs `where-are-we` vs `wtree show`**: live agent sessions now vs projects across
   weeks vs the worktrees of one repo group.
 

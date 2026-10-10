@@ -2,7 +2,7 @@
 name: review-others
 kind: orchestrator
 agents: claude, copilot
-description: "Use when: reviewing someone else's PR from a link or ref, batch-reviewing open PRs awaiting your review, re-reviewing a PR after the author addressed your comments. NOT for: your own PR -> use review-self."
+description: "Use when: reviewing someone else's PR from a link or ref, batch-reviewing open PRs awaiting your review, re-reviewing a PR after the author addressed your comments. NOT for: your own PR."
 ---
 
 # Review Others' PRs
