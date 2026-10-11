@@ -1,7 +1,7 @@
 ---
 name: hop
 kind: orchestrator
-description: "Hop: resolve a branch, worktree, repo checkout, or directory to its path and terminal tab; report an existing tab/agent, focus it, or open/resume a tab. Use when: hop, go to, goto, switch worktree, jump to branch, open tab for this branch, is there a tab for this worktree, take me there. NOT for: starting a task stack with worktree + Herdr + agent (start), live agent triage (yell), long-horizon project status (where-are-we), or creating/cleaning worktrees (wtree)."
+description: "Hop: resolve a branch, worktree, repo checkout, or directory to its path and terminal tab; report an existing tab/agent, focus it, or open/resume a tab. Use when: hop, go to, goto, switch worktree, jump to branch, open tab for this branch, is there a tab for this worktree, take me there. NOT for: starting a task stack with worktree + Herdr + agent (start), live agent triage (yell), or creating/cleaning worktrees (wtree)."
 ---
 
 # hop - find or open the terminal tab for a directory

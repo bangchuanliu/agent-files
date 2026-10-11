@@ -5,7 +5,8 @@ set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SANDBOX="$(mktemp -d)"
-CORE="$REPO/ai-agents/rules/AGENTS.core.md"
+CORE="$REPO/ai-agents/rules/AGENTS.md"
+export WTREE_ROOT="$SANDBOX/worktrees"
 LOCAL_AGENT_DIR="$SANDBOX/custom-overlay"
 GENERATED="$LOCAL_AGENT_DIR/generated/AGENTS.md"
 cleanup() {
@@ -22,36 +23,40 @@ check() { local msg="$1"; shift; if "$@"; then pass "$msg"; else fail "$msg"; fi
 
 bash "$REPO/install.sh" > "$SANDBOX/install1.log" 2>&1 || { cat "$SANDBOX/install1.log"; fail "install.sh exits 0"; }
 
-for d in "$REPO"/ai-agents/skills/*/; do
+shared_skills="$(source "$REPO/lib/links.sh"; skill_dirs "$REPO/ai-agents/skills")"
+check "shared skills discovered in category folders" test "$(printf '%s\n' "$shared_skills" | grep -c .)" -gt 0
+while IFS= read -r d; do
   b="$(basename "$d")"
   for agent in claude copilot pi; do
-    if (source "$REPO/lib/links.sh"; supports "${d}SKILL.md" "$agent"); then
+    if (source "$REPO/lib/links.sh"; supports "$d/SKILL.md" "$agent"); then
       case "$agent" in
         pi) skills_dir="$HOME/.pi/agent/skills" ;;
         *)  skills_dir="$HOME/.$agent/skills" ;;
       esac
-      check "$agent skill $b linked" test "$(readlink "$skills_dir/$b")" = "${d%/}"
+      check "$agent skill $b linked" test "$(readlink "$skills_dir/$b")" = "$d"
     fi
   done
+done <<< "$shared_skills"
+for cat_dir in "$REPO"/ai-agents/skills/*/; do
+  [ -f "${cat_dir}SKILL.md" ] && continue
+  check "category $(basename "$cat_dir") is not linked as a skill" test ! -e "$HOME/.copilot/skills/$(basename "$cat_dir")"
 done
 
-for agent in claude copilot pi; do
-  case "$agent" in
-    pi) skills_dir="$HOME/.pi/agent/skills" ;;
-    *)  skills_dir="$HOME/.$agent/skills" ;;
-  esac
-  check "$agent experimental skills are not installed" test ! -e "$skills_dir/code-simplify"
-done
+# Two categories holding the same skill name are rejected (agents install skills flat).
+mkdir -p "$SANDBOX/dup-skills/a/same" "$SANDBOX/dup-skills/b/same"
+touch "$SANDBOX/dup-skills/a/same/SKILL.md" "$SANDBOX/dup-skills/b/same/SKILL.md"
+check "duplicate skill name across categories rejected" bash -c "source '$REPO/lib/links.sh'; ! (link_skills '$SANDBOX/dup-skills' '$SANDBOX/dup-out' claude) 2>/dev/null"
 
-check "no overlay: generated rules equal rendered core" cmp -s "$GENERATED" <(sed "s|{{RULES_DIR}}|$REPO/ai-agents/rules|g" "$CORE")
-check "rule index placeholder rendered" bash -c "! grep -q '{{RULES_DIR}}' '$GENERATED'"
-check "rule index lists every rule file" test "$(grep -o "$REPO/ai-agents/rules/[a-z-]*\.md" "$GENERATED" | sort -u | wc -l | tr -d ' ')" = "$(find "$REPO/ai-agents/rules" -name '*.md' ! -name AGENTS.core.md | wc -l | tr -d ' ')"
+check "no overlay: generated rules equal rendered core" cmp -s "$GENERATED" <(sed -e "s|{{RULES_DIR}}|$REPO/ai-agents/rules|g" -e "s|{{WORKTREE_ROOT}}|$WTREE_ROOT|g" "$CORE")
+check "rule placeholders rendered" bash -c "! grep -q '{{' '$GENERATED'"
+check "worktree root rendered into rules" grep -qF "$WTREE_ROOT/<repo>/" "$GENERATED"
+check "worktree root created" test -d "$WTREE_ROOT"
+check "rule index lists every rule file" test "$(grep -o "$REPO/ai-agents/rules/[a-z-]*\.md" "$GENERATED" | sort -u | wc -l | tr -d ' ')" = "$(find "$REPO/ai-agents/rules" -name '*.md' ! -name AGENTS.md | wc -l | tr -d ' ')"
 for f in $(grep -o "$REPO/ai-agents/rules/[a-z-]*\.md" "$GENERATED"); do check "indexed rule file exists: $(basename "$f")" test -f "$f"; done
 check "CLAUDE.md is a symlink to generated rules" test "$(readlink "$HOME/.claude/CLAUDE.md")" = "$GENERATED"
 check "Pi AGENTS.md is a symlink to generated rules" test "$(readlink "$HOME/.pi/agent/AGENTS.md")" = "$GENERATED"
 check "copilot-instructions.md is a regular file" test -f "$HOME/.copilot/copilot-instructions.md" -a ! -L "$HOME/.copilot/copilot-instructions.md"
 check "Copilot instructions equal generated rules" cmp -s "$HOME/.copilot/copilot-instructions.md" "$GENERATED"
-check "docs/core linked" test "$(readlink "$HOME/.claude/docs/core")" = "$REPO/ai-agents/docs"
 check "cla alias block once in .zshrc" test "$(grep -c '>>> agent-files cla alias >>>' "$HOME/.zshrc")" = 1
 
 # Foreign links survive, dangling ones are pruned, and re-runs are idempotent.
@@ -111,8 +116,8 @@ check "distinct private agent accepted" bash -c "source '$REPO/lib/links.sh'; as
 check "missing shared agents dir accepted" bash -c "source '$REPO/lib/links.sh'; assert_no_agent_collisions '$SANDBOX/none' '$SANDBOX/local-agents'"
 
 # A private skill cannot silently override a shared skill.
-mkdir -p "$LOCAL_AGENT_DIR/skills/docs-preview"
-printf '# duplicate\n' > "$LOCAL_AGENT_DIR/skills/docs-preview/SKILL.md"
+mkdir -p "$LOCAL_AGENT_DIR/skills/slack-msg"
+printf '# duplicate\n' > "$LOCAL_AGENT_DIR/skills/slack-msg/SKILL.md"
 check "private skill collision rejected" bash -c "! bash '$REPO/install.sh' >/dev/null 2>&1"
 
 # Without AGENT_FILES_LOCAL_DIR the overlay defaults to ~/.agents-local.

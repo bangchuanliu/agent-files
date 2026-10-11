@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Wire the shared ai-agents/ content + Claude-native config into ~/.claude/.
-# Claude Code reads skills/agents/docs and the global CLAUDE.md from ~/.claude/.
+# Claude Code reads skills/agents and the global CLAUDE.md from ~/.claude/.
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -20,7 +20,7 @@ link_skills "$SHARED/skills" "$CLAUDE/skills" claude
 if [ -d "$LOCAL_SKILLS" ]; then link_skills "$LOCAL_SKILLS" "$CLAUDE/skills" claude; fi
 
 # Rules: shared core plus this machine's optional private overlay.
-bash "$SHARED/sync-rules.sh"
+bash "$REPO/lib/sync-rules.sh"
 link "$GENERATED_RULES" "$CLAUDE/CLAUDE.md"
 
 # Agents: a real merge directory of per-file symlinks, shared then private.
@@ -29,10 +29,8 @@ link_agents "$LOCAL_AGENTS" "$CLAUDE/agents" claude .md
 prune_dangling "$CLAUDE/agents"
 if [ -d "$SHARED/commands" ]; then link "$SHARED/commands" "$CLAUDE/commands"; fi
 
-# Docs are namespaced under docs/core so a company layer can add docs/<layer> alongside.
-unlink_if_symlink "$CLAUDE/docs"   # retire legacy whole-dir symlink
-mkdir -p "$CLAUDE/docs"
-link "$SHARED/docs" "$CLAUDE/docs/core"
+# Shared docs were removed; retire the old docs/core link if an earlier install made one.
+unlink_if_symlink "$CLAUDE/docs/core"
 
 # Claude-native config (per-agent; not shared)
 link "$REPO/.claude/settings.json"         "$CLAUDE/settings.json"

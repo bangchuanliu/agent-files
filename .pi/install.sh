@@ -19,7 +19,7 @@ link_skills "$SHARED/skills" "$PI_AGENT_DIR/skills" pi
 if [ -d "$LOCAL_SKILLS" ]; then link_skills "$LOCAL_SKILLS" "$PI_AGENT_DIR/skills" pi; fi
 
 # Shared core plus this machine's optional private overlay.
-bash "$SHARED/sync-rules.sh"
+bash "$REPO/lib/sync-rules.sh"
 link "$GENERATED_RULES" "$PI_AGENT_DIR/AGENTS.md"
 
 echo ""

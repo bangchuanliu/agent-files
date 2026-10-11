@@ -303,6 +303,14 @@ def main():
                     continue
                 if os.path.isfile(os.path.join(entry.path, "SKILL.md")):
                     targets.append(entry.path)
+                    continue
+                # A directory without SKILL.md is a category; its children are skills.
+                for child in sorted(os.scandir(entry.path), key=lambda e: e.name):
+                    if (child.is_dir(follow_symlinks=False)
+                            and not child.name.startswith(".")
+                            and child.name not in SKIP_DISCOVERY_DIRS
+                            and os.path.isfile(os.path.join(child.path, "SKILL.md"))):
+                        targets.append(child.path)
         else:
             targets.append(path)
 

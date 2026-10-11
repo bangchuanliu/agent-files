@@ -1,7 +1,7 @@
 ---
 name: start
 kind: orchestrator
-description: "Start: create or resume one task stack: slug, Herdr session, wtree-created worktree, terminal tab, and agent command. Use when: start task, start a new task, do task, new session for this, spin up a workspace for X, resume the X session. NOT for: creating a worktree alone (wtree), moving to a known tab or path (hop), live agent triage (yell), long-horizon project status (where-are-we), or committing finished work."
+description: "Start: create or resume one task stack: slug, Herdr session, wtree-created worktree, terminal tab, and agent command. Use when: start task, start a new task, do task, new session for this, spin up a workspace for X, resume the X session. NOT for: creating a worktree alone (wtree), moving to a known tab or path (hop), live agent triage (yell), or committing finished work."
 ---
 
 # do - one tab, one session, one worktree, one agent per task

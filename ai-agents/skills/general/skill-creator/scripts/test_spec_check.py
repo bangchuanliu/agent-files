@@ -211,6 +211,17 @@ def all_discovery_skips_data_heavy_dirs(root):
 
 
 @case
+def all_discovery_descends_into_category_dirs(root):
+    """Skills grouped as <root>/<category>/<skill>/ are found, and routes resolve across categories."""
+    parent = os.path.join(root, "category_parent")
+    build(os.path.join(parent, "general"), "skill-creator",
+          GOOD_FM.format(name="skill-creator") + "stub\n")
+    build(os.path.join(parent, "engineering"), "nested", GOOD_FM.format(name="nested") + "body\n")
+    code, out = run(parent, "--all")
+    return code == 0 and "nested" in out and "2 skill(s)" in out, f"exit={code} {out}"
+
+
+@case
 def missing_kind_is_flagged(root):
     fm = ('---\nname: nokind\n'
           'description: "Use when: x. NOT for: y (z-skill)"\n---\n\nbody\n')

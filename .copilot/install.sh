@@ -21,7 +21,7 @@ link_skills "$SHARED/skills" "$COPILOT/skills" copilot
 if [ -d "$LOCAL_SKILLS" ]; then link_skills "$LOCAL_SKILLS" "$COPILOT/skills" copilot; fi
 
 # Copilot rewrites this path in place, so it must be a regular copy rather than a symlink.
-bash "$SHARED/sync-rules.sh"
+bash "$REPO/lib/sync-rules.sh"
 COPILOT_RULES="$COPILOT/copilot-instructions.md"
 if [ -L "$COPILOT_RULES" ]; then rm "$COPILOT_RULES"; fi
 cp "$GENERATED_RULES" "$COPILOT_RULES"

@@ -10,13 +10,12 @@ Wires shared `ai-agents/` content into GitHub Copilot CLI's local discovery dirs
 
 | `~/.copilot/...` | Source or content |
 |---|---|
-| `skills/<name>` | per-skill symlink into `ai-agents/skills/<name>` |
-| `agents/<name>.agent.md` | optional symlink into `ai-agents/agents/<name>.md` when present |
-| `copilot-instructions.md` | copied rendered rules from `ai-agents/.generated/AGENTS.md` |
+| `skills/<name>` | per-skill symlink into `ai-agents/skills/<category>/<name>` |
+| `agents/<name>.agent.md` | per-file symlinks from `ai-agents/agents/` and `~/.agents-local/agents/` when present |
+| `copilot-instructions.md` | copy of `~/.agents-local/generated/AGENTS.md` (rendered by `lib/sync-rules.sh`) |
 
 `copilot-instructions.md` is intentionally a regular file, not a symlink, because Copilot
-may rewrite it in place. Re-run `ai-agents/render-rules.sh` or this installer after editing
-rules.
+may rewrite it in place. Re-run this installer after editing rules.
 
 The installer also adds a managed `coya` alias block to `~/.zshrc` and `~/.bashrc`; reruns replace
 the block instead of appending.

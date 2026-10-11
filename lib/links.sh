@@ -36,23 +36,44 @@ prune_dangling() {
   done
 }
 
+# skill_dirs <skills-root>: print every skill directory (no trailing slash), either flat
+# (<root>/<skill>/SKILL.md) or grouped one level deep (<root>/<category>/<skill>/SKILL.md).
+skill_dirs() {
+  local root="$1" d
+  for d in "$root"/*/ "$root"/*/*/; do
+    [ -f "${d}SKILL.md" ] && printf '%s\n' "${d%/}"
+  done
+  return 0
+}
+
+# assert_unique_skill_names <skills-root>: fail when two categories hold the same skill name,
+# since agents install skills into one flat directory.
+assert_unique_skill_names() {
+  local dups
+  dups="$(skill_dirs "$1" | xargs -n1 basename | sort | uniq -d)"
+  if [ -n "$dups" ]; then
+    echo "duplicate skill name(s) under $1: $dups" >&2
+    return 2
+  fi
+}
+
 # link_skills <src-skills-dir> <merge-dir> <agent>: one symlink per skill directory into a real
-# merge directory, so other repos can add their own skills alongside. Skills whose SKILL.md
+# flat merge directory, so other repos can add their own skills alongside. Skills whose SKILL.md
 # opts out of <agent> are unlinked. Dangling links are pruned afterwards.
 link_skills() {
   local src="$1" merged="$2" agent="$3" d b
   unlink_if_symlink "$merged"   # retire legacy whole-dir symlink
   mkdir -p "$merged"
-  for d in "$src"/*/; do
-    [ -f "${d}SKILL.md" ] || continue
+  assert_unique_skill_names "$src" || return 2
+  while IFS= read -r d; do
     b="$(basename "$d")"
-    if supports "${d}SKILL.md" "$agent"; then
-      link "${d%/}" "$merged/$b"
+    if supports "$d/SKILL.md" "$agent"; then
+      link "$d" "$merged/$b"
     else
       unlink_if_symlink "$merged/$b"
       echo "skip: $b (not for $agent)"
     fi
-  done
+  done < <(skill_dirs "$src")
   prune_dangling "$merged"
 }
 
@@ -61,14 +82,13 @@ link_skills() {
 assert_no_skill_collisions() {
   local shared="$1" local_skills="$2" d b
   [ -d "$local_skills" ] || return 0
-  for d in "$local_skills"/*/; do
-    [ -f "${d}SKILL.md" ] || continue
+  while IFS= read -r d; do
     b="$(basename "$d")"
-    if [ -f "$shared/$b/SKILL.md" ]; then
+    if skill_dirs "$shared" | grep -q "/$b\$"; then
       echo "skill collision: $b exists in both $shared and $local_skills" >&2
       return 2
     fi
-  done
+  done < <(skill_dirs "$local_skills")
 }
 
 # link_agents <src-agents-dir> <merge-dir> <agent> <suffix>: one symlink per <name>.md agent file

@@ -1,7 +1,7 @@
 ---
 name: yell
 kind: orchestrator
-description: "Yell: live coding-agent triage now - every local Herdr, terminal, and process-only agent with status and next-step verdict follow-up/waiting/clean-up. Use when: yell, who needs me, what agents are done, what should I pick up next, which sessions can I clean up, status for a named session. NOT for: long-horizon project status across days/weeks (where-are-we), starting task stacks (start), moving to a tab (hop), or creating/cleaning worktrees (wtree)."
+description: "Yell: live coding-agent triage now - every local Herdr, terminal, and process-only agent with status and next-step verdict follow-up/waiting/clean-up. Use when: yell, who needs me, what agents are done, what should I pick up next, which sessions can I clean up, status for a named session. NOT for: starting task stacks (start), moving to a tab (hop), or creating/cleaning worktrees (wtree)."
 ---
 
 # yell - who needs me?

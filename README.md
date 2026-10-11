@@ -10,16 +10,18 @@ skills live in `~/.agents-local/`, outside the repository.
 agent-files/
   ai-agents/
     rules/
-      AGENTS.core.md      # tracked global guardrails plus an index of topic rule files
+      AGENTS.md           # tracked global guardrails plus an index of topic rule files
       *.md                # topic rules (thinking, building, communicating) loaded on demand
-    sync-rules.sh         # combines core rules with the optional private overlay
-    skills/               # tracked, safe-to-share skills
-    experimental/         # parked skills, never installed
-    docs/                 # maintainer/reference docs
+    skills/               # tracked, safe-to-share skills, one level of category folders
+      INDEX.md            # human lookup of every skill
+      engineering/<skill>/SKILL.md
+      general/<skill>/SKILL.md
+      experimental/<skill>/SKILL.md  # still changing; installed like the rest
   .claude/                # Claude Code adapter
   .copilot/               # Copilot CLI adapter
   .pi/                    # Pi adapter
   lib/links.sh            # shared installer helpers
+  lib/sync-rules.sh       # renders core rules plus the optional private overlay
   install.sh              # root installer
   tests/run.sh            # all repo checks; run before committing
 
@@ -48,16 +50,20 @@ and shell aliases unchanged.
 
 The installer runs the Claude, Copilot, and Pi adapters. It renders rules to
 `~/.agents-local/generated/AGENTS.md` (or `$AGENT_FILES_LOCAL_DIR/generated/AGENTS.md`) and installs
-skills into each agent's normal skill directory.
+skills into each agent's normal skill directory. Category folders are flattened: each skill gets
+one link named after its folder, so skill names must be unique across categories.
 
 Rules render as follows:
 
-1. `ai-agents/rules/AGENTS.core.md` is always included, with `{{RULES_DIR}}` replaced by this clone's
-   absolute `ai-agents/rules` path so every agent can open the indexed topic rule files.
+1. `ai-agents/rules/AGENTS.md` is always included, with placeholders replaced:
+   - `{{RULES_DIR}}` becomes this clone's absolute `ai-agents/rules` path so every agent can open
+     the indexed topic rule files.
+   - `{{WORKTREE_ROOT}}` becomes `$WTREE_ROOT`, default `~/.worktree`, which is created if missing.
+     The `wtree` and `hop` skills read the same variable.
 2. `~/.agents-local/AGENTS.md` is appended under `## Local Context` when it exists and is
    non-empty.
 
-Without a local overlay, the generated file is the rendered `AGENTS.core.md` and nothing else.
+Without a local overlay, the generated file is the rendered `AGENTS.md` and nothing else.
 Claude and Pi link to the generated file; Copilot receives a regular copy because it rewrites
 its instructions file in place.
 
