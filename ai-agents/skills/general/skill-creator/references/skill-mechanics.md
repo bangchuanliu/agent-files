@@ -1,35 +1,24 @@
 # Skill mechanics
 
-The skill-specific branch of `skill-creator`: what changes when the document is a skill (frontmatter, the invocation choice, and router skills). Everything else about writing it is the rules in `SKILL.md` and the reference in `levers.md`.
+What changes when the document is a skill. Everything else is in `SKILL.md` and `levers.md`.
 
 ## Frontmatter
 
-Required fields:
+- `name:` required; kebab-case matching the folder.
+- `kind:` required; `leaf` performs work directly, `orchestrator` routes or coordinates other skills or workers.
+- `description:` required; model-facing context pointer for model-invoked skills, one-line human summary for user-invoked ones.
+- `disable-model-invocation: true` (optional) makes the skill user-invoked.
+- `agents:` (optional) limits installation to matching host adapters, e.g. `agents: claude, copilot` (honoured by `lib/links.sh supports()`); absent means all. Tool-specific instructions still need a portable fallback.
 
-- `name:` folder-matching kebab-case.
-- `kind:` `leaf` for a skill that performs work directly, `orchestrator` for a skill that routes or coordinates other workers or skills.
-- `description:` required. For model-invoked skills it is the model-facing context pointer; for user-invoked skills it is a human-facing one-line summary.
+## Invocation choice
 
-Optional fields:
-
-- `disable-model-invocation: true` makes the skill user-invoked.
-- `agents:` limits installation to matching host adapters. This repo's `lib/links.sh supports()` honours a comma/space-separated frontmatter line such as `agents: claude, copilot`; absence means all agents. Keep skills portable anyway: a filtered skill may opt out of an unsupported host, but tool-specific instructions still need a fallback when the skill is installed.
-
-## Invocation
-
-Two choices, trading the two loads:
-
-- A **model-invoked** skill keeps a `description`, so the agent can fire it autonomously, and other skills can reach it. You can still type its name: model-invocation always _includes_ user reach; a description only ever adds agent discovery, never removes the human's. The description is the skill's top-level context pointer, forced to stay loaded at all times: permanent context load in exchange for discoverability. A model-invoked skill whose content is all reference is also one home for shared reference: another skill can invoke it, so reference needed by several skills lives in one place. Mechanics: omit `disable-model-invocation`, and write a model-facing description carrying the trigger branches (the pointer rules in `SKILL.md` apply in full).
-- A **user-invoked** skill strips the description from the agent's reach: only the human typing its name can invoke it, and no other skill can. Zero context load, but it spends cognitive load: you are the index that must remember it exists. Mechanics: set `disable-model-invocation: true`; the `description` becomes human-facing: a one-line summary, trigger lists stripped.
-
-Pick model-invocation only when the agent must reach the skill on its own, or another skill must. If it only ever fires by hand, make it user-invoked and pay no context load.
-
-Shared reference that two user-invoked skills both need can live in neither: with no descriptions, neither can fire the other. Push it to a plain file outside the skill system: external reference any skill can point at.
+- **Model-invoked** (no `disable-model-invocation`): the description stays loaded, so the agent and other skills can fire it, and users can still call it by name. Costs permanent context load. Use when the agent or another skill must reach it, or to host reference shared by several skills.
+- **User-invoked** (`disable-model-invocation: true`): only a human can fire it; zero context load, but the human must remember it. Use when it only ever fires by hand. Reference shared by two user-invoked skills belongs in a plain file outside the skill system.
 
 ## Splitting by invocation
 
-The invocation cut of splitting (the sequence cut is in `SKILL.md`): split off a model-invoked skill when you have a distinct leading word that should trigger it on its own (a trigger word you actually use in your prompts), or another skill must reach it. You pay context load for the new always-loaded description, so that independent reach has to be worth it.
+Split off a model-invoked skill only when a distinct leading word you actually use should trigger it on its own, or another skill must reach it; the new description's context load must be worth that reach.
 
 ## Router skills
 
-When user-invoked skills multiply past what you can remember, that piled-up cognitive load is cured by a **router skill**: one user-invoked skill that names the others and when to reach for each, so the human has one skill to remember instead of many. It can only hint, never fire them: user-invoked skills have no description, so nothing but the human can reach them.
+When user-invoked skills pile up past memory, add one user-invoked **router skill** that names the others and when to use each. It can only hint, never fire them.
