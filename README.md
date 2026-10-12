@@ -30,6 +30,7 @@ agent-files/
   skills/                 # optional private skills; each contains SKILL.md
   agents/                 # optional private agents; one <name>.md each (Claude, Copilot)
   docs/                   # optional private reference docs, read by path (not installed)
+  rules/                  # optional private rules, read by path (not installed)
     skill-context/<skill>/context.md  # optional company notes a shared skill reads first
   generated/AGENTS.md     # generated combined rules, never source-controlled
 ```

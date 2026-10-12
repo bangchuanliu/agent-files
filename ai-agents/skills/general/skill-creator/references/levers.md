@@ -16,9 +16,15 @@ Rank material by how immediately the agent needs it: in-file steps, then in-file
 - **Co-location:** keep a concept's definition, rules, and caveats under one heading. (Scattering fragments one meaning; duplication repeats it.)
 - **Sprawl:** a document too long even when every line is live and unique; attention thins. Cure it by disclosing reference and splitting by branch or sequence.
 
+## Intent and unknowns
+
+- **Intent:** the outcome a skill protects and why. Rules without intent are followed literally and fail on cases the author did not foresee; rules with intent generalize. This is why a guardrail document can replace a workflow: the agent plans its own steps toward a stated outcome inside stated limits.
+- **Runtime unknown:** a fact the skill needs but cannot know when written (an input, a target, access, whether a check passed). Without a stated policy the agent either guesses silently, which fabricates, or stalls. Ask, a stated default, and stop-and-report are the three policies; irreversible or external actions only get ask or stop.
+
 ## Steps and completion criteria
 
 - **Completion criterion:** the condition that tells the agent a step is done. Make it checkable (done vs not-done is clear) and demanding ("every modified model accounted for", not "produce a change list"); demand drives legwork, for flat reference as well as steps.
+- **Unnecessary workflow:** a prescribed step order that protects no correctness, safety, recoverability, or external protocol. It overrides the agent's own planning for no gain; state the outcome instead.
 - **Premature completion:** ending a step early because visible later steps pull attention toward being done. Sharpen the criterion first. Split the sequence only if the rush is observed, and only across a real context boundary (hand-off or subagent); an inline call clears nothing.
 
 ## Leading words and negation

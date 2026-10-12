@@ -20,10 +20,10 @@ Create, refactor, review, or tighten a skill, `AGENTS.md`, `CLAUDE.md`, or a doc
 
 ## Guardrails & Constraints
 
-- MUST structure a skill from the sections below, including a section only when the skill has something specific to say in it:
-  - **Objective** - what the skill accomplishes, its scope, and observable success.
+- MUST structure a skill from the sections below. Objective, Guardrails & Constraints, and Verification are required; include the others only when the skill has something specific to say in them:
+  - **Objective** - what the skill accomplishes and why, its scope, and observable success.
   - **Context & Tools** (optional) - specific tools, scripts, references, or context the skill needs, and when to use each.
-  - **Guardrails & Constraints** - non-negotiable requirements and boundaries (scope, format, allowed operations, secrets, unauthorized writes, fabricated evidence).
+  - **Guardrails & Constraints** - non-negotiable requirements, boundaries, and the policy for each runtime unknown.
   - **Preferences** - preferred approaches, not mandatory workflows.
   - **Output** - the minimum information or artifacts the caller needs; adapt format and detail to the task.
   - **Verification** - task-specific acceptance criteria, using the cheapest reliable evidence.
@@ -33,8 +33,12 @@ Create, refactor, review, or tighten a skill, `AGENTS.md`, `CLAUDE.md`, or a doc
 - MUST specify an artifact for a human (report, page, readout) by what the reader must be able to answer or decide, plus a quality bar. IF a layout helps, give it as a labelled default the agent may replace.
 - MUST mark an example list as non-exhaustive ("e.g. ..., or better") unless it is a closed set the agent must choose from (statuses, enum values).
 - MUST prescribe an ordered sequence only when skipping or reordering steps would compromise correctness, safety, recoverability, or an external protocol. Otherwise state the outcome and let the agent choose the steps.
+- IF the original document has steps, MUST convert each into the outcome, guardrail, or verification check it protects, keeping it as a step only under the sequence rule above. A step that protects nothing is removed and listed.
 - IF the document has steps, each step MUST end on a checkable _completion criterion_. To counter _premature completion_, sharpen the criterion first. Split the sequence only if the rush is observed, and only across a real context boundary.
-- MUST settle runtime questions while writing the skill.
+- MUST capture the _intent_: the Objective says what outcome the skill protects and why, and each hard rule whose reason is not obvious carries it in one clause, so the agent can apply the rule to cases the document did not anticipate.
+- MUST resolve, before writing, the intent, triggers and `NOT for:` boundaries, hard rules, inputs, risky actions, and observable success. Settle each from the user's request, the existing document, or the environment. IF one stays unknown, ask the user; WHEN the user is unavailable, adopt the safest reasonable default and list it as an assumption in the output. Every hard rule and boundary in the result traces to the user, the original document, or a listed assumption.
+- MUST settle every runtime question that can be settled while writing. Every remaining _runtime unknown_ (missing input, ambiguous target, missing access, failed check) gets an explicit policy: ask, proceed on a stated default, or stop and report. IF the affected action is irreversible, destructive, or writes to a shared or external system, the policy MUST be ask or stop.
+- MUST give each risk the skill's actions can reach a guardrail: scope, destructive or irreversible operations, writes to shared or external systems and the approval they need, secrets and personal data, fabricated evidence or results, and cost or blast radius. A risk the skill cannot reach needs no line.
 - MUST preserve every hard requirement, safety boundary, and critical check of the original document. Edits change how reliably it is followed, not what it asks for, unless the user asks otherwise. Never drop a check just to save tokens.
 - IF refactoring or materially changing an existing document, MUST list its branches and hard rules first, then evaluate the new version against the old before adopting it, per [references/evaluation.md](references/evaluation.md).
 - MUST keep the document agent-agnostic. Any instruction tied to one host agent's tools or features needs a portable fallback.
@@ -42,7 +46,7 @@ Create, refactor, review, or tighten a skill, `AGENTS.md`, `CLAUDE.md`, or a doc
   - restate nothing that global or project instructions already say;
   - remove _duplication_;
   - leave the _environment_ (config, scripts, `--help`, directory layout) to speak for itself, unless the lookup is expensive or the fact is unwritten.
-- MUST delete _no-ops_ (sentences that change nothing compared with the model's default) as whole sentences. Also delete lines that have lost _relevance_. Settle a disputed no-op by running the document, not by arguing.
+- MUST delete _no-ops_ (sentences that change nothing compared with the model's default) as whole sentences. Also delete lines that have lost _relevance_. A disputed no-op is settled only by evidence from running the document.
 - IF the document is a skill, MUST read [references/skill-mechanics.md](references/skill-mechanics.md).
 - IF the target agent's skill spec differs from this repo's, MUST validate the frontmatter against the target spec.
 
@@ -68,8 +72,8 @@ Create, refactor, review, or tighten a skill, `AGENTS.md`, `CLAUDE.md`, or a doc
 
 ## Output
 
-- **Create or refactor:** the files, the spec-check result from before and after, and the evaluation result or why evaluation was not run. List anything removed and why.
-- **Review or audit:** for each item, pass, fail, or partial with line-level evidence, the lever it concerns (no-op, duplication, negation, weak pointer, sprawl, unnecessary workflow), and a fix. Say plainly if nothing needs changing.
+- **Create or refactor:** the files, the spec-check result from before and after, and the evaluation result or why evaluation was not run. List anything removed and why, and every assumption adopted in place of a user answer.
+- **Review or audit:** for each item, pass, fail, or partial with line-level evidence, the lever it concerns (missing intent, unhandled unknown, uncovered risk, no-op, duplication, negation, weak pointer, sprawl, unnecessary workflow), and a fix. Say plainly if nothing needs changing.
 - Distinguish verified facts from judgement calls, such as no-ops judged rather than tested. State any check that could not be completed.
 
 ## Verification
@@ -78,7 +82,10 @@ Create, refactor, review, or tighten a skill, `AGENTS.md`, `CLAUDE.md`, or a doc
 - IF `scripts/spec_check.py` changes, `python3 scripts/test_spec_check.py` passes.
 - Every original branch and hard rule survived, and the `MUST` and deletion audit in [references/evaluation.md](references/evaluation.md) passes; for a material rewrite, evaluation shows no regression.
 - The document passes the review checklist:
-  - clear trigger, scope, and objective;
+  - clear trigger, scope, and objective, with the intent behind it;
+  - every runtime unknown has an ask, default, or stop policy;
+  - every reachable risk has a guardrail;
+  - every hard rule traces to the user, the original, or a listed assumption;
   - only necessary sections, fields, and clarifications;
   - observable success criteria;
   - hard rules distinct from preferences;

@@ -11,16 +11,17 @@ description: Use when [clear trigger]; accomplish [specific task].
 # [Skill Name]
 
 ## Objective
-[What the skill should accomplish, its scope, and what success looks like.]
+[What the skill accomplishes and why it matters, its scope, and what success looks like.]
 
 ## Context & Tools
 <!-- Optional: only when the skill needs specific tools, scripts, references, or context. -->
 - [Tool, script, or reference]: [what it is for and when to use it].
 
 ## Guardrails & Constraints
-- MUST [non-negotiable requirement or boundary].
+- MUST [non-negotiable requirement or boundary], because [reason, when not obvious].
 - MUST NOT [forbidden action]; instead [positive target].
 - IF [condition], MUST [required check, order, or approval].
+- IF [runtime unknown], MUST [ask / proceed on default X and state it / stop and report].
 
 ## Preferences
 - SHOULD [preferred approach; exceptions allowed].
@@ -43,13 +44,14 @@ The frontmatter fields are illustrative; validate them against the target agent'
 # Code Review
 
 ## Objective
-Find actionable correctness, reliability, performance, and maintainability issues in relevant code changes.
+Find actionable correctness, reliability, performance, and maintainability issues in relevant code changes, so the author can fix real defects before merge.
 
 ## Guardrails & Constraints
 - MUST NOT modify source code; report fixes as suggestions.
 - MUST ground every finding in code evidence.
-- MUST NOT invent findings or claim tests were run when they were not.
+- MUST NOT invent findings or claim tests that were not run; report only evidenced findings and the tests actually run.
 - IF a finding depends on external code, MUST inspect the dependency or label the uncertainty.
+- IF the change set to review is ambiguous, MUST review the current branch's diff against its base and state that choice.
 
 ## Preferences
 - SHOULD prioritize correctness and material impact over style.

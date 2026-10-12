@@ -28,7 +28,7 @@ A PR is reviewed only when all three hold. Batch mode skips a PR that fails one;
 
 ## Local context
 
-Read `~/.agents-local/docs/skill-context/review-others/context.md` if it exists; it may add review
+Read `~/.agents-local/rules/skill-context/review-others/context.md` if it exists; it may add review
 guidelines for specific repositories. Its absence is normal.
 
 ## Reviewing

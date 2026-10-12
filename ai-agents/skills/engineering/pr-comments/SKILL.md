@@ -14,7 +14,7 @@ Move a PR toward approval: every review thread, PR comment, review body, failing
 
 - `scripts/pr_watch.py` (see `--help`) polls the PR through `gh` with no model tokens between polls: `status` takes one snapshot, `wait` blocks until something is actionable, and `mark` records handled item keys. Its JSON output defines the statuses and item fields. State persists per PR, so a relaunched run resumes where the last one stopped.
 - Replies go through `gh`: a thread reply targets the item's `reply_to_comment_id` (`gh api repos/{owner}/{repo}/pulls/{number}/comments/{id}/replies -f body=...`); a PR-level reply uses `gh pr comment`.
-- Read `~/.agents-local/docs/skill-context/pr-comments/context.md` if it exists; it may name the repo's commit workflow or an orchestrator that owns some PRs. Its absence is normal.
+- Read `~/.agents-local/rules/skill-context/pr-comments/context.md` if it exists; it may name the repo's commit workflow or an orchestrator that owns some PRs. Its absence is normal.
 - **Modes:**
   - **fix** (default): this agent changes the code, commits, pushes, and replies.
   - **triage** (the caller says it owns code changes, e.g. an orchestrator running other stages in the same checkout): this agent replies and returns all code work to the caller.

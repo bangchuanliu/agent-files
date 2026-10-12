@@ -230,6 +230,28 @@ def missing_kind_is_flagged(root):
     return "no kind:" in out, out
 
 
+@case
+def house_flags_missing_required_sections(root):
+    """--house names each missing required section; the default run stays silent."""
+    d = build(root, "nosections", GOOD_FM.format(name="nosections")
+              + "## Objective\nx\n\n## Steps\n1. do it\n")
+    _, house = run(d, "--house")
+    _, plain = run(d)
+    ok = ("'## Guardrails' section" in house and "'## Verification' section" in house
+          and "'## Objective' section" not in house and "house structure" not in plain)
+    return ok, house + plain
+
+
+@case
+def house_accepts_full_section_heading(root):
+    """'## Guardrails & Constraints' satisfies the Guardrails requirement."""
+    d = build(root, "sections", GOOD_FM.format(name="sections")
+              + "## Objective\nx\n\n## Guardrails & Constraints\n- MUST x\n\n"
+                "## Verification\n- x\n")
+    _, out = run(d, "--house")
+    return "house structure" not in out, out
+
+
 def main():
     root = os.path.join(HERE, ".spec_check_fixtures")
     shutil.rmtree(root, ignore_errors=True)

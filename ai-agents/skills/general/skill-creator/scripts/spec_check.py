@@ -44,6 +44,7 @@ DESCRIPTION_LIMIT = 1024          # agentskills.io v1
 NAME_LIMIT = 64
 BODY_LINE_LIMIT = 500             # ~5k tokens, the activation budget
 TOC_LINE_THRESHOLD = 100          # reference files longer than this need a TOC
+REQUIRED_SECTIONS = ("Objective", "Guardrails", "Verification")
 def strip_code(text):
     """Drop fenced blocks and inline code so literal examples are not parsed as links.
 
@@ -191,6 +192,11 @@ def findings_for(skill_dir, siblings=None, house=False):
                                   f"installed skill - renamed, or a typo"))
 
     if house:
+        # Without these three a skill cannot carry intent, guardrails, or a
+        # checkable finish line, which is what skill-creator exists to enforce.
+        for section in REQUIRED_SECTIONS:
+            if not re.search(rf"^## {re.escape(section)}\b", raw, re.M):
+                out.append(("P3", f"no '## {section}' section (house structure)"))
         if not user_invoked:
             if not description.strip().startswith("Use when"):
                 out.append(("P3", "description does not start with 'Use when' (house convention)"))
