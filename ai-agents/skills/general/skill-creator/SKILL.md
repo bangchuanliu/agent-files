@@ -6,8 +6,6 @@ description: "Use when: create, refactor, review, or tighten a document an agent
 
 # Skill Creator
 
-**Constraint-first, workflow-on-demand.** A document an agent consumes says what must be true, not every step to take. The agent plans; the document keeps it safe, correct, and verifiable, and steers it to the same _process_ on every run. Every directive narrows the agent, so a skill carries only the fields and clarifications the task needs; a poorly written skill then costs little, because it cannot override what the agent would already do well.
-
 ## Objective
 
 Create, refactor, review, or tighten a skill, `AGENTS.md`, `CLAUDE.md`, or a doc reached through a pointer, so that its trigger is clear, every line changes behaviour, every pointer fires on the right branches, and it works under any host agent.
