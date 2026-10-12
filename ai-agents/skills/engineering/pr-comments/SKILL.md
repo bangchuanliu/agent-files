@@ -14,6 +14,7 @@ Move a PR toward approval: every review thread, PR comment, review body, failing
 
 - `scripts/pr_watch.py` (see `--help`) polls the PR through `gh` with no model tokens between polls: `status` takes one snapshot, `wait` blocks until something is actionable, and `mark` records handled item keys. Its JSON output defines the statuses and item fields. State persists per PR, so a relaunched run resumes where the last one stopped.
 - Replies go through `gh`: a thread reply targets the item's `reply_to_comment_id` (`gh api repos/{owner}/{repo}/pulls/{number}/comments/{id}/replies -f body=...`); a PR-level reply uses `gh pr comment`.
+- **Intent anchor:** the PR's goal and the behavior it promises. Use the description's `## Goal` section when there is one, otherwise the PR description and any linked ticket or spec. Humans own it, so it does not move when a comment is addressed. Every fix round is checked against it.
 - **Modes:**
   - **fix** (default): this agent changes the code, commits, pushes, and replies.
   - **triage** (the caller says it owns code changes, e.g. an orchestrator running other stages in the same checkout): this agent replies and returns all code work to the caller.
@@ -25,7 +26,12 @@ Move a PR toward approval: every review thread, PR comment, review body, failing
 - MUST sort every surfaced item into exactly one of:
   - **reply:** a question, a request for explanation, or a point the code already handles.
   - **code fix:** anything that needs a code, test, or config change, including a failing check caused by the change and a merge conflict.
-  - **user:** a judgment call (design disagreement, scope expansion, product decision, a second pushback on the same point) or a failure needing access or approval.
+  - **user:** a judgment call (design disagreement, scope expansion, product decision, a second pushback on the same point), a fix that would drift from the intent anchor, or a failure needing access or approval.
+- MUST read the intent anchor before the first item. IF the PR description states no goal or behavior, MUST ask the user for one before changing code.
+- MUST treat a code-fix item as drift, and move it to user, when the fix would:
+  - change behavior the anchor promises, or add behavior it does not mention;
+  - undo or contradict a change pushed in an earlier round, or clash with another reviewer's request;
+  - change an expected value or remove a case in a test the PR added for its feature (renames and refactors that keep the assertions are fine).
 - MUST verify a bot reviewer's (`is_bot`) claim before calling it a code fix.
 - MUST write replies only as the user would stand behind them; they are posted as the user.
 - MUST leave merging, approving, dismissing reviews, closing the PR, and resolving threads to humans; addressed threads stay open for the reviewer.
@@ -43,6 +49,7 @@ Move a PR toward approval: every review thread, PR comment, review body, failing
     2. Commit and push once, through the repo's commit workflow when your instructions name one; done when the push succeeds.
     3. Reply on each addressed thread with what changed and the short SHA.
     4. `mark` the handled keys with `--pushed`.
+  - MUST push only when every behavior change in the PR's diff against its base traces to the intent anchor or to a fix the user approved. Anything else is reverted and becomes a user item.
 - IF in triage mode:
   - MUST NOT edit files, commit, push, or run builds: the caller shares the checkout and owns code changes.
   - MUST end the turn and return to the caller whenever there are code-fix or user items, or the script reports `stop` or `error`; code-fix items get no reply until the caller pushes.
@@ -62,3 +69,4 @@ Move a PR toward approval: every review thread, PR comment, review body, failing
 
 - Every surfaced item is marked, listed for the user, or returned to the caller.
 - The reported stop reason is the script's `stop_reason` or error, not an inference.
+- Fix mode: after the last push, every behavior change in the PR's diff against its base still traces to the intent anchor or to a fix the user approved.
