@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>System Design Question Bank - General, Ads, and by Company</title>
+<style>
+  :root {
+    --bg: #f5f7fa; --card: #ffffff; --ink: #1d2433; --muted: #5b6475; --line: #dde2ea;
+    --blue: #0a66c2; --blue-soft: #e8f1fb; --red: #c9372c; --red-soft: #fdeceb;
+    --green: #1f845a; --green-soft: #e6f4ee; --amber: #b86e00; --amber-soft: #fff4e0;
+    --purple: #6e4bd8; --purple-soft: #efeafd;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: var(--ink); background: var(--bg); }
+  header { background: #0b1f3a; color: #fff; padding: 22px 32px 0; }
+  header h1 { margin: 0 0 4px; font-size: 22px; font-weight: 650; }
+  header p { margin: 0 0 16px; color: #b8c4d6; font-size: 13px; }
+  header a { color: #9ccaf7; }
+  nav { display: flex; gap: 2px; flex-wrap: wrap; }
+  nav button { background: transparent; border: 0; color: #b8c4d6; padding: 10px 14px; font: inherit; font-weight: 550; cursor: pointer; border-bottom: 3px solid transparent; }
+  nav button:hover { color: #fff; }
+  nav button.active { color: #fff; border-bottom-color: #5aa9f5; }
+  main { max-width: 1240px; margin: 0 auto; padding: 24px 32px 60px; }
+  @media (max-width: 700px) { main { padding: 16px 12px 40px; } header { padding: 16px 12px 0; } }
+  section { display: none; } section.active { display: block; }
+  h2 { font-size: 20px; margin: 0 0 4px; } h3 { font-size: 15px; margin: 0 0 10px; }
+  .lede { color: var(--muted); margin: 0 0 20px; max-width: 900px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; margin-bottom: 18px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 900px) { .grid3 { grid-template-columns: 1fr; } }
+  ul { margin: 0; padding-left: 18px; } li { margin-bottom: 6px; }
+  .chip { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 550; margin: 2px 3px 2px 0; background: var(--blue-soft); color: var(--blue); }
+  .chip.p { background: var(--purple-soft); color: var(--purple); }
+  .chip.g { background: var(--green-soft); color: var(--green); cursor: pointer; }
+  .note { font-size: 12px; color: var(--muted); margin-top: 8px; }
+  .callout { background: var(--amber-soft); border-left: 4px solid var(--amber); padding: 10px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 16px; }
+  table { border-collapse: collapse; font-size: 12.5px; }
+  th, td { border: 1px solid var(--line); padding: 5px 8px; text-align: center; }
+  th { background: #f0f3f7; font-weight: 650; color: var(--muted); }
+  td.rowh { text-align: left; font-weight: 600; white-space: nowrap; cursor: pointer; }
+  td.on { background: var(--blue); color: #fff; font-weight: 700; }
+  .mx { overflow-x: auto; }
+  /* filters + cards */
+  .fbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 12px; }
+  .fbar input[type=search] { flex: 1 1 240px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 6px; font: inherit; }
+  .fbtn { border: 1px solid var(--line); background: #fff; padding: 6px 12px; border-radius: 6px; font: inherit; font-size: 12.5px; cursor: pointer; }
+  .fbtn:hover { border-color: var(--blue); } .fbtn.primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .fchips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .fchips .lbl { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted); letter-spacing: .05em; align-self: center; width: 70px; }
+  .fchip { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 3px 11px; font: inherit; font-size: 12px; cursor: pointer; }
+  .fchip.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .progress { height: 8px; background: #e7ebf1; border-radius: 99px; overflow: hidden; margin: 6px 0 2px; }
+  .progress > div { height: 100%; background: var(--green); transition: width .2s; }
+  .q { background: var(--card); border: 1px solid var(--line); border-radius: 10px; margin-bottom: 12px; }
+  .q.done { border-left: 4px solid var(--green); } .q.flash { box-shadow: 0 0 0 3px #5aa9f5; }
+  .qh { display: flex; gap: 12px; align-items: flex-start; padding: 14px 18px; cursor: pointer; }
+  .qh .num { font-weight: 700; color: var(--muted); min-width: 44px; font-size: 12px; padding-top: 2px; }
+  .qh .qt { flex: 1; font-weight: 600; } .qh .meta { margin-top: 6px; font-weight: 400; }
+  .qh input { margin-top: 4px; transform: scale(1.25); cursor: pointer; }
+  .qb { display: none; padding: 0 18px 16px 74px; }
+  @media (max-width: 700px) { .qb { padding-left: 18px; } }
+  .q.open .qb { display: block; }
+  .qb h4 { margin: 14px 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  .qb .look { background: var(--purple-soft); border-left: 4px solid var(--purple); padding: 8px 12px; border-radius: 6px; font-size: 13px; }
+  .qb .tension { background: var(--red-soft); border-left: 4px solid var(--red); padding: 8px 12px; border-radius: 6px; font-size: 13px; }
+  .qb .bote { background: #f0f3f7; padding: 8px 12px; border-radius: 6px; font-size: 12.5px; font-family: ui-monospace, Menlo, monospace; }
+  .qb h4.a { color: var(--green); } .qb h4.f { color: var(--blue); } .qb h4.p { color: var(--red); }
+  .mflow { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+  .mflow span.n { background: var(--blue-soft); border: 1px solid #8fb8e6; border-radius: 6px; padding: 4px 9px; font-size: 12px; font-weight: 600; }
+  .mflow span.ar { color: #9aa4b5; font-weight: 700; }
+  .lvl { font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 4px; background: #eef0f4; color: var(--muted); }
+  .lvl.L3 { background: var(--red-soft); color: var(--red); } .lvl.L2 { background: var(--amber-soft); color: var(--amber); }
+  .fw { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+  @media (max-width: 900px) { .fw { grid-template-columns: repeat(2, 1fr); } }
+  .fw div { background: var(--blue-soft); border-radius: 8px; padding: 10px; font-size: 12.5px; } .fw b { display: block; color: var(--blue); }
+  .ccard { border-top: 4px solid var(--blue); }
+  .ccard .blurb { color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+  textarea { width: 100%; min-height: 70px; font: 12px ui-monospace, Menlo, monospace; border: 1px solid var(--line); border-radius: 6px; padding: 8px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>System Design Question Bank</h1>
+  <p>Foundational general and ads system design questions, plus the ones most often reported for big ads companies. Company questions link back to the foundational pattern they test. <a href="index.html">All study dashboards</a></p>
+  <nav id="nav">
+    <button data-t="overview" class="active">Overview</button>
+    <button data-t="general">Foundational: general</button>
+    <button data-t="ads">Foundational: ads</button>
+    <button data-t="companies">By company</button>
+    <button data-t="sync">Progress and sync</button>
+  </nav>
+</header>
+<main>
+
+<section id="overview" class="active">
+  <h2>How to use this bank</h2>
+  <p class="lede">Most company questions are variations of about 25 foundational patterns. Master the patterns first, then practice each company's twist. Answer out loud with a timer (35 to 45 minutes) before opening a card.</p>
+  <div class="card">
+    <h3>Answer framework (use for every question)</h3>
+    <div class="fw">
+      <div><b>1. Clarify</b>Users, scope, functional requirements, what is out of scope.</div>
+      <div><b>2. Tension</b>Name the two requirements that fight (for example latency vs exactness).</div>
+      <div><b>3. Estimate</b>QPS, storage, bandwidth; only the numbers that change the design.</div>
+      <div><b>4. API and data</b>Core endpoints, entities, keys, partitioning.</div>
+      <div><b>5. Architecture</b>End-to-end happy path first, then scale each hot spot.</div>
+      <div><b>6. Deep dive</b>Failure modes, consistency, hot keys, cost, monitoring.</div>
+    </div>
+  </div>
+  <div class="grid3" id="kpis"></div>
+  <div class="card">
+    <h3>Pattern x company matrix (ads and general patterns)</h3>
+    <p class="note" style="margin-top:0">A filled cell means that company has a reported question built on that pattern. Rows with many filled cells are the highest-leverage patterns to master. Click a row to open its pattern.</p>
+    <div class="mx"><table id="matrix"></table></div>
+  </div>
+  <div class="callout"><b>Source caveat.</b> Company lists reflect themes commonly reported in public interview prep material (Glassdoor, Blind, prep guides, engineering blogs) combined with each company's actual ads products. They are not verified official question lists, and companies rotate questions. Use them to anticipate the twist, not to memorize answers.</div>
+</section>
+
+<section id="general">
+  <h2>Foundational: general system design</h2>
+  <p class="lede">Classic patterns that show up everywhere and are building blocks for ads systems (rate limiting, counters, feeds, caches, schedulers, ledgers).</p>
+  <div class="card filters" data-cat="General"></div>
+  <div class="list" data-cat="General"></div>
+</section>
+
+<section id="ads">
+  <h2>Foundational: ads system design</h2>
+  <p class="lede">The ads-specific patterns: serving, auction, pacing, capping, attribution, reporting, ML ranking, fraud, experimentation, campaign management.</p>
+  <div class="card filters" data-cat="Ads"></div>
+  <div class="list" data-cat="Ads"></div>
+</section>
+
+<section id="companies">
+  <h2>By company</h2>
+  <p class="lede">Pick a company. Each question shows the foundational pattern(s) it builds on (click to jump) and the company-specific twist that interviewers probe.</p>
+  <div class="card"><div class="fchips" id="cpick"><span class="lbl">Company</span></div>
+    <div class="progress"><div id="cprog"></div></div><div class="note" id="cstat"></div></div>
+  <div id="clist"></div>
+</section>
+
+<section id="sync">
+  <h2>Progress and sync</h2>
+  <p class="lede">Progress is stored in this browser only. To move it to another device, copy the code below and paste it on the other device. Merging keeps everything practiced on either side.</p>
+  <div class="card">
+    <h3>Export</h3>
+    <textarea id="exp" readonly></textarea>
+    <div class="fbar" style="margin-top:8px"><button class="fbtn primary" id="copy">Copy code</button><span class="note" id="copied"></span></div>
+    <h3 style="margin-top:14px">Import (merge)</h3>
+    <textarea id="imp" placeholder="Paste a progress code here"></textarea>
+    <div class="fbar" style="margin-top:8px"><button class="fbtn primary" id="doimp">Merge into this device</button><button class="fbtn" id="reset">Reset all progress</button><span class="note" id="impmsg"></span></div>
+  </div>
+</section>
+
+</main>
+<script>
+// ======================= DATA =======================
+// Foundational patterns. id is stable: never rename, progress is keyed on it.
+const P = [
+// ---------- General ----------
+{ id:'g-ratelimit', cat:'General', lvl:'L1', name:'Rate limiter',
+  q:'Design a distributed rate limiter for an API gateway.',
+  tension:'Global accuracy needs shared state, but checking shared state on every request adds latency and a single point of failure.',
+  bote:'1M req/s, 10M API keys; a counter per key per window ~ 16 B => a few hundred MB in Redis.',
+  flow:['Client','API gateway','Local token bucket','Redis cluster (counters)','Service'],
+  look:'Algorithm choice with tradeoffs, where state lives, and behavior when the limiter itself fails.',
+  a:['Algorithms: token bucket (bursty but bounded), leaky bucket (smooth), fixed window (simple, edge bursts), sliding window log (exact, memory heavy), sliding window counter (good approximation).',
+     'State: Redis with atomic Lua script or INCR + EXPIRE, sharded by key; local in-memory pre-allocation of tokens to cut round trips.',
+     'Return 429 with Retry-After and rate-limit headers.',
+     'Fail open vs fail closed: usually fail open for user APIs, fail closed for abuse-sensitive endpoints.',
+     'Multi-region: per-region limits with async reconciliation rather than global synchronous counters.'],
+  f:['How do you rate limit per user and per IP at the same time?','How do you handle a hot key?'],
+  p:['Using a DB row per request.','Ignoring clock skew across nodes for window boundaries.']},
+{ id:'g-url', cat:'General', lvl:'L1', name:'URL shortener',
+  q:'Design a URL shortener (bit.ly / lnkd.in).',
+  tension:'Short codes want a small keyspace, but uniqueness at high write rates wants coordination-free ID generation.',
+  bote:'100M new URLs/day ~ 1.2k writes/s; 100:1 read ratio ~ 120k reads/s; 7-char base62 = 3.5T codes.',
+  flow:['Client','Write API','ID generator','KV store','CDN / cache','Redirect API'],
+  look:'ID generation strategy, read-heavy caching, and redirect semantics (301 vs 302) including analytics.',
+  a:['IDs: counter ranges handed out per server (ZooKeeper or DB sequence), or Snowflake-style IDs encoded base62; hashing plus collision check as alternative.',
+     'Store code -> long URL in a KV store (DynamoDB, Cassandra); immutable, so cache aggressively.',
+     '302 if you need click analytics, 301 if you want browsers to cache.',
+     'Click analytics goes to an async log (Kafka) rather than the redirect path.',
+     'Abuse: malware URL scanning, custom alias reservation, expiry.'],
+  f:['How would you support custom aliases?','How do you count clicks per link in real time?'],
+  p:['Synchronous analytics writes on the redirect path.']},
+{ id:'g-feed', cat:'General', lvl:'L2', name:'News feed',
+  q:'Design a social news feed (LinkedIn / Facebook / Twitter home timeline).',
+  tension:'Fan-out on write gives fast reads but explodes for celebrity authors; fan-out on read is cheap to write but slow to read.',
+  bote:'300M DAU, 5 feed loads/day ~ 17k QPS avg, 50k peak; 200 posts/user/day read.',
+  flow:['Post service','Kafka','Fan-out workers','Feed cache (per user)','Ranking service','Feed API'],
+  look:'Hybrid fan-out, ranking as a separate stage, and where ads are inserted.',
+  a:['Hybrid: push post IDs into follower feed caches for normal users; pull at read time for high-follower accounts.',
+     'Two-stage: candidate retrieval (recent posts from graph) then ML ranking (engagement prediction).',
+     'Ads insertion: a separate ad server call returns ranked ads; a blender places them with spacing and load rules.',
+     'Store only IDs in feed cache; hydrate content from post store with a cache.',
+     'Pagination with cursors; dedup seen items.'],
+  f:['How do you insert ads without hurting engagement?','How do you handle a post edit or delete?'],
+  p:['Storing full post content in every follower feed.']},
+{ id:'g-chat', cat:'General', lvl:'L2', name:'Chat / messaging',
+  q:'Design a chat system (WhatsApp / LinkedIn Messaging).',
+  tension:'Low-latency delivery needs persistent connections, but reliable ordered delivery needs durable storage and acks.',
+  bote:'500M DAU, 40 msgs/day ~ 230k msgs/s; 100 B avg => ~2 TB/day.',
+  flow:['Client','WebSocket gateway','Message service','Message store (per conversation)','Presence','Push notifications'],
+  look:'Connection management, per-conversation ordering, offline delivery, and group fan-out.',
+  a:['Persistent WebSocket connections with a session registry (user -> gateway node).',
+     'Per-conversation sequence numbers for ordering; store in a wide-column store partitioned by conversation_id.',
+     'Delivery states: sent, delivered, read, via acks.',
+     'Offline users: store and push via APNs/FCM.',
+     'Group chat: fan-out on write for small groups, on read for large channels.',
+     'E2E encryption (Signal protocol) changes what the server can index.'],
+  f:['How do you sync across multiple devices?'],
+  p:['Global ordering across all messages.']},
+{ id:'g-notif', cat:'General', lvl:'L1', name:'Notification system',
+  q:'Design a notification system (push, email, SMS, in-app).',
+  tension:'Sending fast at huge fan-out conflicts with user preferences, rate limits, and dedup guarantees.',
+  bote:'1B notifications/day ~ 12k/s avg, 10x peak bursts from campaigns.',
+  flow:['Producers','Notification API','Preference + dedup','Priority queues','Channel workers','APNs / FCM / SES / Twilio'],
+  look:'Queues per channel and priority, idempotency, user preferences, and retries.',
+  a:['Producers publish events; a notification service applies templates, user preferences, quiet hours, and frequency caps.',
+     'Separate queues per channel and priority so a marketing blast does not delay 2FA codes.',
+     'Idempotency key per notification to avoid duplicate sends on retry.',
+     'Retries with exponential backoff; dead-letter queue; provider failover.',
+     'Tracking: delivered, opened, clicked events flow back for analytics.'],
+  f:['How do you throttle a campaign to 10M users?'],
+  p:['One shared queue for all notification types.']},
+{ id:'g-cache', cat:'General', lvl:'L2', name:'Distributed cache',
+  q:'Design a distributed cache (Memcached / Redis cluster).',
+  tension:'High hit rate and low latency conflict with consistency against the source of truth and with even load across nodes.',
+  bote:'10M QPS, 1 KB values, 1 TB working set => ~50 nodes with 32 GB each after overhead and replication.',
+  flow:['App','Client library (consistent hashing)','Cache nodes','Replicas','Database'],
+  look:'Partitioning, eviction, invalidation strategy, and thundering herd.',
+  a:['Consistent hashing with virtual nodes for balance and minimal remapping.',
+     'Eviction: LRU or LFU; TTLs.',
+     'Patterns: cache-aside (most common), write-through, write-behind.',
+     'Invalidation via CDC events from the DB; versioned keys.',
+     'Thundering herd: request coalescing, probabilistic early expiry, stale-while-revalidate.',
+     'Hot keys: local near-cache, key replication.'],
+  f:['How do you keep cache and DB consistent under concurrent writes?'],
+  p:['Ignoring cold-start and cache stampede after deploys.']},
+{ id:'g-kv', cat:'General', lvl:'L3', name:'Distributed key-value store',
+  q:'Design a distributed key-value store (Dynamo / Cassandra style).',
+  tension:'Availability under partitions vs strong consistency (CAP), and write throughput vs read cost.',
+  bote:'100 TB, 1M ops/s, replication factor 3.',
+  flow:['Client','Coordinator','Consistent-hash ring','Replicas (N=3)','Commit log + memtable + SSTables'],
+  look:'Replication and quorum math, conflict resolution, storage engine.',
+  a:['Partition with consistent hashing; replicate to N successors.',
+     'Tunable consistency: R + W > N for read-your-writes.',
+     'Conflicts: last-write-wins or vector clocks; hinted handoff for temporary failures; anti-entropy with Merkle trees.',
+     'LSM storage: commit log, memtable, SSTables, compaction, Bloom filters.',
+     'Membership and failure detection via gossip.'],
+  f:['When would you choose Raft-based strong consistency instead?'],
+  p:['Claiming both strong consistency and availability during partitions.']},
+{ id:'g-typeahead', cat:'General', lvl:'L2', name:'Search autocomplete',
+  q:'Design search typeahead / autocomplete.',
+  tension:'Sub-50ms responses per keystroke vs freshness of trending queries and personalization.',
+  bote:'10B searches/day, ~5 keystrokes each => ~600k QPS.',
+  flow:['Client (debounce)','Edge cache','Suggest service','Prefix trie / top-k index','Offline aggregation (query logs)'],
+  look:'Precomputed top-k per prefix, update cadence, and caching.',
+  a:['Offline job aggregates query logs into counts; build a trie storing top-k completions per node.',
+     'Serve from memory, sharded by prefix; cache popular prefixes at CDN.',
+     'Freshness: a streaming layer adds trending queries between rebuilds.',
+     'Personalization re-ranks a small candidate set at request time.',
+     'Filter unsafe suggestions.'],
+  f:['How do you handle multiple languages?'],
+  p:['Querying the raw logs at request time.']},
+{ id:'g-crawl', cat:'General', lvl:'L2', name:'Web crawler',
+  q:'Design a web crawler.',
+  tension:'Crawl throughput vs politeness per host, and freshness vs coverage.',
+  bote:'1B pages/month ~ 400 pages/s; 500 KB avg => 500 TB/month.',
+  flow:['URL frontier (per-host queues)','Fetchers','DNS cache','Parser','Dedup (content hash)','Storage'],
+  look:'Frontier design with politeness, dedup, and trap handling.',
+  a:['Frontier: priority queue plus per-host FIFO queues to enforce politeness and robots.txt.',
+     'Distributed fetchers; DNS caching.',
+     'Dedup URLs (normalized, Bloom filter) and content (SimHash for near-duplicates).',
+     'Avoid spider traps: depth limits, URL pattern limits.',
+     'Recrawl scheduling by change frequency.'],
+  f:['How do you prioritize which pages to recrawl?'],
+  p:['No per-host throttling.']},
+{ id:'g-topk', cat:'General', lvl:'L2', name:'Top-K / trending',
+  q:'Design a top-K heavy hitters service (trending hashtags, most viewed items).',
+  tension:'Exact counts over huge cardinality cost memory; approximate sketches are cheap but not exact.',
+  bote:'1M events/s, 100M distinct keys; count-min sketch of a few MB per window.',
+  flow:['Events','Kafka','Stream workers (count-min + heap)','Merge per window','Top-K store','API'],
+  look:'Sketches vs exact, windowing, and merge across partitions.',
+  a:['Streaming: partition by key, local counts, then merge top-k across partitions.',
+     'Approximate: count-min sketch plus min-heap; Space-Saving algorithm.',
+     'Windows: tumbling or sliding; lambda pattern with batch for exact daily totals.',
+     'Hot keys: pre-aggregate with salting.'],
+  f:['How do you get exact results for billing but fast approximate results for UI?'],
+  p:['Merging top-k from partitions without enough candidates per partition.']},
+{ id:'g-sched', cat:'General', lvl:'L2', name:'Distributed job scheduler',
+  q:'Design a distributed job scheduler (cron at scale, Airflow, Cadence).',
+  tension:'Exactly-once execution vs availability of the scheduler when nodes fail.',
+  bote:'10M scheduled jobs/day, peak at top of hour.',
+  flow:['Job API','Job store','Scheduler (leases)','Queue','Workers','Status + retries'],
+  look:'Leasing, idempotency, and DAG dependencies.',
+  a:['Store job definitions and next_run_time; scheduler scans by time bucket with partition ownership.',
+     'Workers take leases with heartbeats; expired leases are re-queued.',
+     'At-least-once delivery plus idempotent jobs rather than exactly-once.',
+     'DAGs: dependency tracking, backfills, SLAs, alerts.',
+     'Jitter to avoid top-of-hour thundering herd.'],
+  f:['How do you backfill 30 days without starving live jobs?'],
+  p:['Single scheduler node without failover.']},
+{ id:'g-payment', cat:'General', lvl:'L3', name:'Payment / ledger system',
+  q:'Design a payment system with a double-entry ledger.',
+  tension:'Correctness (no money lost or double charged) vs availability and latency when external PSPs are flaky.',
+  bote:'1M transactions/day is small in QPS; correctness dominates.',
+  flow:['Checkout','Payment service (idempotency key)','PSP (Stripe / Adyen)','Ledger (double-entry)','Reconciliation'],
+  look:'Idempotency, state machine, ledger immutability, reconciliation.',
+  a:['Idempotency key per payment attempt; payment state machine (created, authorized, captured, refunded, failed).',
+     'Double-entry ledger, append-only, every transaction balances to zero.',
+     'Outbox pattern for reliable events; retries with the same idempotency key to the PSP.',
+     'Daily reconciliation against PSP settlement files.',
+     'Ads relevance: advertiser billing and invoicing use the same ledger ideas.'],
+  f:['How do you handle a timeout where you do not know if the charge succeeded?'],
+  p:['Updating balances in place without a ledger.']},
+{ id:'g-metrics', cat:'General', lvl:'L2', name:'Metrics / time-series platform',
+  q:'Design a metrics monitoring and time-series system (Datadog / Prometheus at scale).',
+  tension:'High-cardinality tags give power but explode storage and query cost.',
+  bote:'10M time series, 10 s resolution => 1M points/s.',
+  flow:['Agents','Ingest gateway','Kafka','TSDB (compressed chunks)','Rollups','Query + alerting'],
+  look:'Cardinality control, compression, downsampling, alerting path.',
+  a:['Push via agents to an ingest tier; buffer in Kafka.',
+     'TSDB with Gorilla-style compression, partitioned by series and time.',
+     'Rollups (1m, 1h) for long retention; raw kept short.',
+     'Cardinality limits per tenant.',
+     'Alerting evaluates on a streaming path, not by querying storage.'],
+  f:['How would you support percentile queries across hosts?'],
+  p:['Averaging percentiles.']},
+
+// ---------- Ads ----------
+{ id:'a-click', cat:'Ads', lvl:'L2', name:'Ad click aggregator',
+  q:'Design an ad click (and impression) aggregator that powers real-time advertiser dashboards and billing.',
+  tension:'Real-time freshness for dashboards vs exact, deduplicated, fraud-filtered counts for billing.',
+  bote:'10B clicks/day ~ 115k/s avg, 1M/s peak; aggregated to (ad_id, minute).',
+  flow:['Click redirect','Kafka (raw)','Flink (dedup, window agg)','OLAP (Pinot / Druid)','Batch Spark (reconcile)','Billing'],
+  look:'Lambda vs kappa reasoning, idempotent dedup, late events, and reconciliation.',
+  a:['Click redirect service logs a click with a unique click_id and redirects; logging is async.',
+     'Stream processing (Flink) dedups on click_id with keyed state and TTL, aggregates per ad per minute using event time and watermarks.',
+     'Serve from an OLAP store (Pinot, Druid, ClickHouse) for dashboards.',
+     'Batch job recomputes daily from raw logs with full fraud filtering; this is the billing source of truth.',
+     'Hot ads: pre-aggregate with key salting.',
+     'Exactly-once: Kafka transactions plus Flink checkpoints, or idempotent upserts.'],
+  f:['How do you handle clicks arriving 2 hours late?','What if streaming and batch numbers differ?'],
+  p:['Billing directly from the streaming counts without reconciliation.']},
+{ id:'a-serve', cat:'Ads', lvl:'L3', name:'Ad serving system',
+  q:'Design an ad serving system that returns the best ad for a request in under 100 ms.',
+  tension:'Relevance needs expensive ML scoring over many candidates, but the latency budget is tens of milliseconds.',
+  bote:'1M ad requests/s, 10M active ads; retrieve ~1k candidates, rank ~100, auction top.',
+  flow:['Ad request','Targeting / retrieval','Budget + freq filters','Light ranker','Heavy ranker (pCTR x pCVR)','Auction','Response + logging'],
+  look:'Funnel design, index structures, filters, and logging for training and billing.',
+  a:['Retrieval: inverted index on targeting attributes plus embedding-based ANN retrieval.',
+     'Filters: budget remaining, pacing, frequency caps, brand safety, policy.',
+     'Multi-stage ranking: cheap model prunes, heavy model scores; eCPM = bid x pCTR (x pCVR for conversion goals).',
+     'Auction chooses winner and price; blend with organic.',
+     'Log impressions with auction context for billing, attribution, and model training.',
+     'Campaign updates propagate to serving indexes within seconds to minutes.'],
+  f:['How do you keep budget checks consistent across thousands of servers?'],
+  p:['Calling a database per request for campaign data.']},
+{ id:'a-auction', cat:'Ads', lvl:'L2', name:'Auction and pricing',
+  q:'Design the ad auction: ranking, pricing, reserve prices, and quality.',
+  tension:'Revenue maximization vs advertiser incentive compatibility and user experience.',
+  bote:'Per request compute; runs millions of times per second.',
+  flow:['Scored candidates','Quality adjustment','Reserve price','Rank by eCPM','Pricing rule','Winner + price'],
+  look:'GSP vs VCG vs first price, and how quality and reserves fit in.',
+  a:['Rank by bid x quality (pCTR, relevance).',
+     'Second-price (GSP): pay the minimum needed to keep position. VCG: pay externality, truthful but complex. First-price: industry moved here in programmatic, paired with bid shading.',
+     'Reserve prices per placement; learned reserves.',
+     'Autobidding (target CPA, max conversions) means the platform bids for advertisers; auction design must account for it.',
+     'Log counterfactual prices for advertiser insights (bid landscape).'],
+  f:['Why did display move to first-price auctions?'],
+  p:['Forgetting quality scores, which lets low-relevance high-bid ads win.']},
+{ id:'a-rtb', cat:'Ads', lvl:'L3', name:'RTB bidder (DSP)',
+  q:'Design a real-time bidding system (DSP bidder) that responds to exchange bid requests.',
+  tension:'Must answer within ~100 ms from the exchange (often <20 ms internal) at millions of QPS, while applying ML, budget, and frequency logic.',
+  bote:'5M bid requests/s, most filtered cheaply; bid on a few percent.',
+  flow:['Exchange (OpenRTB)','Edge bidder','Pre-filter (deals, geo, blocklists)','Feature lookup (Aerospike)','Bid model','Pacing / budget','Bid response','Win / loss notices'],
+  look:'Aggressive early filtering, in-memory state, and win notice handling.',
+  a:['OpenRTB request parsing at edge in multiple regions near exchanges.',
+     'Cheap filters first (campaign match, blocklists) to drop most requests.',
+     'User and context features from a low-latency KV (Aerospike, Redis).',
+     'Bid = value x pWin adjustment; bid shading for first-price.',
+     'Local budget tokens refreshed from a central pacer.',
+     'Win notices and impression pixels feed spend and freq counters.'],
+  f:['How do you avoid overspending when win notices are delayed?'],
+  p:['Centralized budget check per bid request.']},
+{ id:'a-pacing', cat:'Ads', lvl:'L3', name:'Budget pacing',
+  q:'Design budget pacing so campaigns spend their daily budget smoothly without overspend.',
+  tension:'Spend must be tracked globally, but the decision to bid is made locally on thousands of servers with delayed spend data.',
+  bote:'10M campaigns, spend updates every few seconds.',
+  flow:['Impression / click events','Spend aggregator','Pacing controller','Throttle rate / bid multiplier','Ad servers (local cache)'],
+  look:'Feedback control, delay compensation, overspend guarantees.',
+  a:['Target spend curve per campaign (uniform or traffic-shaped).',
+     'Controller (PID-like) computes a throttle probability or bid multiplier from actual vs target.',
+     'Distribute via pub/sub to ad servers; servers apply locally.',
+     'Overspend protection: hard stop near budget, conservative slow-down, and accept small overdelivery (often credited back).',
+     'Account for delayed events like clicks and conversions in CPC/CPA billing.'],
+  f:['How do you pace a campaign with very little traffic?'],
+  p:['Stopping only when budget is exhausted, which front-loads spend in the morning.']},
+{ id:'a-freq', cat:'Ads', lvl:'L2', name:'Frequency capping',
+  q:'Design frequency capping (max N impressions per user per campaign per period).',
+  tension:'Accurate per-user counts need a lookup and write on every impression, at serving latency.',
+  bote:'1M impressions/s, 1B users x active campaigns; store only non-zero counters.',
+  flow:['Ad request','Freq store read (per user)','Filter candidates','Serve','Impression event','Async increment'],
+  look:'Data model, read/write path, and eventual consistency tolerance.',
+  a:['Key by user_id; value holds compact counters per campaign with time buckets (Redis, Aerospike, Venice-like derived store).',
+     'Read once per request for all candidate campaigns.',
+     'Increment asynchronously from impression events; accept small overshoot.',
+     'Sliding windows via time buckets; TTL to expire old counts.',
+     'Cross-device capping needs identity resolution; logged-in platforms have an edge.'],
+  f:['How do you cap across devices for a logged-out user?'],
+  p:['Synchronous write before serving the ad.']},
+{ id:'a-attr', cat:'Ads', lvl:'L3', name:'Conversion attribution pipeline',
+  q:'Design conversion tracking and attribution: pixel, CAPI, offline uploads, and click/view attribution windows.',
+  tension:'Completeness and accuracy need late data and identity matching, but bidding needs fresh signals and privacy limits the join.',
+  bote:'1B conversions/day across sources; joins against 30-90 days of clicks and impressions.',
+  flow:['Pixel / SDK / CAPI / ODA','Ingest + validate','Identity resolution','Dedup','Attribution join (windows)','Reporting + bidding'],
+  look:'Dedup, identity ladder, windows, late data, streaming vs batch split.',
+  a:['See the Conversion Tracking Signals dashboard for the deep dive.',
+     'Canonical conversion schema with event_id, identifiers, consent.',
+     'Dedup by event_id then fallback keys.',
+     'Identity: click ID, member ID, hashed email, then modeled.',
+     'Attribution: last-touch within click/view windows, or multi-touch; data-driven attribution models.',
+     'Streaming path for bidding, batch with restatement for reporting.'],
+  f:['How do you attribute view-through conversions fairly?'],
+  p:['Attributing by arrival time instead of event time.']},
+{ id:'a-report', cat:'Ads', lvl:'L2', name:'Advertiser reporting / OLAP',
+  q:'Design advertiser reporting: slice-and-dice metrics by campaign, day, and demographics with sub-second queries.',
+  tension:'Flexible ad-hoc breakdowns vs pre-aggregation cost, plus privacy thresholds on small cells.',
+  bote:'100B events/day aggregated to ~1B rows/day at (account, campaign, creative, day, dims).',
+  flow:['Event logs','Batch + stream aggregation','OLAP store (Pinot)','Query service (privacy rules)','Dashboard / API / export'],
+  look:'Pre-aggregation strategy, OLAP choice, freshness vs restatement, privacy.',
+  a:['Pre-aggregate at the finest grain queries need; star-tree indexes or cubes for common rollups.',
+     'OLAP store partitioned by advertiser account for isolation.',
+     'Hybrid table: realtime segments for today, offline segments for restated history.',
+     'Privacy: minimum thresholds on demographic cells (k-anonymity), noise where required.',
+     'Async export API for large reports.'],
+  f:['How do you handle a restatement that changes last week\'s numbers?'],
+  p:['Querying raw event logs for every dashboard load.']},
+{ id:'a-target', cat:'Ads', lvl:'L2', name:'Audience targeting and segments',
+  q:'Design audience targeting: attribute targeting plus uploaded matched audiences.',
+  tension:'Rich segments need big offline computation, but serving needs fast membership checks per request.',
+  bote:'1B users, 10M segments; a user belongs to hundreds of segments.',
+  flow:['Advertiser upload (hashed PII)','Match service','Segment builder (Spark)','User -> segments store','Retrieval index','Ad server'],
+  look:'Data layout for membership checks and privacy of uploaded lists.',
+  a:['Store user -> segment IDs (bitmap or sorted list) in a low-latency KV, looked up once per request.',
+     'Invert for retrieval: segment -> campaigns index.',
+     'Matched audiences: hashed emails matched in a secure environment; minimum audience sizes; no raw member exposure.',
+     'Refresh cadence: batch daily plus streaming for recent activity (retargeting).',
+     'Audience size estimation with HyperLogLog sketches.'],
+  f:['How do you estimate audience reach instantly in the campaign UI?'],
+  p:['Scanning users at serve time.']},
+{ id:'a-lookalike', cat:'Ads', lvl:'L2', name:'Lookalike / audience expansion',
+  q:'Design lookalike audiences: given a seed list, find similar users.',
+  tension:'Similarity quality vs scale and freshness, and advertiser control vs reach.',
+  bote:'Seed 10k to 1M users; score 1B users.',
+  flow:['Seed audience','Embeddings / features','Classifier or ANN','Scored users','Threshold by reach %','Segment store'],
+  look:'Modeling approach and serving integration.',
+  a:['Option A: train a per-seed classifier (seed vs random) on user features.',
+     'Option B: user embeddings plus ANN search around seed centroid(s) (FAISS, ScaNN).',
+     'Let advertiser choose similarity vs reach (top 1% to 10%).',
+     'Exclude seed and suppressed users; enforce minimum seed size for privacy.',
+     'Evaluate with holdout seed recall and campaign lift.'],
+  f:['How do you handle a seed with very mixed users?'],
+  p:['One global centroid for a multi-modal seed.']},
+{ id:'a-ctr', cat:'Ads', lvl:'L3', name:'CTR / conversion prediction system',
+  q:'Design the ML system for pCTR / pCVR prediction: features, training, serving, calibration.',
+  tension:'Fresh models on huge data vs training cost, and serving latency vs model size.',
+  bote:'Training on 10B+ examples/day; serving 10M+ predictions/s.',
+  flow:['Impression + label logs','Label join (delayed)','Feature store','Training (online / daily)','Model registry','Online inference','Calibration + monitoring'],
+  look:'Delayed labels, calibration, feature consistency, and online learning.',
+  a:['Join impressions to clicks/conversions with a wait window; handle delayed feedback (conversions days later).',
+     'Feature store with the same definitions offline and online to avoid skew.',
+     'Models: GBDT, then deep models (Wide and Deep, DCN, DLRM) with embeddings.',
+     'Calibration matters because auction uses absolute probabilities.',
+     'Incremental or online training for freshness; shadow and A/B before rollout.'],
+  f:['How do you handle position bias?'],
+  p:['Optimizing AUC only and ignoring calibration.']},
+{ id:'a-fraud', cat:'Ads', lvl:'L2', name:'Ad fraud / invalid traffic',
+  q:'Design invalid traffic (IVT) detection for impressions, clicks, and conversions.',
+  tension:'Fast filtering to protect budgets vs accuracy (false positives cost revenue and trust).',
+  bote:'Evaluate every click (100k/s) in real time and all traffic in batch.',
+  flow:['Events','Real-time rules','Stream features','ML scoring','Batch graph analysis','Filter + credit back'],
+  look:'Layered real-time plus offline detection and advertiser refunds.',
+  a:['Real-time: bot lists (IAB), data-center IPs, rate limits, click timing.',
+     'ML on behavioral features; graph analysis for click farms and publisher collusion.',
+     'Filter from billing; retroactive credits when batch finds more.',
+     'Measure invalid rate per publisher and campaign; MRC accreditation style standards (GIVT vs SIVT).'],
+  f:['How do you prevent attackers from learning your rules?'],
+  p:['Only deterministic rules.']},
+{ id:'a-exp', cat:'Ads', lvl:'L3', name:'Experimentation and lift measurement',
+  q:'Design an experimentation platform for ads, including advertiser conversion lift studies.',
+  tension:'Ads markets have interference (shared budgets, auctions), so user-level randomization can be biased.',
+  bote:'Thousands of concurrent experiments; lift studies need millions of users for power.',
+  flow:['Experiment config','Assignment (hashing)','Serving (treatment / holdout)','Exposure logging','Metric pipeline','Stats engine'],
+  look:'Randomization unit, interference, ghost ads, variance reduction.',
+  a:['Deterministic hashing assignment; layered experiments.',
+     'Budget-split or campaign-split designs to reduce marketplace interference.',
+     'Conversion lift: holdout users never see the ad; ghost ads / PSA to identify counterfactual exposure.',
+     'Variance reduction: CUPED.',
+     'Guardrails and sequential testing to avoid peeking.'],
+  f:['How do you run a lift test for a small advertiser?'],
+  p:['Ignoring interference through shared budgets.']},
+{ id:'a-campaign', cat:'Ads', lvl:'L2', name:'Campaign management',
+  q:'Design the campaign management system (account, campaign group, campaign, creative) and propagation to serving.',
+  tension:'Strong consistency and validation for advertiser edits vs fast propagation to a globally distributed serving layer.',
+  bote:'Millions of edits/day; serving must reflect changes in seconds to minutes.',
+  flow:['Campaign UI / API','Campaign service (validation)','Primary DB','CDC stream','Index builders','Serving caches'],
+  look:'Data model, validation, CDC-based propagation, and budget/state changes.',
+  a:['Hierarchy: account -> campaign group -> campaign -> creative; strongly consistent relational store.',
+     'Validation and policy review workflow before activation.',
+     'CDC (Debezium / Brooklin style) to build serving indexes; version numbers to ignore stale updates.',
+     'Pause and budget changes on a fast path.',
+     'Audit log for every change.'],
+  f:['How fast must a pause propagate and how do you guarantee it?'],
+  p:['Serving reading directly from the campaign DB.']}
+];
+
+// Company question lists: commonly reported themes mapped to patterns.
+const C = {
+  'Google': { blurb:'Search, YouTube, Display, and Analytics. Expect scale, exactness, and privacy (Privacy Sandbox).',
+    qs:[['Design ad click and impression counting for Google Ads with exactly-once billing semantics.',['a-click','a-report'],'Global scale across regions; fraud filtering before billing; reconciling streaming with batch.','L3'],
+        ['Design Search ads serving: from a query to ranked ads in under 100 ms.',['a-serve','a-auction'],'Keyword and broad match retrieval, quality score, GSP-style pricing.','L3'],
+        ['Design budget pacing for Google Ads campaigns.',['a-pacing'],'Very high traffic variance by hour and query; shared budgets across campaigns.','L3'],
+        ['Design a GA4-style event analytics ingestion and reporting system.',['g-metrics','a-report'],'Client batching, sampling vs exact, consent mode modeling.','L2'],
+        ['Design search autocomplete.',['g-typeahead'],'Billions of queries, multiple languages, safety filtering.','L2'],
+        ['Design a web crawler.',['g-crawl'],'Freshness prioritization and politeness at web scale.','L2']]},
+  'Meta': { blurb:'Feed, Reels, Ads Manager, Pixel and CAPI. The ad click aggregator is one of the most reported prompts.',
+    qs:[['Design an ad click aggregator for real-time ad metrics.',['a-click'],'Dedup, late events, hot ads, Flink vs batch.','L2'],
+        ['Design News Feed including ad insertion.',['g-feed','a-serve'],'Ad load and spacing, fan-out for celebrity pages.','L3'],
+        ['Design the Conversions API ingestion with Pixel deduplication.',['a-attr'],'event_id + event_name, 48h window, Event Match Quality.','L3'],
+        ['Design trending hashtags / top-K.',['g-topk'],'Sketches, windowing, merge across partitions.','L2'],
+        ['Design Messenger or WhatsApp.',['g-chat'],'Delivery receipts, multi-device, E2E encryption.','L2'],
+        ['Design Ads Manager reporting (Insights) with breakdowns.',['a-report'],'Privacy thresholds on demographic breakdowns, attribution setting changes.','L2']]},
+  'Amazon': { blurb:'Sponsored Products and Brands on retail search, closed-loop purchase attribution, and Amazon DSP.',
+    qs:[['Design Sponsored Products ad serving on search results.',['a-serve','a-auction'],'Blend with organic results, relevance to shopping intent, CPC auction.','L3'],
+        ['Design budget control that stops campaigns when out of budget.',['a-pacing'],'Delayed click data, overspend policy, day parting.','L2'],
+        ['Design attribution from ad click to purchase (closed loop).',['a-attr'],'First-party purchase data, 14-day windows, halo (brand) attribution.','L2'],
+        ['Design a rate limiter.',['g-ratelimit'],'Per-seller and per-API quotas.','L1'],
+        ['Design an order and payment system.',['g-payment'],'Idempotency and reconciliation.','L3'],
+        ['Design product recommendations.',['a-ctr'],'Candidate generation plus ranking, cold start.','L2']]},
+  'Microsoft': { blurb:'Microsoft Advertising (Bing), UET tags, Microsoft Audience Network, Xandr heritage.',
+    qs:[['Design the Bing Ads keyword auction.',['a-auction','a-serve'],'Match types, quality score, reserve prices.','L2'],
+        ['Design UET tag ingestion and conversion goals.',['a-attr'],'Tag-based goals, auto-tagging with msclkid, offline conversion import.','L2'],
+        ['Design a distributed cache.',['g-cache'],'Hot keys, consistency with DB.','L2'],
+        ['Design a notification system (Teams / Outlook).',['g-notif'],'Priority channels and user preferences.','L1'],
+        ['Design audience segments for Microsoft Audience Network.',['a-target'],'Cross-property signals with privacy constraints.','L2']]},
+  'LinkedIn': { blurb:'Sponsored Content in Feed, Campaign Manager, Insight Tag and CAPI, Matched Audiences, Lead Gen Forms. B2B, logged-in identity, long funnels.',
+    qs:[['Design the LinkedIn feed with Sponsored Content insertion.',['g-feed','a-serve'],'Professional relevance, ad spacing, member-level logged-in identity.','L3'],
+        ['Design Campaign Manager reporting with demographic breakdowns.',['a-report'],'Job title / company / seniority breakdowns with minimum thresholds.','L2'],
+        ['Design conversion tracking with Insight Tag, CAPI, and offline uploads.',['a-attr'],'B2B funnel, CRM integrations, long windows, dedup across sources.','L3'],
+        ['Design Matched Audiences (upload company or contact lists).',['a-target'],'Hashed email and company matching, minimum sizes.','L2'],
+        ['Design "Who viewed your profile" or a top-K counter.',['g-topk'],'Per-member aggregation and privacy settings.','L2'],
+        ['Design frequency capping for Sponsored Messaging.',['a-freq','g-notif'],'Strict per-member caps on messages, cross-campaign limits.','L2']]},
+  'TikTok': { blurb:'For You feed with heavy ML ranking, TikTok Ads Manager, Pixel and Events API.',
+    qs:[['Design the For You recommendation system including ads.',['a-ctr','g-feed'],'Real-time interest updates, exploration, ad blending.','L3'],
+        ['Design a real-time ad metrics dashboard.',['a-click','a-report'],'Very spiky traffic from viral content.','L2'],
+        ['Design frequency capping across ads and creatives.',['a-freq'],'Creative fatigue and cross-device.','L2'],
+        ['Design live-stream gifting and payments.',['g-payment'],'Virtual currency ledger and fraud.','L3'],
+        ['Design Events API conversion ingestion.',['a-attr'],'Dedup with Pixel, SKAN for iOS.','L2']]},
+  'Pinterest': { blurb:'Shopping and visual discovery ads with strong ML ranking and conversion optimization.',
+    qs:[['Design ads ranking with pCTR and pConversion.',['a-ctr','a-serve'],'Multi-objective ranking, delayed conversion labels.','L3'],
+        ['Design budget pacing for ads.',['a-pacing'],'Smooth spend with seasonal traffic.','L2'],
+        ['Design conversion attribution for shopping ads.',['a-attr'],'Pinterest Tag plus API, product-level catalogs.','L2'],
+        ['Design lookalike (actalike) audiences.',['a-lookalike'],'Embedding-based expansion.','L2']]},
+  'Snap': { blurb:'Snap Ads between Stories, heavily mobile and iOS, so privacy-constrained measurement matters.',
+    qs:[['Design ad delivery for Stories with privacy-safe measurement.',['a-serve','a-attr'],'ATT, SKAN postbacks, modeled conversions.','L3'],
+        ['Design Stories feed.',['g-feed'],'Ephemeral content and TTLs.','L2'],
+        ['Design frequency capping.',['a-freq'],'Mobile-first, logged-in identity.','L1'],
+        ['Design an experimentation platform for ads.',['a-exp'],'Marketplace interference.','L3']]},
+  'Reddit': { blurb:'Community-based targeting, promoted posts in feeds, Reddit Pixel and CAPI.',
+    qs:[['Design an ad click aggregator.',['a-click'],'Growing ads business, cost efficiency.','L2'],
+        ['Design community / interest targeting.',['a-target'],'Subreddit context and contextual signals.','L2'],
+        ['Design vote counting and ranking of posts or comments.',['g-topk'],'High write rates on hot threads.','L2'],
+        ['Design Reddit Pixel plus Conversions API.',['a-attr'],'Dedup and match quality.','L2']]},
+  'Uber': { blurb:'Uber Eats sponsored listings and Journey ads; strong platform infra reputation.',
+    qs:[['Design Uber Eats sponsored listings and auction.',['a-serve','a-auction'],'Location constraints, restaurant availability, CPC.','L2'],
+        ['Design an experimentation platform.',['a-exp'],'Marketplace effects between riders, drivers, eaters.','L3'],
+        ['Design a payment system.',['g-payment'],'Multi-party payouts.','L3'],
+        ['Design a distributed job scheduler.',['g-sched'],'Cadence / Temporal style workflows.','L2']]},
+  'The Trade Desk': { blurb:'Independent DSP. Programmatic bidding at extreme QPS; UID2 identity.',
+    qs:[['Design an RTB bidder for millions of bid requests per second.',['a-rtb'],'Sub-20 ms internal budget, multi-region near exchanges.','L3'],
+        ['Design budget pacing across many exchanges.',['a-pacing'],'Delayed win notices.','L3'],
+        ['Design cross-device identity (UID2 style).',['a-attr','a-target'],'Hashed and salted email tokens, rotation, opt-out.','L3'],
+        ['Design reporting over trillions of bid logs.',['a-report'],'Cost-efficient storage and rollups.','L2'],
+        ['Design cross-device frequency capping.',['a-freq'],'Probabilistic vs deterministic identity.','L2']]},
+  'Netflix': { blurb:'Ads tier for streaming: ad insertion into video with strict UX constraints.',
+    qs:[['Design ad insertion for streaming video with frequency caps.',['a-serve','a-freq'],'Ad pods, server-side ad insertion, per-household caps.','L3'],
+        ['Design an experimentation platform.',['a-exp'],'Streaming quality metrics.','L2'],
+        ['Design ad measurement integrations with third-party verification.',['a-attr','a-fraud'],'Viewability, IVT, clean rooms.','L2']]}
+};
+
+// ======================= ENGINE =======================
+const KEY = 'sdqb-done';
+let done = new Set(JSON.parse(localStorage.getItem(KEY) || '[]'));
+const save = () => { localStorage.setItem(KEY, JSON.stringify([...done])); refreshAll(); };
+const byId = Object.fromEntries(P.map(p => [p.id, p]));
+const CQ = []; Object.entries(C).forEach(([co, v]) => v.qs.forEach((x, i) => CQ.push({ id:'c-' + co.toLowerCase().replace(/\W+/g, '') + '-' + i, co, q:x[0], pats:x[1], twist:x[2], lvl:x[3] })));
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+const ul = a => '<ul>' + a.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul>';
+
+function show(t) {
+  document.querySelectorAll('section').forEach(s => s.classList.toggle('active', s.id === t));
+  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('active', b.dataset.t === t));
+}
+document.querySelectorAll('#nav button').forEach(b => b.onclick = () => { show(b.dataset.t); scrollTo(0, 0); });
+function jump(pid) {
+  const p = byId[pid]; show(p.cat === 'Ads' ? 'ads' : 'general');
+  const node = document.getElementById('q-' + pid); if (!node) return;
+  document.querySelectorAll('.q').forEach(q => q.classList.remove('flash'));
+  node.classList.add('open', 'flash'); node.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function patCard(p, n) {
+  return `<div class="q${done.has(p.id) ? ' done' : ''}" id="q-${p.id}">
+    <div class="qh"><span class="num">${n}</span>
+      <div class="qt">${esc(p.name)}: ${esc(p.q)}
+        <div class="meta"><span class="lvl ${p.lvl}">${p.lvl}</span> ${CQ.filter(c => c.pats.includes(p.id)).map(c => c.co).filter((v, i, a) => a.indexOf(v) === i).map(c => `<span class="chip">${esc(c)}</span>`).join('')}</div></div>
+      <input type="checkbox" title="Mark as practiced" data-id="${p.id}" ${done.has(p.id) ? 'checked' : ''}></div>
+    <div class="qb">
+      <h4>Core tension</h4><div class="tension">${esc(p.tension)}</div>
+      <h4>What the interviewer looks for</h4><div class="look">${esc(p.look)}</div>
+      <h4>Back-of-envelope</h4><div class="bote">${esc(p.bote)}</div>
+      <h4>Reference architecture</h4><div class="mflow">${p.flow.map(x => `<span class="n">${esc(x)}</span>`).join('<span class="ar">&rarr;</span>')}</div>
+      <h4 class="a">Model answer outline</h4>${ul(p.a)}
+      <h4 class="f">Likely follow-ups</h4>${ul(p.f)}
+      <h4 class="p">Pitfalls to avoid</h4>${ul(p.p)}
+    </div></div>`;
+}
+function wire(root) {
+  root.querySelectorAll('.qh').forEach(h => h.onclick = e => { if (e.target.tagName !== 'INPUT') h.parentNode.classList.toggle('open'); });
+  root.querySelectorAll('input[data-id]').forEach(c => c.onchange = () => { c.checked ? done.add(c.dataset.id) : done.delete(c.dataset.id); save(); });
+  root.querySelectorAll('[data-jump]').forEach(j => j.onclick = e => { e.stopPropagation(); jump(j.dataset.jump); });
+}
+
+// pattern tabs with filters
+const PST = {};
+document.querySelectorAll('.filters').forEach(box => {
+  const cat = box.dataset.cat; PST[cat] = { lvl:'All', s:'all', q:'' };
+  box.innerHTML = `<div class="fbar"><input type="search" placeholder="Search ${cat.toLowerCase()} patterns..."><button class="fbtn primary" data-r>Random unpracticed</button><button class="fbtn" data-x>Expand all</button><button class="fbtn" data-c>Collapse all</button></div>
+    <div class="fchips"><span class="lbl">Level</span>${['All','L1','L2','L3'].map(v => `<button class="fchip${v === 'All' ? ' on' : ''}" data-l="${v}">${v}</button>`).join('')}</div>
+    <div class="fchips"><span class="lbl">Status</span><button class="fchip on" data-s="all">All</button><button class="fchip" data-s="todo">Not practiced</button><button class="fchip" data-s="done">Practiced</button></div>
+    <div class="progress"><div></div></div><div class="note"></div>`;
+  const st = PST[cat], list = document.querySelector(`.list[data-cat="${cat}"]`);
+  box.querySelector('input').oninput = e => { st.q = e.target.value.toLowerCase(); renderPat(cat); };
+  box.querySelectorAll('[data-l]').forEach(b => b.onclick = () => { st.lvl = b.dataset.l; box.querySelectorAll('[data-l]').forEach(x => x.classList.toggle('on', x === b)); renderPat(cat); });
+  box.querySelectorAll('[data-s]').forEach(b => b.onclick = () => { st.s = b.dataset.s; box.querySelectorAll('[data-s]').forEach(x => x.classList.toggle('on', x === b)); renderPat(cat); });
+  box.querySelector('[data-x]').onclick = () => list.querySelectorAll('.q').forEach(q => q.classList.add('open'));
+  box.querySelector('[data-c]').onclick = () => list.querySelectorAll('.q').forEach(q => q.classList.remove('open'));
+  box.querySelector('[data-r]').onclick = () => { const pool = P.filter(p => p.cat === cat && !done.has(p.id)); const pick = (pool.length ? pool : P.filter(p => p.cat === cat))[Math.floor(Math.random() * (pool.length || P.filter(p => p.cat === cat).length))]; st.lvl = 'All'; st.s = 'all'; st.q = ''; renderPat(cat); jump(pick.id); document.getElementById('q-' + pick.id).classList.remove('open'); };
+});
+function renderPat(cat) {
+  const st = PST[cat], all = P.filter(p => p.cat === cat);
+  const v = all.filter(p => (st.lvl === 'All' || p.lvl === st.lvl) && (st.s === 'all' || (st.s === 'done') === done.has(p.id)) && (!st.q || JSON.stringify(p).toLowerCase().includes(st.q)));
+  const list = document.querySelector(`.list[data-cat="${cat}"]`);
+  list.innerHTML = v.map(p => patCard(p, (cat === 'Ads' ? 'A' : 'G') + (all.indexOf(p) + 1))).join('') || '<div class="card">No patterns match.</div>';
+  wire(list);
+  const box = document.querySelector(`.filters[data-cat="${cat}"]`), d = all.filter(p => done.has(p.id)).length;
+  box.querySelector('.progress div').style.width = Math.round(100 * d / all.length) + '%';
+  box.querySelector('.note').textContent = `Showing ${v.length} of ${all.length}. Practiced ${d}/${all.length}. Open a card to see tension, estimates, architecture, and answer outline.`;
+}
+
+// companies
+let CO = Object.keys(C)[0];
+const cpick = document.getElementById('cpick');
+Object.keys(C).forEach(co => { const b = document.createElement('button'); b.className = 'fchip' + (co === CO ? ' on' : ''); b.textContent = co; b.onclick = () => { CO = co; cpick.querySelectorAll('.fchip').forEach(x => x.classList.toggle('on', x === b)); renderCo(); }; cpick.appendChild(b); });
+function renderCo() {
+  const qs = CQ.filter(c => c.co === CO), d = qs.filter(c => done.has(c.id)).length;
+  document.getElementById('clist').innerHTML = `<div class="card ccard"><h3>${esc(CO)}</h3><div class="blurb">${esc(C[CO].blurb)}</div></div>` + qs.map((c, i) => `
+    <div class="q${done.has(c.id) ? ' done' : ''}"><div class="qh"><span class="num">${i + 1}</span>
+      <div class="qt">${esc(c.q)}<div class="meta"><span class="lvl ${c.lvl}">${c.lvl}</span> ${c.pats.map(p => `<span class="chip g" data-jump="${p}" title="Open the foundational pattern">Pattern: ${esc(byId[p].name)} &rarr;</span>`).join('')}</div></div>
+      <input type="checkbox" title="Mark as practiced" data-id="${c.id}" ${done.has(c.id) ? 'checked' : ''}></div>
+      <div class="qb"><h4>Company-specific twist to address</h4><div class="look">${esc(c.twist)}</div>
+      <h4>Core tension of the base pattern</h4><div class="tension">${esc(byId[c.pats[0]].tension)}</div>
+      <p class="note">Open the linked pattern for the full answer outline, then spend extra time on the twist.</p></div></div>`).join('');
+  wire(document.getElementById('clist'));
+  document.getElementById('cprog').style.width = Math.round(100 * d / qs.length) + '%';
+  document.getElementById('cstat').textContent = `${qs.length} questions for ${CO}. Practiced ${d}/${qs.length}.`;
+}
+
+// overview
+function renderOverview() {
+  const cos = Object.keys(C), total = P.length + CQ.length, d = [...done].filter(id => byId[id] || CQ.some(c => c.id === id)).length;
+  const k = [['Foundational patterns', P.length, `${P.filter(p => p.cat === 'General').length} general, ${P.filter(p => p.cat === 'Ads').length} ads`, 'general'],
+             ['Company questions', CQ.length, `${cos.length} companies`, 'companies'],
+             ['Practiced', `${d}/${total}`, `${Math.round(100 * d / total)}% of all items`, 'sync']];
+  document.getElementById('kpis').innerHTML = k.map(x => `<div class="card" style="cursor:pointer" data-go="${x[3]}"><div class="note" style="margin:0;text-transform:uppercase;font-weight:700">${x[0]}</div><div style="font-size:26px;font-weight:700">${x[1]}</div><div class="note" style="margin:0">${x[2]}</div></div>`).join('');
+  document.querySelectorAll('[data-go]').forEach(x => x.onclick = () => show(x.dataset.go));
+  const rows = P.map(p => ({ p, hits: cos.map(co => CQ.some(c => c.co === co && c.pats.includes(p.id))) })).sort((a, b) => b.hits.filter(Boolean).length - a.hits.filter(Boolean).length);
+  document.getElementById('matrix').innerHTML = `<tr><th style="text-align:left">Pattern</th>${cos.map(c => `<th>${esc(c)}</th>`).join('')}<th>#</th></tr>` +
+    rows.map(r => `<tr><td class="rowh" data-jump="${r.p.id}">${done.has(r.p.id) ? '&#10003; ' : ''}${esc(r.p.name)} <span class="chip ${r.p.cat === 'Ads' ? 'p' : ''}">${r.p.cat}</span></td>${r.hits.map(h => `<td class="${h ? 'on' : ''}">${h ? '&#9679;' : ''}</td>`).join('')}<td><b>${r.hits.filter(Boolean).length}</b></td></tr>`).join('');
+  document.querySelectorAll('#matrix [data-jump]').forEach(j => j.onclick = () => jump(j.dataset.jump));
+}
+
+// sync
+const encode = () => btoa(unescape(encodeURIComponent(JSON.stringify({ v:1, done:[...done] }))));
+function renderSync() { document.getElementById('exp').value = encode(); }
+document.getElementById('copy').onclick = () => { const t = document.getElementById('exp'); t.select(); (navigator.clipboard ? navigator.clipboard.writeText(t.value) : Promise.resolve(document.execCommand('copy'))).then(() => document.getElementById('copied').textContent = 'Copied.'); };
+document.getElementById('doimp').onclick = () => {
+  const m = document.getElementById('impmsg');
+  try { const o = JSON.parse(decodeURIComponent(escape(atob(document.getElementById('imp').value.trim())))); const before = done.size; o.done.forEach(id => done.add(id)); save(); m.textContent = `Merged. Added ${done.size - before} items.`; }
+  catch (e) { m.textContent = 'That code could not be read.'; }
+};
+document.getElementById('reset').onclick = () => { if (confirm('Reset all progress on this device?')) { done = new Set(); save(); } };
+
+function refreshAll() { renderPat('General'); renderPat('Ads'); renderCo(); renderOverview(); renderSync(); }
+refreshAll();
+</script>
+</body>
+</html>

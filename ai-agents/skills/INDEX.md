@@ -17,6 +17,8 @@ here to one line.
 | `peer-feedback` | Write feedback about **a colleague**. |
 | `domain-drill` | Learn, map, or teach back a technical domain at staff depth. |
 | `sysdesign-drill` | Do a timed, interview-condition system-design rep (not a study session). |
+| `study-dashboard` | Build a durable, visual study artifact (HTML dashboard with diagrams, FAQ practice tab, question bank, cross-device progress), not a live drill. |
+| `tech-domain-dashboard` | Find the genuinely hard sub-problems in a domain, fact-check them, and build a paired markdown + HTML practice dashboard. |
 | `local-server` | Start, stop, or check a local server for personal HTML files. |
 
 ## `general/`
@@ -42,6 +44,7 @@ Installed like any other skill; the folder marks them as still changing.
 ## Boundaries that trip auto-recall
 
 - **`self-assessment` vs `peer-feedback`**: about me vs about someone else.
+- **`study-dashboard` vs `tech-domain-dashboard`**: both build an HTML study dashboard. `study-dashboard` also builds question banks and adds FAQ tabs to an existing file; `tech-domain-dashboard` starts from the hard-sub-problem filter and always fact-checks before the HTML build.
 - **`pr-comments` vs `review-others`**: feedback on my PR vs reviewing someone else's.
 - **`yell` vs `wtree show`**: live agent sessions now vs the worktrees of one repo group.
 
