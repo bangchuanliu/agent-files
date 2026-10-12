@@ -132,11 +132,7 @@ support. Keep it forward-looking; this is the place to champion the person, not 
 - Stay in the reviewer's voice; match the level of praise the notes actually justify.
 
 **Guardrails**
-- **Use only confirmed specifics.** This is a real document about a real person entering a real
-  review. Never fabricate a project name, metric, or accomplishment that isn't in the
-  notes or confirmed by the user. If a strength needs a number to land and you don't
-  have one, ask - don't guess. A plausible-sounding invented metric is the single most
-  damaging thing this skill could produce.
+- **Use only confirmed specifics** - the rule and its reason live in `SKILL.md`.
 
 **Leave out**
 - Personality judgments ("lazy", "difficult", "not a team player").

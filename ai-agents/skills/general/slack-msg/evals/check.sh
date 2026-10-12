@@ -5,16 +5,17 @@
 #   pbpaste | bash check.sh          # check clipboard content
 #   bash check.sh output.txt         # check a file
 #
-# 8 core checks — all must pass:
+# 8 core checks - all must pass (SKILL.md states the rules they enforce):
 #
 # Slack-native format (checks 1-5):
 #   1. No markdown table syntax (| --- |)
 #   2. No markdown bold (**text**)
 #   3. No markdown headings (# text)
 #   4. No markdown links [text](url)
-#   5. Tables use code blocks (```) with emoji status + column alignment
+#   5. Tables (2+ lines with status emoji) use code blocks (```) with emoji
+#      status icons and a ─── rule under the header row
 #
-# Tone — professional, concise, polite (checks 6-8):
+# Tone - professional, concise, polite (checks 6-8):
 #   6. No filler phrases ("Just wanted to", "Hope you're doing well", etc.)
 #   7. At least one polite word (thanks, please, appreciate)
 #   8. Output is concise (< 60% of input word count, if input provided)
@@ -64,12 +65,13 @@ check_absent "No markdown headings (# text)" '^#{1,6} '
 # 4. No markdown links
 check_absent "No markdown links [text](url)" '\[.+\]\(http'
 
-# 5. If table-like content exists: code block + emoji status + column alignment
+# 5. If table-like content exists: code block + emoji status + header rule.
+# A table is 2+ lines carrying a status emoji; a single ⚠️ line is not a table.
 HAS_TABLE=$(echo "$CONTENT" | grep -cE '(✅|🔄|🚫|⚠️)' || true)
-if [ "$HAS_TABLE" -gt 0 ]; then
+if [ "$HAS_TABLE" -ge 2 ]; then
   check_present "Tables wrapped in code block (\`\`\`)" '```'
   check_present "Table has emoji status icons (✅/🔄/🚫)" '(✅|🔄|🚫)'
-  check_present "Table has column separator line (───)" '─{3,}'
+  check_present "Table has header rule (───)" '─{3,}'
 else
   echo "SKIP: No tabular data detected (checks 5a-5c skipped)"
 fi
@@ -94,10 +96,10 @@ if [ -n "$INPUT_FILE" ] && [ -f "$INPUT_FILE" ]; then
   OUTPUT_WORDS=$(echo "$CONTENT" | wc -w | tr -d ' ')
   RATIO=$(( OUTPUT_WORDS * 100 / INPUT_WORDS ))
   if [ "$RATIO" -le 60 ]; then
-    echo "PASS: Concise — output is ${RATIO}% of input word count (${OUTPUT_WORDS}/${INPUT_WORDS} words)"
+    echo "PASS: Concise - output is ${RATIO}% of input word count (${OUTPUT_WORDS}/${INPUT_WORDS} words)"
     ((PASS++))
   else
-    echo "FAIL: Not concise — output is ${RATIO}% of input (${OUTPUT_WORDS}/${INPUT_WORDS} words, need ≤60%)"
+    echo "FAIL: Not concise - output is ${RATIO}% of input (${OUTPUT_WORDS}/${INPUT_WORDS} words, need ≤60%)"
     ((FAIL++))
   fi
 else

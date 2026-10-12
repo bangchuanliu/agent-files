@@ -1,93 +1,73 @@
 ---
 name: jira-create
 kind: leaf
-description: "Jira: draft agent-optimized tickets with structured fields, acceptance criteria, inferred labels, and batch ticket plans. Use when: create Jira, Jira ticket, create ticket, document work, or batch tickets."
+description: "Use when: drafting and filing agent-optimized Jira tickets (structured fields, acceptance criteria, inferred labels, epic link) after the user approves the draft - one ticket (create Jira, Jira ticket, create ticket, document work) or a batch of related tickets under one epic. NOT for: updating, transitioning, commenting on, or searching existing tickets."
 ---
 
 # Jira Create
 
-Create tickets with fields that enable efficient agent processing. Every ticket should be parseable by planning, development, and QA agents without human clarification.
+## Objective
 
-## Process
+Draft Jira tickets with every field filled and file them only after the user approves the draft. Each ticket must be parseable by planning, development, and QA agents without human clarification, so its fields, description, and acceptance criteria are structured and specific.
 
-1. **Search for existing Epics** in the configured Jira project matching the topic. Present top 3-5 for user to pick.
-2. **Infer fields** from the user's prompt using the heuristics below.
-3. **Apply company context** when your instructions provide some for this skill. It may override project keys, components, labels, field names, or due-date rules; without it, the guidance here is complete on its own.
-4. **Present a draft** with all fields filled in. Highlight uncertain fields with 2-3 alternatives.
-5. **Wait for explicit confirmation** before creating through the available Jira integration - never create without approval.
+Success: the user approved a draft naming project, type, summary, priority, assignee, due date, story points, component, labels, epic decision, and acceptance criteria; the ticket (or batch) exists in Jira with exactly those values; and the user has each ticket key and URL.
 
-Completion criterion: before creation, the draft names project, type, summary, priority, assignee, due date, points, component, labels, epic decision, and acceptance criteria. After creation, report the ticket key and URL.
+## Guardrails & Constraints
 
-## Draft Format
+- MUST create nothing until the user explicitly approves the draft, because a filed ticket notifies people and is visible to the whole project. For a batch, approval of the full batch plan (every summary plus the shared fields) covers the batch.
+- MUST search the target project for existing epics matching the topic and offer the top 3-5 for the user to pick, plus "None found, create new?" when nothing fits, so related work is not orphaned.
+- MUST mark each field you are unsure of in the draft and offer 2-3 alternatives for it.
+- MUST apply company context when your instructions provide some for this skill: it overrides the project key, components, labels, field names, and due-date rules below. Without it, the defaults below are complete.
+- IF the project key is not stated and no company context supplies one, MUST ask.
+- IF no Jira integration is available, MUST stop after the draft and report that it could not be filed.
+- IF a create call fails or its result is unclear, MUST search for the ticket before retrying, so a retry cannot file a duplicate; IF it still cannot be confirmed, stop and report.
 
-```
-Draft Ticket
+## Preferences
 
-Summary: [action-oriented title]
-Type: Story | Bug | Task | Spike
-Assignee: [current requester or configured default]
-Priority: P0 | P1 | P2 | P3
-Due Date: [auto: P0→+2wk, P1→+1mo, P2→+3mo, P3→none]
-Story Points: S(1) | M(3) | L(5)
-Component: [from component list]
-Labels: [baseline label if configured], [+ topic labels]
-Epic Link: [from search, or "None found, create new?"]
+- SHOULD use these defaults when company context does not override them:
+  - **Assignee:** the current requester.
+  - **Labels:** topic labels only; add a baseline label only when company context names one.
+  - **Due date** (from today): P0 +2 weeks, P1 +1 month, P2 +3 months, P3 none.
+  - **Story points:** S(1), M(3), L(5).
+  - **Type:** Story, Bug, Task, or Spike. **Priority:** P0-P3.
+- SHOULD infer fields from the prompt; these hints are examples, not a closed list:
 
-Description:
-[filled-in template]
+  | Keyword | Suggested fields |
+  |---|---|
+  | docs, documentation | Labels: `docs` |
+  | pipeline, DAG, airflow | Labels: `pipeline`, Component: `data-platform` |
+  | freshness, validation | Labels: `data-quality` |
+  | dashboard, grafana | Labels: `dashboards` |
+  | architecture, RFC | Labels: `architecture`, Type: Spike |
+  | bug, broken, fix | Type: Bug, Priority: P2 or higher |
+  | quick, small | Points: S(1) |
+  | refactor, migration | Points: L(5) |
 
-Does this look right?
-```
+- SHOULD pick components from company context, else from `documentation`, `backend`, `frontend`, `data-platform`, `infrastructure`, `runbook`, `analytics`; labels from company context, else from `docs`, `runbook`, `onboarding`, `architecture`, `analytics`, `dashboards`, `data-quality`, `pipeline`, `cross-team`.
+- SHOULD write the description from this default template, which agents downstream parse:
 
-## Description Template
+  ```
+  ## Goal
+  [One sentence]
 
-```
-## Goal
-[One sentence]
+  ## Content Source
+  [URL to wiki/dashboard/confluence/doc]
 
-## Content Source
-[URL to wiki/dashboard/confluence/doc]
+  ## Target Location
+  [Where in codebase/docs]
 
-## Target Location
-[Where in codebase/docs]
+  ## Acceptance Criteria
+  - [ ] [Specific, verifiable criterion]
+  ```
 
-## Acceptance Criteria
-- [ ] [Specific, verifiable criterion]
-```
+- IF filing a batch, SHOULD put the tickets under one epic, keep shared fields consistent, include the source URL in every description, number the summaries (`[01/50] Add architecture overview`), and give the user a query to find them (`project = <PROJECT> AND labels = <LABEL> ORDER BY priority DESC, created ASC`).
 
-## Defaults
+## Output
 
-- **Assignee**: current requester unless the company context specifies a default
-- **Labels**: include a baseline label only when the company context specifies one
-- **Due date**: P0→+2wk, P1→+1mo, P2→+3mo, P3→none (from today)
+- **Draft:** an action-oriented summary plus every field listed under Objective, the filled description, uncertain fields with their alternatives, and a closing "Does this look right?".
+- **After creation:** each ticket key and URL; for a batch, the epic key and the query.
 
-## Inference Heuristics
+## Verification
 
-| Keyword | Suggested Fields |
-|---------|-----------------|
-| docs, documentation | Labels: `docs` |
-| pipeline, DAG, airflow | Labels: `pipeline`, Component: `data-platform` |
-| freshness, validation | Labels: `data-quality` |
-| dashboard, grafana | Labels: `dashboards` |
-| architecture, RFC | Labels: `architecture`, Type: Spike |
-| bug, broken, fix | Type: Bug, Priority: P2+ |
-| quick, small | Points: S(1) |
-| refactor, migration | Points: L(5) |
-
-## Components
-
-Generic defaults: `documentation`, `backend`, `frontend`, `data-platform`, `infrastructure`, `runbook`, `analytics`.
-
-Use the company context component list when present.
-
-## Labels
-
-Generic defaults: `docs`, `runbook`, `onboarding`, `architecture`, `analytics`, `dashboards`, `data-quality`, `pipeline`, `cross-team`.
-
-Use the company context label taxonomy when present.
-
-## Batch Creation
-
-For many related tickets: create one Epic, use consistent fields, include source URL in every description, number summaries (`[01/50] Add architecture overview`).
-
-Query pattern: `project = <PROJECT> AND labels = <LABEL> ORDER BY priority DESC, created ASC`
+- Before asking for approval, the draft names every field listed under Objective and every acceptance criterion is verifiable.
+- After creation, each ticket read back from Jira (key, URL, fields) matches the approved draft; report any field Jira rejected or changed.

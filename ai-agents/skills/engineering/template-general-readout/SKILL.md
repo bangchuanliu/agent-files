@@ -1,29 +1,22 @@
 ---
 name: template-general-readout
 kind: leaf
-description: "Readout structure: emit a genre skeleton or restructure an existing readout without changing its content. Genres: data validation (technical, leadership, one-pager), strategy, launch, research, program, postmortem. Use for readout templates, section selection, or reformatting. NOT for: domain methodology, data-incident RCA narratives, or executing validation."
+description: "Use when: producing the structure of a readout (a document that ends in a decision or ask) - emit a genre skeleton, restructure an existing readout without changing its content, or derive a leadership version or one-pager from a technical one. Genres: data validation (technical, leadership, one-pager), strategy, launch/GA, research, program review, postmortem. NOT for: domain methodology or checking the content is correct, data-incident RCA narratives, running a validation, or HTML review pages (html-report)."
 ---
 
 # General Readout Template
 
-A readout is a document that ends in a **decision or an ask**, backed by evidence. This skill
-owns **structure only**: which sections exist, in what order, and what goes in each. It carries
-no domain methodology. A domain-specific skill in a company or local layer may call this skill
-for the skeleton and own its own content rules; this skill never calls domain skills.
+## Objective
 
-## Interface
+Give a readout the right structure for its genre - which sections exist, in what order, and what goes in each - either as an empty skeleton or by moving an existing readout's content into that structure unchanged. A readout is a document that ends in a **decision or an ask**, backed by evidence; a consistent structure lets the reader find the ask, the evidence, and the limits of the claim quickly.
 
-| Argument | Values | Default |
-|---|---|---|
-| `mode` | `skeleton` · `restructure` | `skeleton` |
-| `genre` | `data-validation` · `strategy` · `launch` · `research` · `program` · `postmortem` | infer |
-| `variant` | `technical` · `leadership` · `onepager` (data-validation only) | `technical` |
-| `source` | existing readout (Google Doc / Markdown) - `restructure` only | none |
+This skill owns **structure only** and carries no domain methodology. A domain-specific skill in a company or local layer may call it for the skeleton and own its content rules; this skill never calls domain skills.
 
-Infer from the request and state what you inferred. If two genres fit, pick by the **ask**, not
-the content.
+Success: the output follows the chosen genre's skeleton, keeps every required section, states what was inferred or dropped, and (when restructuring) carries every piece of source content verbatim.
 
-## Genres
+## Context & Tools
+
+Pick the genre by the question the readout answers, then read only its skeleton file:
 
 | Genre | The question it answers | Skeleton |
 |---|---|---|
@@ -34,12 +27,16 @@ the content.
 | **Program / portfolio review** | Across N workstreams, where do we invest? | `genres/program.md` |
 | **Incident / postmortem** | What broke, what did it cost, what prevents recurrence? | `genres/postmortem.md` |
 
-The data-validation genre is self-contained: its three files are full skeletons with their own
-numbered sections. The other genres add sections to the universal spine below.
+The data-validation genre is self-contained: its three files are full skeletons with their own numbered sections. The other genres add sections to the universal spine below.
 
-**Section numbers are a contract.** Domain or local skills may cite them (for example,
-data-validation §3a, §5a, Appendix B). Never renumber a skeleton without updating every
-skill that references it.
+Inputs, inferred from the request when not given:
+
+| Argument | Values | Default |
+|---|---|---|
+| `mode` | `skeleton` · `restructure` | `skeleton` |
+| `genre` | `data-validation` · `strategy` · `launch` · `research` · `program` · `postmortem` | infer |
+| `variant` | `technical` · `leadership` · `onepager` (data-validation only) | `technical` |
+| `source` | existing readout (Google Doc / Markdown) - `restructure` only | none |
 
 ## Universal spine (non-data-validation genres)
 
@@ -56,39 +53,35 @@ Every genre carries these. Order may vary; presence may not.
 8. **What this does not tell you** - the limits of the claim. Never optional.
 9. **Appendix** - detail, references, glossary if the audience needs it.
 
-## Mode: skeleton
+## Guardrails & Constraints
 
-1. Pick genre (and variant for data validation); read only that skeleton file.
-2. Emit it with placeholders intact. Drop a section only if it cannot change the decision, and
-   say which you dropped.
-3. Output as a native Google Doc (never uploaded `.docx`) or repo Markdown, as requested.
+- MUST keep every skeleton's section numbers unchanged, because domain or local skills cite them (for example data-validation §3a, §5a, Appendix B). Renumbering is allowed only together with updating every skill that references them.
+- MUST state the inferred `mode`, `genre`, and `variant`. IF two genres fit, pick by the **ask**, not the content.
+- MUST keep "What this does not tell you" (or the data-validation equivalent) in every output.
+- IF `mode` is `skeleton`, MUST emit the chosen skeleton with placeholders intact. Drop a section only if it cannot change the decision, and name each dropped section.
+- IF `mode` is `restructure`:
+  - MUST read the source in full before choosing the genre, and pick it by the source's ask;
+  - MUST move content, never rewrite it: text, numbers, tables, and links stay **verbatim** - no new numbers, no softened caveats, no changed conclusions;
+  - MUST map every source block to a target section; content that fits no section goes to an appendix, never dropped;
+  - MUST leave the source untouched and write the result to a new doc or file;
+  - MUST report three lists: **Mapping** (source heading -> target section), **Missing** (required target sections with no source content, left as placeholders), **Unplaced** (source content kept in the appendix).
+- IF producing a leadership version or one-pager, MUST derive it from a completed technical readout, never author it first: no new numbers, values and status match the technical readout, simplify the language but never the conclusion. Data validation spells out the extraction in `genres/data-validation/leadership.md` and `onepager.md`. IF no technical readout exists, MUST ask whether to start from the technical skeleton.
+- IF the output is a Google Doc, MUST create it as a native Google Doc, not an uploaded `.docx`. IF the user named no format, SHOULD produce repo Markdown and say so.
+- IF the source cannot be read in full, MUST stop and report rather than restructure a partial document.
 
-## Mode: restructure
+## Preferences
 
-Move content; never rewrite it.
+- SHOULD produce the technical version for the owning team, and derive a leadership version when the decision leaves the team.
+- SHOULD give every number a source and every estimate its benchmark, and say whether a number is good by anchoring it to a prior period or peer.
+- SHOULD include a section only if it can change the decision; empty scaffolding is noise.
 
-1. Read the source in full, then pick the genre by its ask.
-2. Map every source block to a target section. Keep text, numbers, tables and links
-   **verbatim** - no new numbers, no softened caveats, no changed conclusions.
-3. Produce the restructured document plus three lists:
-   - **Mapping** - source heading → target section.
-   - **Missing** - required target sections with no source content, left as placeholders.
-   - **Unplaced** - source content that fits no section, kept in an appendix, never dropped.
-4. Never modify the source doc; write a new doc or file.
+## Output
 
-Restructuring fixes shape only. Whether the content is *correct* is the domain skill's review.
+- The skeleton or restructured document (or a link to it), plus the inferred arguments and any dropped sections.
+- For `restructure`: the Mapping, Missing, and Unplaced lists.
 
-## Audience
+## Verification
 
-Produce a technical version for the owning team; derive a leadership version when the decision
-leaves the team. **Derive, never author leadership first**: no new numbers, values and status
-match, simplify language never the conclusion. Data validation spells out the extraction in
-`genres/data-validation/leadership.md`.
-
-## Craft rules
-
-- Write the TL;DR last; lead with the answer, not the journey.
-- Every number has a source; every estimate names its benchmark.
-- Say whether a number is good, not only what it is - anchor to a prior period or peer.
-- Keep *demonstrated* and *suspected* apart, in every section.
-- Include a section only if it changes the decision. Empty scaffolding is noise.
+- The output's section numbers and headings match the chosen skeleton file.
+- For `restructure`: every source block appears in Mapping or Unplaced, and a spot check of numbers and caveats against the source shows them unchanged. Whether the content is *correct* is the domain skill's review, not this one.
+- For a leadership version or one-pager: every figure and status matches the technical readout.

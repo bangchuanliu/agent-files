@@ -1,133 +1,53 @@
 ---
 name: hop
-kind: orchestrator
-description: "Hop: resolve a branch, worktree, repo checkout, or directory to its path and terminal tab; report an existing tab/agent, focus it, or open/resume a tab. Use when: hop, go to, goto, switch worktree, jump to branch, open tab for this branch, is there a tab for this worktree, take me there. NOT for: starting a task stack with worktree + Herdr + agent (start), live agent triage (yell), or creating/cleaning worktrees (wtree)."
+kind: leaf
+description: "Use when: find or open the terminal tab for a branch, worktree, repo checkout, or directory - hop, go to, or switch to a branch, is there a tab or agent already there, jump me to it, open another tab there, just give me the path. NOT for: starting or resuming a task stack with worktree + Herdr + agent (start), live agent triage (yell), or creating/cleaning worktrees (wtree)."
 ---
 
-# hop - find or open the terminal tab for a directory
+# hop
 
-**An agent cannot change your shell's directory**, so hop works at the *terminal tab*
-level: it finds a tab already sitting in the destination (and which agent is running in
-it), or opens a new tab there and starts the configured agent command.
+## Objective
 
-**The current session is left completely alone**, and hop never touches git state - no
-commit, no stash, no checkout. Worktrees are independent checkouts, so moving between
-tabs disturbs nothing.
+hop takes a branch, worktree, repo, or directory name and gets the user to a terminal tab sitting there: it reports a tab that already exists (and what agent runs in it), focuses it on request, or opens a new tab and resumes or starts the agent. An agent cannot change the user's shell directory, so hop works at the terminal-tab level and leaves the current session and all git state untouched; moving between independent worktree tabs then disturbs nothing.
 
-## Usage
+Success: the destination path is reported (last stdout line of `hop.sh`), and either the existing tab and its agent are reported, the requested tab is focused, or a new tab is open there running the right command - with no duplicate agent and no change to git or the calling session.
 
-```bash
-"$SKILL_DIR/scripts/hop.sh" <branch-or-dir> [flags]
-```
+## Context & Tools
 
-| User says | Run |
-|---|---|
-| `hop <branch>` / "switch to X" | `hop.sh <branch>` |
-| "jump me there" | `hop.sh <branch> --focus` |
-| "open another tab anyway" | `hop.sh <branch> --new-tab` |
-| "open it but don't yank my focus" | `hop.sh <branch> --no-focus` |
-| "start tmux there instead" | `hop.sh <branch> --tmux` |
-| "just the path, don't touch my terminal" | `hop.sh <branch> --no-term` |
+- `scripts/hop.sh <branch-or-dir> [flags]` does the work. It has no `--help`; its flags:
 
-Flags: `--focus`, `--no-focus`, `--new-tab`, `--tmux`, `--no-agent`, `--cmd <shell-cmd>`,
-`--no-term`, `--repo-group <name>`.
+  | Flag | Effect |
+  |---|---|
+  | (none) | resolve; report an existing tab, else open one |
+  | `--focus` | jump to an existing tab, preferring one with an agent |
+  | `--new-tab` | open another tab even if one exists |
+  | `--no-focus` | a newly opened tab does not grab focus (unrelated to `--focus`, which is about existing tabs) |
+  | `--tmux` / `--no-agent` / `--cmd <shell-cmd>` | run `tmux new-session -A`, a bare shell, or a custom command in the new tab instead of the agent; all three skip Herdr resume |
+  | `--no-term` | resolve and print the path only |
+  | `--repo-group <name>` | limit the branch match to one repo group under `$WTREE_ROOT` |
 
-`--focus` and `--no-focus` are about different tabs: `--focus` jumps to an **existing**
-tab, `--no-focus` stops a **newly opened** one from grabbing the screen - which is what
-`yell` uses when it reopens several at once.
+- Resolution, first match wins: an existing path; a worktree under `$WTREE_ROOT` whose checked-out branch equals the target or ends in `/<target>`; a worktree directory name; a repo under `DOTFILES_REPO_ROOTS` (default `$HOME/project`) one or two levels deep.
+- With no tab open, hop resumes a live Herdr session found at the destination, else runs `$HOP_AGENT_CMD` (default `coya` if `copilot` is on PATH, else `cla`).
+- `scripts/hop-term.py find|open|focus|herdr-session-for` is the WezTerm driver (`WEZTERM_BIN`, `HERDR_BIN` override paths). `find` returns JSON per tab with `cwd` (matched destination, possibly a Herdr pane inside the tab), `tab_cwd`, agents with Herdr status, `in_herdr`, and `in_tmux`. Use it directly only when `hop.sh` output is not enough.
+- `scripts/hop-shell-init.sh`: optional shell function the user can source so `hop <target> --no-term` cds their own shell.
 
-## Order of operations
+## Guardrails & Constraints
 
-1. **Resolve**, first match wins:
-   1. an existing directory path
-   2. a worktree under `$WTREE_ROOT` whose **checked-out branch** equals the argument
-      (or ends in `/<argument>`, so `message-polish` finds `banliu/message-polish`)
-   3. a worktree **directory name** under `$WTREE_ROOT/*/`
-   4. a repo checkout under any configured root at one or two levels deep
+- MUST leave git state read-only: no commit, stash, checkout, branch, or worktree creation. Creating a worktree or task stack is `wtree` or `start`.
+- MUST leave the calling session as it is: no `cd`, no pane close.
+- MUST report, not switch, when a tab already exists at the destination; move the user only with `--focus` and duplicate only with `--new-tab`, each only when the user asked to jump or for another tab, because stealing focus or duplicating a live session disrupts work in progress. A request that does not say gets the default: report an existing tab, open one only when none exists.
+- MUST keep one agent per worktree: when a detached Herdr session still owns the destination, resume it rather than starting a second agent beside it. Judge whether an agent is running from `hop.sh` / `hop-term.py find`, which ask Herdr, because `ps` on the tab's tty shows only `herdr` and misses the agent inside it.
+- MUST NOT kill a pane, tmux session, Herdr session, or agent process; ending one is the user's call (`herdr session stop`, `wtree clean`).
+- IF the target does not resolve, MUST stop and report, pointing at `wtree show` or `start <name>`; never create anything to make it resolve.
+- IF the target could match several worktrees or repos, SHOULD state which path hop chose; IF that is not what the user meant, rerun with a full path or `--repo-group`.
+- IF no tab can be opened (not WezTerm, or `wezterm cli` unavailable), MUST report that and give the user `cd <path>` instead of driving another terminal.
 
-   Roots come from `DOTFILES_REPO_ROOTS`, a colon- or space-separated list that
-   defaults to `$HOME/project`. Nothing resolves? hop
-   stops and points at `wtree show` / `start <name>`; it does not create anything.
-2. **Terminal** - find tabs already in the destination and report them with any running
-   agent, or open a new tab there and start the agent command.
+## Output
 
-## Terminal tabs
+- The resolved path, the branch and uncommitted-change count `hop.sh` reports, and what happened: existing tab(s) with pane id and agent status, pane focused, or new pane opened and the command it runs.
 
-`scripts/hop-term.py` drives this, via `wezterm cli` (exact per-pane cwd and tty):
+## Verification
 
-```bash
-hop-term.py find  <dir>            # JSON: tabs at/under dir, agents running in each
-hop-term.py open  <dir> --cmd CMD  # new tab at dir, runs CMD, focuses it
-hop-term.py focus <pane-id>
-```
-
-**Agent detection is two-layered, because Herdr hides its agents.** A bare agent is found
-by matching the pane's `tty_name` against `ps -t`, so the tab counts as busy only when a
-real `copilot`/`claude` process is attached to it. But in a Herdr-managed tab the tty's
-process is `herdr` - the agent lives inside Herdr's own pty and is invisible to `ps -t`.
-So when `herdr` is on the tty, hop reads the session name off its command line and asks
-`herdr [--session <name>] agent list` for the truth, reporting the agent **and its
-lifecycle status**:
-
-```
-pane 44  AGENT RUNNING (copilot:working) [herdr:code-review]  banliu-code-review
-```
-
-Without this, every tab created by `start` would look empty. Tabs running `tmux` are still
-flagged `in_tmux`, since the agent may live inside the terminal multiplexer.
-
-**Tab matching is also two-layered, for the same reason.** A tab opened by `start` stays at
-`$HOME` - the worktree lives in the Herdr session *inside* it, not in the WezTerm pane's
-own cwd. So when a tab hosts Herdr, hop also matches the session's pane cwds against the
-destination. Without this, hop would decide a `start`-created task had no tab and open a
-duplicate on top of the running agent. `cwd` reports the matched worktree; `tab_cwd`
-reports the WezTerm pane's own cwd.
-
-**Default behaviour when a tab already exists: report, do not switch.** You get the pane
-id, the title, and what is running, then hop stops - it never steals focus from or
-duplicates a session you are already using. `--focus` opts into jumping (it prefers a
-pane that already has an agent); `--new-tab` opts into a second tab.
-
-When no tab exists, hop opens one. What it runs there depends on what it finds:
-
-- **A live Herdr session at the destination** - hop runs `herdr --session <name>` and
-  resumes it. Closing a tab does not kill a Herdr session: the session, its cwd and its
-  agent all survive. Starting a fresh agent would strand the original and leave two
-  agents on one worktree, so hop resumes instead.
-- **Nothing there** - hop runs `$HOP_AGENT_CMD`, defaulting to the installer alias for
-  whichever agent CLI is on PATH (`coya` for Copilot CLI, else `cla` for Claude Code).
-
-Use `--tmux` for `tmux new-session -A -s <dir>`, `--no-agent` for a bare shell, or
-`--cmd` for anything else - all three bypass the resume path.
-
-```bash
-hop-term.py herdr-session-for <dir>   # name of a live Herdr session at/under dir
-```
-
-Non-WezTerm terminals are not driven automatically: hop reports that it could not open
-a tab and prints the `cd` command instead. Point `WEZTERM_BIN` at the binary if yours
-lives elsewhere.
-
-### Shell function (optional)
-
-For plain `cd`-in-place behaviour without the tab machinery:
-
-```bash
-echo "source $SKILL_DIR/scripts/hop-shell-init.sh" >> ~/.zshrc
-```
-
-Then `hop <branch> --no-term` cds the current shell; the destination path is always the
-last line of stdout, with all commentary on stderr.
-
-## Safety rules
-
-- **Never modify git state.** hop only reads (`rev-parse`, `status`). It does not
-  commit, stash, checkout, or create branches or worktrees.
-- **Do nothing to the current session.** No cd, no pane close - the tab you are in is
-  left exactly as it was.
-- **Never hijack a live session.** If a tab already exists, report it and stop; only
-  `--focus` may move the user, and only `--new-tab` may open a duplicate.
-- **Never start a second agent on a worktree that already has one.** A detached Herdr
-  session still owns its agent, so hop resumes the session rather than launching a rival
-  agent beside it.
-- Never kill a pane, a tmux session, a Herdr session, or an agent process.
+- `hop.sh` exited 0 and its last stdout line is an existing directory.
+- WHEN a tab was opened or focused, `hop-term.py find <path>` lists it; WHEN a session was resumed, its agent appears once, not twice.
+- State any step that could not be confirmed (for example the tab opened but agent readiness was not checked).

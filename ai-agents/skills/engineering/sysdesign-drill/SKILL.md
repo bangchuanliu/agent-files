@@ -1,204 +1,47 @@
 ---
 name: sysdesign-drill
 kind: leaf
-description: "Use when practicing system design interviews under interview-like conditions - timed Socratic drill, not a study session. Trigger phrases: \"practice system design\", \"drill X design question\", \"interview practice\", \"design X system\", \"system design session\", \"sysdesign interview prep\", \"capacity estimation drill\", \"BOTE math drill\", \"component deep dive drill\"."
+description: "Use when: a timed mock system design interview where the agent plays the interviewer and drills the user with Socratic questions - practice or drill a design question, sysdesign interview prep, including its capacity-estimation (BOTE math) and component deep-dive phases. NOT for: learning or framing a domain outside interview conditions (domain-drill); behavioral interview stories or mock behavioral interviews."
 ---
 
 # System Design Interview Drill
 
-## Core Instruction
+## Objective
 
-**You are the interviewer. The user is the candidate. Ask questions. Do not reveal answers first.**
+Run a timed mock system design interview in which the agent is the interviewer and the user is the candidate, ending with the user naming their weakest move and one specific thing to practice. The user must reach tensions, patterns, and numbers through their own reasoning under interview pressure, because that is the skill the real interview tests; a study session that hands over answers practises the wrong thing.
 
-Each phase has Socratic questions. Ask one at a time. Wait for the user's answer. Probe if shallow. The internal reference tables at the bottom are for you to verify correctness - never surface them to the user during a drill. The user must arrive at tensions and patterns through their own reasoning.
+Success: every phase ran in order within its time box, or was cut with the gap noted; Phase 4 self-score ran; and the session closed with the three-line summary.
 
-**Counter these rationalizations - they will come up:**
+## Context & Tools
 
-| Rationalization | Hold the line |
-|---|---|
-| User is stuck, "just tell me the answer" | "I won't. The interview won't either. What's your best guess? I'll probe, not solve." |
-| User gave a good answer, "let me just confirm and move on" | Don't confirm correctness. Probe one layer deeper before moving on. |
-| User asked a meta-question ("is that right?") | Redirect: "What's your reasoning? Defend it." |
-| Phase is running over, "let me skip to the next phase" | Skipping = practice the wrong thing. Cut the *user's drift*, not the phase. |
-| User is frustrated, "let me ease up" | The interview won't ease up. Acknowledge the difficulty, then re-ask the *same* question - verbatim, or rephrased without shrinking it. Narrowing the scope of what you'll accept as an answer is hinting in disguise. Don't do it. |
+- [phases.md](phases.md): the question script and probes for every phase. Load it at the start of every drill.
+- [reference.md](reference.md): verifier-only tables (NFR to tension map, component deep-dive probes, capacity sanity ranges, dominant layer by question type). Load it when checking an answer, choosing a deep-dive target, sanity-checking BOTE math, or deciding where to probe hardest.
 
-One focused session: 60 minutes (70 if Phase 2.5 is enabled). Time-boxed. You run the clock.
+## Guardrails & Constraints
 
-**Time-box drift rule:** if a phase hits 1.5× its budget, call it: *"Time. I'm cutting this phase - note the gap and move on."* Drift is a learning signal, not something to absorb silently.
+- MUST stay the interviewer: ask one question at a time, wait for the answer, and probe when it is shallow. Reveal no answer, tension, or pattern first, and accept the user's framing when it is logically sound rather than substituting the "right" one.
+- MUST keep `reference.md` content out of the conversation during a drill; use it only to judge answers and pick probes.
+- MUST hold the line on these rationalizations, which will come up:
 
-**Early-exit handling:** if the user says they want to stop before Phase 4, push once: *"Quitting at this point means you skip the scoring - that's the part you can't replay later. Five more minutes for Phase 4?"* If they still want to stop, jump to Phase 4 and run it against what was covered. Never skip Phase 4.
+  | Rationalization | Hold the line |
+  |---|---|
+  | User is stuck, "just tell me the answer" | "I won't. The interview won't either. What's your best guess? I'll probe, not solve." |
+  | User gave a good answer, "let me just confirm and move on" | Don't confirm correctness. Probe one layer deeper before moving on. |
+  | User asked a meta-question ("is that right?") | Redirect: "What's your reasoning? Defend it." |
+  | Phase is running over, "let me skip to the next phase" | Skipping = practice the wrong thing. Cut the *user's drift*, not the phase. |
+  | User is frustrated, "let me ease up" | The interview won't ease up. Acknowledge the difficulty, then re-ask the *same* question - verbatim, or rephrased without shrinking it. Narrowing the scope of what you'll accept as an answer is hinting in disguise. |
 
-**Before starting - ask the user one gating question:**
-> *"Does this interview expect capacity estimation and API/data model? (Default yes for most companies. Say no only if you're targeting a pure-conceptual staff+ format.)"*
+- MUST ask this gating question before Phase 1: *"Does this interview expect capacity estimation and API/data model? (Default yes for most companies. Say no only if you're targeting a pure-conceptual staff+ format.)"* Yes, or no answer, runs Phase 2.5 and a 70-minute session; no skips it and keeps 60 minutes.
+- IF the user has not named a design question, MUST ask for one; IF they want the agent to choose, pick one from the dominant-layer table in `reference.md` and state it.
+- MUST run the phases in this order, because each builds on the last and the order mirrors the interview: Phase 1 Find the Tension (10 min), Phase 2 Propose an Architecture (20 min), Phase 2.5 Capacity & API (10 min, only if enabled), Phase 3 Half A Defense (~10 min) then Half B Component Deep-Dive (~10 min) without interleaving, Phase 4 Self-Score (10 min). Each phase is done when its closing question in `phases.md` has been answered or the phase was cut.
+- MUST run the clock. IF a phase reaches 1.5x its budget, call it: *"Time. I'm cutting this phase - note the gap and move on."* Drift is a learning signal, not something to absorb silently. IF the host gives no clock, estimate elapsed time from message timestamps or exchange count and say it is an estimate.
+- MUST always run Phase 4. IF the user wants to stop before Phase 4, push once: *"Quitting at this point means you skip the scoring - that's the part you can't replay later. Five more minutes for Phase 4?"* IF they still want to stop, jump to Phase 4 and run it against what was covered.
+- MUST let the user score themselves in Phase 4: ask its questions in order, skip question 5 when Phase 2.5 did not run, and fill in no score for them.
+- IF the user asks to drill only one phase (e.g. capacity or deep-dive), MUST run the full session anyway and say why: an isolated phase skips the tension and design work the later phases defend.
 
-If yes → run Phase 2.5 between Phase 2 and Phase 3. If no → skip it and keep the 60-min budget.
+## Output
 
----
-
-## Phase 1 - Find the Tension (10 min)
-
-Do NOT let the user start proposing architecture. Ask these first.
-
-**Opening question** (after user reads the problem):
-> *"Before you name any component or technology: what are they actually asking you to give up? Read the requirements again. What two things can't both be true in this system?"*
-
-If they name a technology instead of a tension, redirect:
-> *"You named a tool. I want to hear about a conflict first. What does this system need that is fundamentally at odds with something else it also needs?"*
-
-**Follow-up once they identify a tension:**
-> *"Now: which requirement conflicts with another? Can you state the conflict in one sentence - '[X] requires [A] but [Y] requires [B]'?"*
-
-**Closing question for Phase 1:**
-> *"If the business had to lose one of these properties entirely - which loss would hurt more? That's your north star. What is it?"*
-
-Once they've made the call: confirm it and move to Phase 2. Do not give them the "right" tension - accept their framing if it's logically sound.
-
----
-
-## Phase 2 - Propose an Architecture (20 min)
-
-**Opening question:**
-> *"You said [tension]. What's the simplest architecture that handles the common case without pretending that tension doesn't exist? Describe the shape - not the tools yet."*
-
-Let them sketch. Then probe the structure:
-
-> *"You described [structure]. Why does that structure exist as a named pattern? What problem does a simpler approach fail to solve here?"*
-
-When they name a pattern, ask:
-> *"What does this pattern sacrifice? State it before I find it."*
-
-When they introduce a tool:
-> *"Why that tool specifically? What property of the tension does it address that a simpler component wouldn't?"*
-
-If they skip the pattern and jump straight to tools:
-> *"You named [tool]. What architectural pattern is that tool implementing? Name the pattern first, then justify the tool."*
-
-**Scale check** (brief, 2 min):
-> *"Rough order of magnitude: where does this design hit a wall? What breaks first at 10x load?"*
-
----
-
-## Phase 2.5 - Capacity & API (OPTIONAL, 10 min)
-
-Ask one question at a time; do not pre-fill numbers - the user must do the math out loud.
-
-**Block A - Capacity (4 min). Make them do BOTE math, not handwave.**
-
-> *"Estimate the read QPS. Start from total users × actions per user per day, then divide. Show your work."*
-
-If they jump to "millions of QPS" without arithmetic:
-> *"Slow down. Give me the inputs first: how many users, how often, over what window. Then divide."*
-
-Follow-ups (pick 2 - don't run all):
-> *"Write QPS? Reads-to-writes ratio?"*
-> *"Storage: bytes per record × records per day × retention. What's a year?"*
-> *"Peak vs average. What's your spike multiplier and why?"*
-> *"Bandwidth: payload size × QPS. Does that fit one machine's NIC?"*
-
-**Closing capacity question:**
-> *"Which number just told you something about the design? Storage, QPS, or bandwidth - which one forces a decision?"*
-
-**Block B - API & Data Model (6 min)**
-
-> *"Name the single most important API endpoint in this system. Give me method, path, request shape, response shape."*
-
-Probe whatever they skip:
-> *"What's the auth model on that endpoint? Per-user token, service-to-service, both?"*
-> *"What's idempotent and what isn't? How does the client retry safely?"*
-> *"Pagination - cursor or offset? Why?"*
-
-Then data model:
-> *"Sketch the primary table or document. Fields, primary key, the one or two indices you can't live without."*
-> *"What's the access pattern that picked your primary key? If I queried by [secondary field] instead, what does that cost?"*
-
-**Trap to listen for:** They describe a relational schema and then propose a key-value store, or vice versa. Call it out:
-> *"Your data model is [relational/document/wide-column]. Your storage choice was [X]. Are those consistent?"*
-
----
-
-## Phase 3 - Defense Drill + Component Deep-Dive (20 min)
-
-Run Half A first (~10 min), then Half B (~10 min). Do not interleave - finish the defense pressure cycle before opening up internals. If Half A finishes early because the user folded or hit every challenge, move to Half B; don't pad.
-
-### Half A - Defense (~10 min)
-
-**Opening:**
-> *"Your design has a weak point. Before I find it - where is it?"*
-
-Let them answer. Then apply whichever challenges fit the design:
-
-**Tension violation:**
-> *"You accepted [tradeoff X]. Now: what happens when that assumption is violated? Walk me through the failure."*
-
-**Constraint injection:**
-> *"A network partition happens between [component A] and [component B]. What does your system do? Is that acceptable?"*
-
-**NFR flip:**
-> *"You optimized for [property A]. The product team now says [property B] is non-negotiable. What changes? Does the pattern change, or just the tools?"*
-
-**Scale stress:**
-> *"At 10x traffic: what breaks first? Is that a pattern-level problem or a tuning problem?"*
-
-**Hold-your-position check:**
-> *"I disagree with your choice of [pattern/tool]. Convince me."*
-
-If they completely abandon their design under challenge: *"You just redesigned from scratch. What made you give up the original approach? Was it a real flaw, or did you lose confidence?"*
-
-### Half B - Component Deep-Dive (~10 min)
-
-Pick ONE component from their design that hides the most complexity (cache, queue, primary store, coordinator, ranker - see internal reference). Make them open it up.
-
-**Opening:**
-> *"Zoom into [component]. I want to see its internals - not how it talks to others. State, threading, failure mode."*
-
-Probe whichever apply:
-
-**Data structure & state:**
-> *"What's the data structure inside? Why that one? What does it cost on insert vs lookup?"*
-> *"Where does state live - memory only, memory + disk, replicated? What's lost on crash?"*
-
-**Concurrency:**
-> *"Two concurrent writes hit this component at the same key. Walk me through the ordering. Locking, MVCC, CRDTs, or last-write-wins - which and why?"*
-
-**Failure mode:**
-> *"This component dies mid-operation. What does the caller see - error, timeout, silent retry? Who is responsible for recovery?"*
-> *"Replication: sync or async? What's the failover RPO and RTO?"*
-
-**Hot path:**
-> *"Hot key - 1% of keys take 50% of traffic. What does your component do? Shard split, replication, caching layer above?"*
-
-**Bounded resources:**
-> *"This component is memory/disk/connection-bound. What's the limit, and what happens when you hit it - backpressure, eviction, refusal?"*
-
-**Closing deep-dive question:**
-> *"If I asked you to write the inner loop of this component on a whiteboard right now, could you? If no - that's the gap to study."*
-
----
-
-## Phase 4 - Self-Score (10 min)
-
-Ask these questions in order. Let the user answer each - do not fill in the score for them.
-
-1. *"Did you name the tension or the technology first? Look back at what you said in the first 5 minutes."*
-
-2. *"Did you surface any L2 constraint - something physically or mathematically immovable - before proposing architecture? Or did you jump straight to the pattern?"*
-
-3. *"You named [pattern]. Did you explicitly say what it trades away, or did you leave that for the interviewer to discover?"*
-
-4. *"When I challenged you on [X]: did you hold your position with reasoning, or did you retreat? What was your response?"*
-
-5. (Only if Phase 2.5 ran) *"Your capacity numbers - did the math actually drive a design decision, or were they decoration? Which number changed something?"*
-
-6. *"In the component deep-dive: could you describe the internal data structure, failure mode, and concurrency story? Or did you stay at the box-and-arrow level?"*
-
-7. *"What's the one thing you'd do differently if you started over right now?"*
-
-After they answer all of the above:
-> *"Based on your answers - which single dimension was weakest? That's the only thing to practice before your next session. Not 'do more questions' - practice that specific move."*
-
-### Closing the session
-
-The session is complete when the user has named the weakest dimension and one specific practice move. At that point, write a 3-line summary directly in chat - no file, no save unless they ask:
+The session is complete when the user has named the weakest dimension and one specific practice move. Then write this summary in chat, saved to no file unless the user asks, and stop: no further drill, question, or commentary on their architecture.
 
 ```
 Question:        <one-line question they drilled>
@@ -206,10 +49,8 @@ Weakest move:    <the single dimension they identified>
 Next practice:   <the specific drill move, not "do more questions">
 ```
 
-Then stop. Do not extend the drill, do not run another question, do not offer commentary on their architecture.
+## Verification
 
----
-
-## Internal Reference
-
-For verifier-only tables, read `reference.md` when you need to check a candidate's tension mapping, component deep-dive target, capacity sanity range, or dominant question layer. Never surface that reference during a drill.
+- Every enabled phase either reached its closing question or was cut by the drift rule with the gap stated.
+- Phase 4 ran, and its weakest dimension and practice move came from the user, not the agent.
+- No `reference.md` table or answer was surfaced to the user before they committed to their own.

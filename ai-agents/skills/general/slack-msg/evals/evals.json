@@ -43,7 +43,7 @@
         "The message provides brief context (why: Hadoop compatibility)",
         "The message clearly states expected impact (minimal/none)",
         "The message does not assume shared knowledge of internal systems",
-        "The message is presented in a code block for easy copy-paste"
+        "The message is written as raw Slack text (no wrapping code fence) to the gitignored messages/msg.txt file, and its absolute path is printed"
       ]
     }
   ]

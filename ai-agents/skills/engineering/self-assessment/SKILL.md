@@ -1,27 +1,42 @@
 ---
 name: self-assessment
 kind: leaf
-description: "Self-review impact framing for the user's own work: score a PR description, design doc, journal note, weekly write-up, or Slack thread against 11 career principles and rewrite it with quantified impact. Use when: self-assessment, self-review, promo write-up, weekly review, daily journal review, how do I describe this work, rewrite this for impact, career self-evaluation. NOT for: feedback about a colleague - use peer-feedback; outgoing Slack/IM drafts - use slack-msg."
+description: "Use when: scoring an artifact about the user's own work - PR description, design doc, journal note, weekly write-up, or Slack thread - against 11 career principles and rewriting it as impact-first, quantified bullets - self-assessment or self-review of a piece of work, promo bullets, how do I describe this work, rewrite this for impact; weekly or daily journal review across several artifacts. NOT for: feedback about a colleague (peer-feedback); outgoing Slack or IM drafts (slack-msg); synthesizing a whole review-period self-assessment document across projects."
 ---
 
 # Self-Review Reframe
 
-Score an artifact about the user's own work against the 11 career principles, then rewrite demonstrated principles as impact-first bullets.
+## Objective
 
-Source of truth: read [`principles.md`](principles.md) before scoring. It defines the principles, evidence signals, bullet formats, impact categories, and anti-patterns.
+Score an artifact about the user's own work against the 11 career principles in [principles.md](principles.md) and rewrite what it demonstrates as impact-first bullets the user can drop into a review, so the work reads as leadership, execution, and craft with quantified impact instead of a task list. Every score is grounded in a verbatim quote, every reframe keeps the user's own vocabulary and numbers, and every gap gets a concrete prompt for what to add next time.
 
-## Process
+Success: every in-scope principle has a status backed by evidence, every `✓` and `⚠` has a reframe, every `✗` has a prompt, and nothing in a reframe is invented.
 
-1. **Read the artifact.** Accept pasted text, a file path, a PR URL, or a journal/weekly section. If multiple artifacts are provided, score each separately and aggregate gaps.
-2. **Choose scope.** Default is all 11 principles. Optional flags: `--exec-only` for E1-E3, `--no-craft` for L+E, `--craft-only` for C1-C5, `--weekly <file>` for multiple artifacts.
-3. **Score every in-scope principle.** Use `✓` only when the artifact has a concrete supporting sentence and impact is named. Use `⚠` for vague, implied, or impact-missing evidence. Use `✗` when absent. Quote the artifact verbatim for `✓` and `⚠`.
-4. **Reframe every `✓` and `⚠`.** Use the BAD to GOOD patterns in `principles.md`. Preserve the user's vocabulary and numbers. Insert `[quantify: <metric>]` when no number exists.
-5. **Flag every `✗`.** Give one concrete prompt from that principle's "Look for" list.
-6. **Call out exec-only shape.** If all leadership rows are `✗`, state that the artifact is strictly execution scope and ask whether a leadership angle was left out.
+## Context & Tools
+
+- [principles.md](principles.md): the principles, bullet formats, quantification tiers, evidence signals ("Look for"), BAD to GOOD patterns, and anti-patterns. Read it before scoring.
+
+## Guardrails & Constraints
+
+- MUST score every in-scope principle, using the 11 principle names and codes from `principles.md` exactly:
+  - `✓` only when the artifact has a concrete supporting sentence and names the impact;
+  - `⚠` when the evidence is vague, implied, or missing impact;
+  - `✗` when absent.
+- MUST quote the artifact verbatim, not paraphrase, as the evidence for each `✓` and `⚠`, so the user can see exactly what earned the score.
+- MUST reframe every `✓` and `⚠` as a drop-in, impact-first bullet in its principle's format, preserving the user's vocabulary and numbers. Numbers come only from the artifact, from arithmetic on its numbers, or from an estimate the artifact supports, marked `~`; otherwise insert `[quantify: <metric>]`, because an invented number in a review document misrepresents the user's work.
+- MUST give each `✗` one concrete prompt drawn from that principle's "Look for" list.
+- IF every in-scope leadership principle is `✗`, MUST say the artifact is strictly execution scope and ask whether a leadership angle was left out.
+- Scope defaults to all 11 principles. IF the user passes a flag, MUST honour it: `--exec-only` scores E1-E3, `--no-craft` scores L and E, `--craft-only` scores C1-C5, and `--weekly <file>` or several artifacts scores each artifact separately, then aggregates the gaps.
+- IF the artifact is missing, or a PR URL or file cannot be read, MUST ask the user to paste it instead of scoring from memory or a guess.
+- IF saving a report, MUST write under `self-assessment/reports/` in the current workspace or the path the user names; ask before overwriting an existing report.
+
+## Preferences
+
+- SHOULD match the artifact's register: technical for PRs, outcome-driven for promo docs, first-person for journals.
 
 ## Output
 
-Write in chat unless the artifact has more than three sections or the user asks for a saved file. If saving, write under `self-assessment/reports/` in the current workspace or another user-specified persistent path.
+Write in chat, unless the artifact has more than three sections or the user asks for a file. Default layout, which the agent may adapt when it serves the user better:
 
 ```markdown
 # Self-Review: <artifact title>
@@ -43,10 +58,8 @@ Write in chat unless the artifact has more than three sections or the user asks 
 <Strong / partial / exec-only, with the leadership-angle question when relevant.>
 ```
 
-## Rules
+## Verification
 
-- Use the 11 principle names from `principles.md` exactly.
-- Quote evidence, not paraphrases.
-- Keep every reframe impact-first and drop-in ready.
-- Use placeholders instead of invented numbers.
-- Match the artifact register: technical for PRs, outcome-driven for promo docs, first-person for journals.
+- Every in-scope principle appears once with a status; every `✓` and `⚠` quote appears verbatim in the artifact.
+- Every reframe closes with a number from the artifact, a `~` estimate grounded in it, or a `[quantify: ...]` placeholder.
+- Every `✗` has a prompt; the exec-only callout is present when its condition holds.
