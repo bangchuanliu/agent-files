@@ -252,6 +252,22 @@ def house_accepts_full_section_heading(root):
     return "house structure" not in out, out
 
 
+
+@case
+def route_resolves_through_install_dir_symlinks(root):
+    """A skill linked into an install dir routes to siblings linked from other sources."""
+    src_a, src_b, inst = (os.path.join(root, d) for d in ("src_a", "src_b", "install"))
+    fm = ('---\nname: linked\nkind: leaf\n'
+          'description: "Use when: x. NOT for: y (other-skill)"\n---\n\nbody\n')
+    build(src_a, "linked", fm)
+    build(src_b, "other-skill", GOOD_FM.format(name="other-skill") + "body\n")
+    os.makedirs(inst, exist_ok=True)
+    os.symlink(os.path.join(src_a, "linked"), os.path.join(inst, "linked"))
+    os.symlink(os.path.join(src_b, "other-skill"), os.path.join(inst, "other-skill"))
+    _, out = run(os.path.join(inst, "linked"))
+    return "not an installed skill" not in out, out
+
+
 def main():
     root = os.path.join(HERE, ".spec_check_fixtures")
     shutil.rmtree(root, ignore_errors=True)

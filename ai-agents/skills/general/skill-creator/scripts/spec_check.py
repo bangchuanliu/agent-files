@@ -326,7 +326,10 @@ def main():
         return 2
 
     # Installed skill names, so a NOT-for clause can be checked for dangling routes.
-    parents = {os.path.dirname(os.path.realpath(t)) for t in targets}
+    # Both the given path's parent (an install dir of symlinks gathers every
+    # source) and the real parent (the source tree) count as neighbours.
+    parents = ({os.path.dirname(os.path.realpath(t)) for t in targets}
+               | {os.path.dirname(os.path.abspath(t)) for t in targets})
     siblings = set()
     for parent in parents:
         if os.path.isdir(parent):
