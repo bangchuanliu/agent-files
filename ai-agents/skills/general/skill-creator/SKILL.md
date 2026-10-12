@@ -1,7 +1,7 @@
 ---
 name: skill-creator
 kind: leaf
-description: "Use when: create, refactor, review, or tighten a document an agent consumes - a skill, a skill description, AGENTS.md, or CLAUDE.md; audit one for bloat, no-ops, unnecessary workflow, or spec conformance; evaluate a skill rewrite against the old version. NOT for: simplifying source code."
+description: "Use when: create, refactor, review, or tighten a document an agent consumes - a skill, a skill description, AGENTS.md, or CLAUDE.md; audit one for bloat, no-ops, unnecessary workflow, or spec conformance; decide whether a skill is needed at all or should merge into another; evaluate a skill rewrite against the old version. NOT for: simplifying source code."
 ---
 
 # Skill Creator
@@ -20,43 +20,41 @@ Success, for every document touched:
 
 ## Context & Tools
 
-- [references/levers.md](references/levers.md) defines the terms in _italics_. Load it when a term or the reasoning behind a rule is unclear, or when you need to justify a change.
-- [references/template.md](references/template.md) has the skill template and a worked example.
-- [references/skill-mechanics.md](references/skill-mechanics.md) covers frontmatter, invocation choice, and router skills.
-- [references/evaluation.md](references/evaluation.md) has the `MUST` and deletion audit, run on every new or edited skill, and covers evaluating a rewrite against the old version.
-- `scripts/spec_check.py` checks skill spec conformance deterministically; `scripts/test_spec_check.py` tests it.
+Load each file when its condition holds; several can apply at once (e.g. refactoring a skill loads `skills.md` and `refactor.md`).
+
+| File | Load when | Covers |
+|---|---|---|
+| [references/skills.md](references/skills.md) | the document is a skill | required sections, description and Objective clarity, existence and overlap, frontmatter, invocation, splitting, spec checks |
+| [references/refactor.md](references/refactor.md) | changing an existing document | baseline of branches and hard rules, converting steps, adoption gate |
+| [references/review.md](references/review.md) | reviewing or auditing, and before declaring any edit done | review output and levers, the acceptance checklist |
+| [references/evaluation.md](references/evaluation.md) | creating or editing a skill, or `refactor.md` sends you | the `MUST` and deletion audit, regression evaluation |
+| [references/template.md](references/template.md) | writing a new skill | skeleton and a worked example |
+| [references/levers.md](references/levers.md) | a term in _italics_ or the reason behind a rule is unclear | definitions and rationale |
+
+`scripts/spec_check.py` checks skill spec conformance deterministically; `scripts/test_spec_check.py` tests it.
 
 ## Guardrails & Constraints
 
-- MUST structure a skill from the sections below. Objective, Guardrails & Constraints, and Verification are required; include the others only when the skill has something specific to say in them:
-  - **Objective** - what the skill accomplishes and why, its scope, and observable success.
-  - **Context & Tools** (optional) - specific tools, scripts, references, or context the skill needs, and when to use each.
-  - **Guardrails & Constraints** - non-negotiable requirements, boundaries, and the policy for each runtime unknown.
-  - **Preferences** - preferred approaches, not mandatory workflows.
-  - **Output** - the minimum information or artifacts the caller needs; adapt format and detail to the task.
-  - **Verification** - task-specific acceptance criteria, using the cheapest reliable evidence.
+These hold for every document, whatever the branch.
+
+- MUST load every reference file whose condition in the table above holds before writing or judging.
 - MUST include only necessary fields and clarifications: a line belongs only if the agent would do worse without it. Leave everything else to the agent's own judgement and capabilities.
 - MUST write hard rules as `MUST`, defaults as `SHOULD`, and context-dependent behaviour as `IF` / `WHEN`, each in the section its strength belongs to. State the target behaviour positively (avoid _negation_). Reserve `MUST NOT` for hard guardrails that cannot be phrased positively, and pair it with the positive target.
 - MUST make every `MUST` protect correctness, safety, a contract another stage reads, or a human gate (approval, irreversible action). Demote a `MUST` that only fixes a choice the agent could make well (layout, chart type, tool, wording, step order) to `SHOULD` or an example, or delete it. A `MUST` sets a floor, never a ceiling.
-- MUST specify an artifact for a human (report, page, readout) by what the reader must be able to answer or decide, plus a quality bar. IF a layout helps, give it as a labelled default the agent may replace.
-- MUST mark an example list as non-exhaustive ("e.g. ..., or better") unless it is a closed set the agent must choose from (statuses, enum values).
-- MUST prescribe an ordered sequence only when skipping or reordering steps would compromise correctness, safety, recoverability, or an external protocol. Otherwise state the outcome and let the agent choose the steps.
-- IF the original document has steps, MUST convert each into the outcome, guardrail, or verification check it protects, keeping it as a step only under the sequence rule above. A step that protects nothing is removed and listed.
-- IF the document has steps, each step MUST end on a checkable _completion criterion_. To counter _premature completion_, sharpen the criterion first. Split the sequence only if the rush is observed, and only across a real context boundary.
-- MUST capture the _intent_: the Objective says what outcome the skill protects and why, and each hard rule whose reason is not obvious carries it in one clause, so the agent can apply the rule to cases the document did not anticipate.
+- MUST capture the _intent_: the Objective's why, and one clause on each hard rule whose reason is not obvious, so the agent can apply the rule to cases the document did not anticipate.
 - MUST resolve, before writing, the intent, triggers and `NOT for:` boundaries, hard rules, inputs, risky actions, and observable success. Settle each from the user's request, the existing document, or the environment. IF one stays unknown, ask the user; WHEN the user is unavailable, adopt the safest reasonable default and list it as an assumption in the output. Every hard rule and boundary in the result traces to the user, the original document, or a listed assumption.
 - MUST settle every runtime question that can be settled while writing. Every remaining _runtime unknown_ (missing input, ambiguous target, missing access, failed check) gets an explicit policy: ask, proceed on a stated default, or stop and report. IF the affected action is irreversible, destructive, or writes to a shared or external system, the policy MUST be ask or stop.
-- MUST give each risk the skill's actions can reach a guardrail: scope, destructive or irreversible operations, writes to shared or external systems and the approval they need, secrets and personal data, fabricated evidence or results, and cost or blast radius. A risk the skill cannot reach needs no line.
-- MUST preserve every hard requirement, safety boundary, and critical check of the original document. Edits change how reliably it is followed, not what it asks for, unless the user asks otherwise. Never drop a check just to save tokens.
-- IF refactoring or materially changing an existing document, MUST list its branches and hard rules first, then evaluate the new version against the old before adopting it, per [references/evaluation.md](references/evaluation.md).
+- MUST give each risk the document's actions can reach a guardrail: scope, destructive or irreversible operations, writes to shared or external systems and the approval they need, secrets and personal data, fabricated evidence or results, and cost or blast radius. A risk it cannot reach needs no line.
+- MUST prescribe an ordered sequence only when skipping or reordering steps would compromise correctness, safety, recoverability, or an external protocol. Otherwise state the outcome and let the agent choose the steps. IF the document keeps steps, each MUST end on a checkable _completion criterion_; to counter _premature completion_, sharpen the criterion first, and split the sequence only if the rush is observed, and only across a real context boundary.
+- MUST specify an artifact for a human (report, page, readout) by what the reader must be able to answer or decide, plus a quality bar. IF a layout helps, give it as a labelled default the agent may replace.
+- MUST mark an example list as non-exhaustive ("e.g. ..., or better") unless it is a closed set the agent must choose from (statuses, enum values).
+- MUST preserve every hard requirement, safety boundary, and critical check of an original document. Never drop a check just to save tokens.
 - MUST keep the document agent-agnostic. Any instruction tied to one host agent's tools or features needs a portable fallback.
 - MUST keep each meaning in a _single source of truth_:
   - restate nothing that global or project instructions already say;
   - remove _duplication_;
   - leave the _environment_ (config, scripts, `--help`, directory layout) to speak for itself, unless the lookup is expensive or the fact is unwritten.
 - MUST delete _no-ops_ (sentences that change nothing compared with the model's default) as whole sentences. Also delete lines that have lost _relevance_. A disputed no-op is settled only by evidence from running the document.
-- IF the document is a skill, MUST read [references/skill-mechanics.md](references/skill-mechanics.md).
-- IF the target agent's skill spec differs from this repo's, MUST validate the frontmatter against the target spec.
 
 ## Preferences
 
@@ -69,39 +67,20 @@ Success, for every document touched:
 - SHOULD collapse a repeated phrase or triad into a _leading word_, preferring one the model already knows from pretraining.
 - IF editing a _context pointer_ (a skill description, or an `AGENTS.md` line that names a doc), SHOULD:
   - put the leading word first;
-  - give one trigger per distinct branch, collapsing synonyms;
-  - cut any identity the body already carries;
-  - add `NOT for:` routing when another skill covers the same triggers.
+  - collapse synonyms that name the same branch;
+  - cut filler that names the document rather than its job ("This skill is a tool that...").
 
   Sharpen a weak pointer before inlining the material it points to.
-- IF considering a split, SHOULD check it earns its cost in _context load_ or _cognitive load_:
-  - split by sequence only when later steps tempt the agent to rush the current one;
-  - split by invocation per [references/skill-mechanics.md](references/skill-mechanics.md).
 
 ## Output
 
-- **Create or refactor:** the files, the spec-check result from before and after, and the evaluation result or why evaluation was not run. List anything removed and why, and every assumption adopted in place of a user answer.
-- **Review or audit:** for each item, pass, fail, or partial with line-level evidence, the lever it concerns (missing intent, unhandled unknown, uncovered risk, no-op, duplication, negation, weak pointer, sprawl, unnecessary workflow), and a fix. Say plainly if nothing needs changing.
+- **Create or refactor:** the files, every assumption adopted in place of a user answer, and what the loaded reference files add.
+- **Review or audit:** as [references/review.md](references/review.md) specifies.
 - Distinguish verified facts from judgement calls, such as no-ops judged rather than tested. State any check that could not be completed.
 
 ## Verification
 
-- IF the document is a skill, `python3 scripts/spec_check.py --house <skill-dir>` (or `--all <skills-root>`) passes, run before and after editing.
-- IF `scripts/spec_check.py` changes, `python3 scripts/test_spec_check.py` passes.
-- Every original branch and hard rule survived, and the `MUST` and deletion audit in [references/evaluation.md](references/evaluation.md) passes; for a material rewrite, evaluation shows no regression.
-- The document passes the review checklist:
-  - clear trigger, scope, and objective, with the intent behind it;
-  - every runtime unknown has an ask, default, or stop policy;
-  - every reachable risk has a guardrail;
-  - every hard rule traces to the user, the original, or a listed assumption;
-  - only necessary sections, fields, and clarifications;
-  - observable success criteria;
-  - hard rules distinct from preferences;
-  - no redundant global instructions;
-  - no unnecessary fixed workflow, and mandatory order preserved;
-  - context-specific checks are conditional;
-  - concise output requirements;
-  - explicit verification and uncertainty reporting;
-  - references available on demand.
+- Every check in each loaded reference file passes (spec check for a skill, refactor baseline and audit for a change).
+- The document passes the checklist in [references/review.md](references/review.md).
 
-**Decision rule:** keep a directive if removing it materially increases the chance of failure, unacceptable behaviour, or an unverifiable result. Otherwise simplify it, make it conditional, move it out, or remove it.
+**Decision rule:** keep a directive, or a whole skill, if removing it materially increases the chance of failure, unacceptable behaviour, or an unverifiable result. Otherwise simplify it, make it conditional, move it out, merge it, or remove it.

@@ -335,6 +335,16 @@ def main():
         if os.path.isdir(parent):
             siblings |= {d for d in os.listdir(parent)
                          if os.path.isfile(os.path.join(parent, d, "SKILL.md"))}
+        # In a <root>/<category>/<skill>/ tree, the other categories are neighbours too.
+        root = os.path.dirname(parent)
+        if os.path.isdir(root) and os.path.basename(parent) not in SKIP_DISCOVERY_DIRS:
+            for category in os.listdir(root):
+                cat_dir = os.path.join(root, category)
+                if (category.startswith(".") or not os.path.isdir(cat_dir)
+                        or os.path.isfile(os.path.join(cat_dir, "SKILL.md"))):
+                    continue
+                siblings |= {d for d in os.listdir(cat_dir)
+                             if os.path.isfile(os.path.join(cat_dir, d, "SKILL.md"))}
 
     total = 0
     for target in targets:

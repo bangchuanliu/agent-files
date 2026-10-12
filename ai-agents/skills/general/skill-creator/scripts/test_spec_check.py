@@ -268,6 +268,23 @@ def route_resolves_through_install_dir_symlinks(root):
     return "not an installed skill" not in out, out
 
 
+
+@case
+def single_skill_route_resolves_across_categories(root):
+    """Checking one skill in a category tree sees skills in sibling categories."""
+    tree = os.path.join(root, "cat_tree")
+    fm = ('---\nname: router\nkind: leaf\n'
+          'description: "Use when: x. NOT for: y (far-skill)"\n---\n\nbody\n')
+    d = build(os.path.join(tree, "engineering"), "router", fm)
+    build(os.path.join(tree, "general"), "far-skill", GOOD_FM.format(name="far-skill") + "body\n")
+    _, ok_out = run(d)
+    fm_bad = fm.replace("far-skill", "gone-skill").replace("name: router", "name: router2")
+    d_bad = build(os.path.join(tree, "engineering"), "router2", fm_bad)
+    _, bad_out = run(d_bad)
+    return ("not an installed skill" not in ok_out
+            and "not an installed skill" in bad_out), ok_out + bad_out
+
+
 def main():
     root = os.path.join(HERE, ".spec_check_fixtures")
     shutil.rmtree(root, ignore_errors=True)

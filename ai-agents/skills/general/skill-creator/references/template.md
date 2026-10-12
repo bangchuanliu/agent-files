@@ -5,13 +5,13 @@
 ```markdown
 ---
 name: example-skill
-description: Use when [clear trigger]; accomplish [specific task].
+description: "Use when: [what it does, in plain words] - [one trigger per branch]. NOT for: [neighbouring job] (neighbour-skill)."
 ---
 
 # [Skill Name]
 
 ## Objective
-[What the skill accomplishes and why it matters, its scope, and what success looks like.]
+[One sentence a human can read alone: what the skill does and the outcome it delivers.] [Why it matters, its scope, and what success looks like.]
 
 ## Context & Tools
 <!-- Optional: only when the skill needs specific tools, scripts, references, or context. -->
