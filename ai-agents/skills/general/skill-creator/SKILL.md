@@ -8,7 +8,15 @@ description: "Use when: create, refactor, review, or tighten a document an agent
 
 ## Objective
 
-Create, refactor, review, or tighten a skill, `AGENTS.md`, `CLAUDE.md`, or a doc reached through a pointer, so that its trigger is clear, every line changes behaviour, every pointer fires on the right branches, and it works under any host agent.
+Create, refactor, review, or tighten a skill, `AGENTS.md`, `CLAUDE.md`, or a doc reached through a pointer, so that it steers the agent by intent and guardrails rather than scripted steps. The document states what must be true - the outcome and why, the boundaries, the policy for each unknown, and how success is checked - and leaves planning to the agent, because fixed steps break on cases the author did not foresee while intent and guardrails generalize.
+
+Success, for every document touched:
+
+- its trigger fires on the right branches and only those;
+- every hard rule traces to the user, the original document, or a listed assumption, and none of the original's was lost;
+- every runtime unknown has a policy and every reachable risk has a guardrail;
+- every line changes behaviour, and it works under any host agent;
+- the Verification section below passes.
 
 ## Context & Tools
 
