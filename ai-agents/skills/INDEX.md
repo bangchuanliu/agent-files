@@ -24,7 +24,7 @@ here to one line.
 |---|---|
 | `skill-creator` | Create, refactor, review, or tighten a skill, `AGENTS.md`, or `CLAUDE.md`. |
 | `slack-msg` | Draft or reword a short message I'm about to **send**. |
-| `folder-layout` | Init or refactor folders: Mac home, personal goal/progress project, or code repo; file or name an item. |
+| `file-layout` | Decide where a file goes, set up a personal or coding project, tidy Downloads or Desktop, or archive old material on a work or personal Mac. |
 
 ## `experimental/`
 
