@@ -1,10 +1,10 @@
 ---
-name: skill-creator
+name: skill-auditor
 kind: leaf
-description: "Use when: create, refactor, review, or tighten a document an agent consumes - a skill, a skill description, AGENTS.md, or CLAUDE.md; audit one for bloat, no-ops, unnecessary workflow, or spec conformance; decide whether a skill is needed at all or should merge into another; evaluate a skill rewrite against the old version. NOT for: simplifying source code."
+description: "Use when: create, refactor, review, audit, or tighten a document an agent consumes - a skill, a skill description, AGENTS.md, or CLAUDE.md - holding it to rules and guardrails rather than scripted steps; decide whether a skill is needed at all or should merge into another; check spec conformance; evaluate a skill rewrite against the old version. NOT for: simplifying source code, or eval-loop skill benchmarking."
 ---
 
-# Skill Creator
+# Skill Auditor
 
 ## Objective
 

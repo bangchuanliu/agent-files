@@ -18,7 +18,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 CHECKER = os.path.join(HERE, "spec_check.py")
 
 GOOD_FM = ('---\nname: {name}\nkind: leaf\n'
-           'description: "Use when: demos. NOT for: creation -> use skill-creator"\n---\n\n')
+           'description: "Use when: demos. NOT for: creation -> use skill-auditor"\n---\n\n')
 
 
 def build(root, name, skill_md, files=None):
@@ -165,7 +165,7 @@ def exactly_500_body_lines_is_within_budget(root):
 
 @case
 def clean_skill_is_clean(root):
-    build(root, "skill-creator", GOOD_FM.format(name="skill-creator") + "stub\n")
+    build(root, "skill-auditor", GOOD_FM.format(name="skill-auditor") + "stub\n")
     d = build(root, "clean", GOOD_FM.format(name="clean") + "body\n")
     code, out = run(d)
     return code == 0 and "clean" in out, f"exit={code} {out}"
@@ -193,7 +193,7 @@ def user_invoked_description_is_not_house_routed(root):
 @case
 def agents_frontmatter_accepts_supported_filter(root):
     fm = ('---\nname: filtered\nkind: leaf\nagents: claude, copilot\n'
-          'description: "Use when: filtered demos. NOT for: creation -> use skill-creator"\n---\n\nbody\n')
+          'description: "Use when: filtered demos. NOT for: creation -> use skill-auditor"\n---\n\nbody\n')
     d = build(root, "filtered", fm)
     _, out = run(d)
     return "agents" not in out, out
@@ -203,7 +203,7 @@ def agents_frontmatter_accepts_supported_filter(root):
 def all_discovery_skips_data_heavy_dirs(root):
     parent = os.path.join(root, "discover_parent")
     os.makedirs(parent, exist_ok=True)
-    build(parent, "skill-creator", GOOD_FM.format(name="skill-creator") + "stub\n")
+    build(parent, "skill-auditor", GOOD_FM.format(name="skill-auditor") + "stub\n")
     build(parent, "real", GOOD_FM.format(name="real") + "body\n")
     build(parent, "data", "not frontmatter\n")
     code, out = run(parent, "--all")
@@ -214,8 +214,8 @@ def all_discovery_skips_data_heavy_dirs(root):
 def all_discovery_descends_into_category_dirs(root):
     """Skills grouped as <root>/<category>/<skill>/ are found, and routes resolve across categories."""
     parent = os.path.join(root, "category_parent")
-    build(os.path.join(parent, "general"), "skill-creator",
-          GOOD_FM.format(name="skill-creator") + "stub\n")
+    build(os.path.join(parent, "general"), "skill-auditor",
+          GOOD_FM.format(name="skill-auditor") + "stub\n")
     build(os.path.join(parent, "engineering"), "nested", GOOD_FM.format(name="nested") + "body\n")
     code, out = run(parent, "--all")
     return code == 0 and "nested" in out and "2 skill(s)" in out, f"exit={code} {out}"

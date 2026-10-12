@@ -193,7 +193,7 @@ def findings_for(skill_dir, siblings=None, house=False):
 
     if house:
         # Without these three a skill cannot carry intent, guardrails, or a
-        # checkable finish line, which is what skill-creator exists to enforce.
+        # checkable finish line, which is what skill-auditor exists to enforce.
         for section in REQUIRED_SECTIONS:
             if not re.search(rf"^## {re.escape(section)}\b", raw, re.M):
                 out.append(("P3", f"no '## {section}' section (house structure)"))

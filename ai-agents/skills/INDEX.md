@@ -23,7 +23,7 @@ here to one line.
 
 | Skill | Reach for it when... |
 |---|---|
-| `skill-creator` | Create, refactor, review, or tighten a skill, `AGENTS.md`, or `CLAUDE.md`. |
+| `skill-auditor` | Create, refactor, review, or audit a skill, `AGENTS.md`, or `CLAUDE.md` against rules and guardrails; decide if a skill is needed or should merge. |
 | `slack-msg` | Draft or reword a short message I'm about to **send**. |
 | `html-report` | Build a self-contained HTML page a human reviews to decide something (plan, validation, status).
 | `file-layout` | Decide where a file goes, set up a personal or coding project, tidy Downloads or Desktop, or archive old material on a work or personal Mac. |
@@ -51,5 +51,5 @@ Installed like any other skill; the folder marks them as still changing.
   Agents load skills from one flat directory, so skill names must be unique across categories;
   the installer fails on a duplicate.
 - To retire a skill, delete its folder and re-run `./install.sh`; dangling links are pruned.
-- `tests/run.sh` must pass before committing; it lints every skill with `skill-creator`'s
+- `tests/run.sh` must pass before committing; it lints every skill with `skill-auditor`'s
   `spec_check.py`.
