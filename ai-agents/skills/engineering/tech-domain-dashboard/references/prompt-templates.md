@@ -71,7 +71,7 @@ exactly what you changed and why, so nothing is silently rewritten.
 ```
 Convert {OUTPUT_DIR}/{topic-slug}/{topic-slug}.md into an interactive HTML study dashboard,
 following the tech-domain-dashboard skill's HTML spec
-(~/personal/projects/skills/tech-domain-dashboard/references/html-dashboard-spec.md):
+(~/personal/projects/agent-files/ai-agents/skills/engineering/tech-domain-dashboard/references/html-dashboard-spec.md):
 
 - Single self-contained HTML file, vanilla JS, inline SVG, zero external dependencies (must
   work offline via file://).

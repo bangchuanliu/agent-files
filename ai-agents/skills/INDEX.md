@@ -27,6 +27,7 @@ here to one line.
 |---|---|
 | `skill-auditor` | Create, refactor, review, or audit a skill, `AGENTS.md`, or `CLAUDE.md` against rules and guardrails; decide if a skill is needed or should merge. |
 | `slack-msg` | Draft or reword a short message I'm about to **send**. |
+| `dict` | Save or look up vocabulary, polish **my own** English or a draft prompt, or practice a workplace conversation scenario. |
 | `html-report` | Build a self-contained HTML page a human reviews to decide something (plan, validation, status).
 | `file-layout` | Decide where a file goes, set up a personal or coding project, tidy Downloads or Desktop, or archive old material on a work or personal Mac. |
 
@@ -44,6 +45,7 @@ Installed like any other skill; the folder marks them as still changing.
 ## Boundaries that trip auto-recall
 
 - **`self-assessment` vs `peer-feedback`**: about me vs about someone else.
+- **`dict` vs `slack-msg`**: practice on my own English vs an outgoing message I'll send to a person.
 - **`study-dashboard` vs `tech-domain-dashboard`**: both build an HTML study dashboard. `study-dashboard` also builds question banks and adds FAQ tabs to an existing file; `tech-domain-dashboard` starts from the hard-sub-problem filter and always fact-checks before the HTML build.
 - **`pr-comments` vs `review-others`**: feedback on my PR vs reviewing someone else's.
 - **`yell` vs `wtree show`**: live agent sessions now vs the worktrees of one repo group.
