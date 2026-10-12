@@ -17,7 +17,7 @@ Create, refactor, review, or tighten a skill, `AGENTS.md`, `CLAUDE.md`, or a doc
 - [references/levers.md](references/levers.md) defines the terms in _italics_. Load it when a term or the reasoning behind a rule is unclear, or when you need to justify a change.
 - [references/template.md](references/template.md) has the skill template and a worked example.
 - [references/skill-mechanics.md](references/skill-mechanics.md) covers frontmatter, invocation choice, and router skills.
-- [references/evaluation.md](references/evaluation.md) covers evaluating a rewrite against the old version.
+- [references/evaluation.md](references/evaluation.md) has the `MUST` and deletion audit, run on every new or edited skill, and covers evaluating a rewrite against the old version.
 - `scripts/spec_check.py` checks skill spec conformance deterministically; `scripts/test_spec_check.py` tests it.
 
 ## Guardrails & Constraints
@@ -31,6 +31,9 @@ Create, refactor, review, or tighten a skill, `AGENTS.md`, `CLAUDE.md`, or a doc
   - **Verification** - task-specific acceptance criteria, using the cheapest reliable evidence.
 - MUST include only necessary fields and clarifications: a line belongs only if the agent would do worse without it. Leave everything else to the agent's own judgement and capabilities.
 - MUST write hard rules as `MUST`, defaults as `SHOULD`, and context-dependent behaviour as `IF` / `WHEN`, each in the section its strength belongs to. State the target behaviour positively (avoid _negation_). Reserve `MUST NOT` for hard guardrails that cannot be phrased positively, and pair it with the positive target.
+- MUST make every `MUST` protect correctness, safety, a contract another stage reads, or a human gate (approval, irreversible action). Demote a `MUST` that only fixes a choice the agent could make well (layout, chart type, tool, wording, step order) to `SHOULD` or an example, or delete it. A `MUST` sets a floor, never a ceiling.
+- MUST specify an artifact for a human (report, page, readout) by what the reader must be able to answer or decide, plus a quality bar. IF a layout helps, give it as a labelled default the agent may replace.
+- MUST mark an example list as non-exhaustive ("e.g. ..., or better") unless it is a closed set the agent must choose from (statuses, enum values).
 - MUST prescribe an ordered sequence only when skipping or reordering steps would compromise correctness, safety, recoverability, or an external protocol. Otherwise state the outcome and let the agent choose the steps.
 - IF the document has steps, each step MUST end on a checkable _completion criterion_. To counter _premature completion_, sharpen the criterion first. Split the sequence only if the rush is observed, and only across a real context boundary.
 - MUST settle runtime questions while writing the skill.
@@ -75,7 +78,7 @@ Create, refactor, review, or tighten a skill, `AGENTS.md`, `CLAUDE.md`, or a doc
 
 - IF the document is a skill, `python3 scripts/spec_check.py --house <skill-dir>` (or `--all <skills-root>`) passes, run before and after editing.
 - IF `scripts/spec_check.py` changes, `python3 scripts/test_spec_check.py` passes.
-- Every original branch and hard rule survived; for a material rewrite, evaluation shows no regression.
+- Every original branch and hard rule survived, and the `MUST` and deletion audit in [references/evaluation.md](references/evaluation.md) passes; for a material rewrite, evaluation shows no regression.
 - The document passes the review checklist:
   - clear trigger, scope, and objective;
   - only necessary sections, fields, and clarifications;
