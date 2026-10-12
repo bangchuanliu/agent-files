@@ -26,16 +26,11 @@ A PR is reviewed only when all three hold. Batch mode skips a PR that fails one;
 - **Open and ready.** Not closed, merged, or draft.
 - **Clear of your open comments.** You have no prior comments on it, or every one is **addressed**: resolved, replied to by someone else, or its lines changed in a commit after your last review.
 
-## Local context
-
-Read `~/.agents-local/rules/skill-context/review-others/context.md` if it exists; it may add review
-guidelines for specific repositories. Its absence is normal.
-
 ## Reviewing
 
 - **Remote only.** Read the PR through `gh pr diff` and `gh pr view`; the local working tree stays untouched.
 - **Batch fans out**: one subagent per PR, launched together, each reading the PR via `gh`. Pick a general-purpose subagent, because Copilot CLI's built-in `code-review` reviews the local tree instead of the PR. Hosts without subagents review the queue in sequence.
-- **The repo's rules come first**: `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, whichever exist, plus anything the local context above adds.
+- **The repo's rules come first**: `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, whichever exist, plus any review context your instructions provide for this skill.
 - **Follow-ups are incremental.** Review the diff from your last reviewed commit to head (`gh api repos/{repo}/compare/{last}...{head}`), and confirm each earlier comment was actually fixed.
 - **Defer to earlier reviewers.** Read existing comments first. A concern already raised is theirs; add a reply in their thread only when you bring something new.
 - **Classify every finding** as `blocking`, `minor`, or `nit`. `blocking` names a concrete failure mode or quotes a rule. Report only what the diff confirms.

@@ -8,16 +8,11 @@ description: "Jira: draft agent-optimized tickets with structured fields, accept
 
 Create tickets with fields that enable efficient agent processing. Every ticket should be parseable by planning, development, and QA agents without human clarification.
 
-## Step 0 - company context
-
-Read `~/.agents-local/rules/skill-context/jira-create/context.md` if it exists. If it does not exist,
-skip this step - its absence is normal and the generic guidance below is complete on its own.
-
 ## Process
 
 1. **Search for existing Epics** in the configured Jira project matching the topic. Present top 3-5 for user to pick.
 2. **Infer fields** from the user's prompt using the heuristics below.
-3. **Apply company context** from Step 0 when present. It may override project keys, components, labels, field names, or due-date rules.
+3. **Apply company context** when your instructions provide some for this skill. It may override project keys, components, labels, field names, or due-date rules; without it, the guidance here is complete on its own.
 4. **Present a draft** with all fields filled in. Highlight uncertain fields with 2-3 alternatives.
 5. **Wait for explicit confirmation** before creating through the available Jira integration - never create without approval.
 
