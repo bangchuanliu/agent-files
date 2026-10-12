@@ -10,6 +10,7 @@ here to one line.
 | Skill | Reach for it when... |
 |---|---|
 | `review-others` | Review **someone else's** PR, or batch the PRs awaiting my review. |
+| `pr-comments` | Address review comments and failing checks on **my** PR, or watch it until approved. |
 | `jira-create` | File agent-optimized JIRA tickets. |
 | `template-general-readout` | Skeleton for a readout: strategy, launch, GA, research, program review, postmortem. |
 | `self-assessment` | Reframe **my own** work against the career principles. |
@@ -40,6 +41,7 @@ Installed like any other skill; the folder marks them as still changing.
 ## Boundaries that trip auto-recall
 
 - **`self-assessment` vs `peer-feedback`**: about me vs about someone else.
+- **`pr-comments` vs `review-others`**: feedback on my PR vs reviewing someone else's.
 - **`yell` vs `wtree show`**: live agent sessions now vs the worktrees of one repo group.
 
 ## Maintenance
