@@ -60,8 +60,8 @@ Rules render as follows:
 1. `ai-agents/rules/AGENTS.md` is always included, with placeholders replaced:
    - `{{RULES_DIR}}` becomes this clone's absolute `ai-agents/rules` path so every agent can open
      the indexed topic rule files.
-   - `{{WORKTREE_ROOT}}` becomes `$WTREE_ROOT`, default `~/.worktree`, which is created if missing.
-     The `wtree` and `hop` skills read the same variable.
+   - The installer also creates `$WTREE_ROOT` (default `~/.worktree`), which the `wtree` and
+     `hop` skills read.
 2. `~/.agents-local/AGENTS.md` is appended under `## Local Context` when it exists and is
    non-empty.
 

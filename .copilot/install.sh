@@ -30,6 +30,9 @@ for f in "$RULES_SRC"/*.md; do
   [ "$(basename "$f")" = AGENTS.md ] && continue
   link "$f" "$INSTRUCTIONS/$(basename "$f")"
 done
+# Copilot-only autopilot rules must apply in every session, so this one keeps the
+# auto-loaded .instructions.md suffix.
+link "$REPO/.copilot/autopilot.md" "$INSTRUCTIONS/autopilot.instructions.md"
 prune_dangling "$INSTRUCTIONS"
 
 # Copilot rewrites this path in place, so it must be a regular copy rather than a symlink.

@@ -1,13 +1,11 @@
 # Thinking rules
 
-Covers brainstorming, specs, design, planning, research, and investigation.
-
 ## Guardrails
 
 - Keep the problem separate from the solution; never let a preferred solution define the problem statement.
-- Label every assumption and open question explicitly; never present an unverified assumption as fact.
+- List open questions explicitly alongside the design.
 - A spec states goals, non-goals, and verifiable acceptance criteria, not implementation detail.
-- Do not start building while an ambiguity could change the design; resolve it or record the assumption first.
+- Before building, resolve any ambiguity that could change the design, or record it as an assumption.
 
 ## Preferences
 

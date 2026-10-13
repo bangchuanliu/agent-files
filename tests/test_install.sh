@@ -47,8 +47,9 @@ mkdir -p "$SANDBOX/dup-skills/a/same" "$SANDBOX/dup-skills/b/same"
 touch "$SANDBOX/dup-skills/a/same/SKILL.md" "$SANDBOX/dup-skills/b/same/SKILL.md"
 check "duplicate skill name across categories rejected" bash -c "source '$REPO/lib/links.sh'; ! (link_skills '$SANDBOX/dup-skills' '$SANDBOX/dup-out' claude) 2>/dev/null"
 
-check "no overlay: generated rules equal rendered core" cmp -s "$GENERATED" <(sed -e "s|{{RULES_DIR}}|$REPO/ai-agents/rules|g" -e "s|{{WORKTREE_ROOT}}|$WTREE_ROOT|g" "$CORE")
+check "no overlay: generated rules equal rendered core" cmp -s "$GENERATED" <(sed -e "s|{{RULES_DIR}}|$REPO/ai-agents/rules|g" "$CORE")
 check "rule placeholders rendered" bash -c "! grep -q '{{' '$GENERATED'"
+for f in "$REPO"/ai-agents/rules/*.md; do [ "$(basename "$f")" = AGENTS.md ] || check "topic rule $(basename "$f") has no placeholders" bash -c "! grep -q '{{' '$f'"; done
 check "worktree root created" test -d "$WTREE_ROOT"
 check "rule index lists every rule file" test "$(grep -o "$REPO/ai-agents/rules/[a-z-]*\.md" "$GENERATED" | sort -u | wc -l | tr -d ' ')" = "$(find "$REPO/ai-agents/rules" -name '*.md' ! -name AGENTS.md | wc -l | tr -d ' ')"
 for f in $(grep -o "$REPO/ai-agents/rules/[a-z-]*\.md" "$GENERATED"); do check "indexed rule file exists: $(basename "$f")" test -f "$f"; done
@@ -67,7 +68,8 @@ for f in "$REPO"/ai-agents/rules/*.md; do
   check "Copilot instruction $b linked" test "$(readlink "$HOME/.copilot/instructions/$b")" = "$f"
   check "Copilot rule index lists instructions/$b" grep -qF "$HOME/.copilot/instructions/$b" "$HOME/.copilot/copilot-instructions.md"
 done
-check "Copilot topic rules are not auto-loaded (.instructions.md)" bash -c "! ls '$HOME/.copilot/instructions/' | grep -q '\.instructions\.md$'"
+check "Copilot topic rules are not auto-loaded (.instructions.md)" bash -c "! ls '$HOME/.copilot/instructions/' | grep -v '^autopilot\.instructions\.md$' | grep -q '\.instructions\.md$'"
+check "Copilot autopilot rules linked and auto-loaded" test "$(readlink "$HOME/.copilot/instructions/autopilot.instructions.md")" = "$REPO/.copilot/autopilot.md"
 check "shared skill-auditor agent linked for Copilot" test "$(readlink "$HOME/.copilot/agents/skill-auditor.agent.md")" = "$REPO/ai-agents/agents/skill-auditor.md"
 check "shared skill-auditor agent linked for Claude" test "$(readlink "$HOME/.claude/agents/skill-auditor.md")" = "$REPO/ai-agents/agents/skill-auditor.md"
 check "cla alias block once in .zshrc" test "$(grep -c '>>> agent-files cla alias >>>' "$HOME/.zshrc")" = 1

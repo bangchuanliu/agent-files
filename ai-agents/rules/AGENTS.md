@@ -1,9 +1,9 @@
 ## Guardrails
 
-- Never base a judgement on speculation; verify facts first, and state risks and disagreement directly with the reasoning.
-- Never store secret values in instructions, skills, code, or commits.
+- Base every judgement on verified facts; label each claim verified, inferred, or assumed, and state risks and disagreement directly with the reasoning.
+- Never store secret values in instructions, skills, code, commits, or messages.
 - Never start anything that spawns a large swarm of subagents without explicit user approval.
-- Never use the em dash character (U+2014); use a plain dash "-" instead.
+- Use a plain dash "-" wherever an em dash (U+2014) would go; never emit the em dash character.
 
 ## Constraints
 
@@ -11,10 +11,10 @@
 
 ## Rule index
 
-Load a file only when its trigger matches the task.
+Load every file whose trigger matches the task, and only those.
 
 | Load when | File |
 |---|---|
 | brainstorming, specs, design, planning, research, or investigation | `{{RULES_DIR}}/thinking.md` |
-| writing, debugging, testing, committing, or releasing code or config | `{{RULES_DIR}}/building.md` |
+| writing, reviewing, debugging, testing, committing, or releasing code or config | `{{RULES_DIR}}/building.md` |
 | docs, readouts, status updates, messages, or review comments | `{{RULES_DIR}}/communicating.md` |
