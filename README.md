@@ -34,7 +34,7 @@ agent-files/
 
 `~/.agents-local/` is local to the machine and is not part of this repository. Shared skills never
 read it directly: to give a shared skill company context, point to that context from
-`~/.agents-local/AGENTS.md`, which the core rules tell every agent to read. Do not put secrets in
+`~/.agents-local/AGENTS.md`. Do not put secrets in
 its instruction files or skills. Reference the approved secret-management system instead.
 
 ## Install
@@ -54,14 +54,9 @@ agent's normal skill directory. Category folders are flattened: each skill gets 
 after its folder, so skill names must be unique across categories. The installer also creates
 `$WTREE_ROOT` (default `~/.worktree`), which the `wtree` and `hop` skills read.
 
-Rules are loaded as follows:
-
-1. `ai-agents/rules/AGENTS.md` is the rules file every agent sees. Its rule index names topic
-   files by the fixed path `~/personal/projects/agent-files/ai-agents/rules/<topic>.md`, so keep
-   the clone there; the installer warns when it runs from anywhere else.
-2. Its `## Local context` section tells the agent to read `~/.agents-local/AGENTS.md` when it
-   exists. The overlay is read at session start, not copied into the rules file, so
-   `$AGENT_FILES_LOCAL_DIR` changes where private skills and agents come from but not this path.
+The rule index in `ai-agents/rules/AGENTS.md` names topic files as `{RULE_DIR}/<topic>.md`. The
+installer exports `RULE_DIR` (this clone's `ai-agents/rules`) from a managed block in `~/.zshrc`
+and `~/.bashrc`; open a new shell before starting an agent so it inherits the variable.
 
 Edits to any rules file take effect in the next session without re-running the installer.
 Earlier installs left rendered copies under `~/.agents-local/generated/`; the installer removes them.

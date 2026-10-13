@@ -46,13 +46,13 @@ mkdir -p "$SANDBOX/dup-skills/a/same" "$SANDBOX/dup-skills/b/same"
 touch "$SANDBOX/dup-skills/a/same/SKILL.md" "$SANDBOX/dup-skills/b/same/SKILL.md"
 check "duplicate skill name across categories rejected" bash -c "source '$REPO/lib/links.sh'; ! (link_skills '$SANDBOX/dup-skills' '$SANDBOX/dup-out' claude) 2>/dev/null"
 
-RULES_PREFIX="~/personal/projects/agent-files/ai-agents/rules"
-check "core rules have no placeholders" bash -c "! grep -q '{{' '$CORE'"
-for f in "$REPO"/ai-agents/rules/*.md; do [ "$(basename "$f")" = AGENTS.md ] || check "topic rule $(basename "$f") has no placeholders" bash -c "! grep -q '{{' '$f'"; done
+check "topic rules have no placeholders" bash -c "! grep -q '{' '$REPO'/ai-agents/rules/[!A]*.md"
 check "worktree root created" test -d "$WTREE_ROOT"
-check "rule index lists every rule file" test "$(grep -oF "$RULES_PREFIX/" "$CORE" | wc -l | tr -d ' ')" = "$(find "$REPO/ai-agents/rules" -name '*.md' ! -name AGENTS.md | wc -l | tr -d ' ')"
-for f in $(grep -o "$RULES_PREFIX/[a-z-]*\.md" "$CORE"); do check "indexed rule file exists in clone: $(basename "$f")" test -f "$REPO/ai-agents/rules/$(basename "$f")"; done
-check "core rules point at the local overlay" grep -qF '~/.agents-local/AGENTS.md' "$CORE"
+check "rule index lists every rule file" test "$(grep -oF '{RULE_DIR}/' "$CORE" | wc -l | tr -d ' ')" = "$(find "$REPO/ai-agents/rules" -name '*.md' ! -name AGENTS.md | wc -l | tr -d ' ')"
+for f in $(grep -o '{RULE_DIR}/[a-z-]*\.md' "$CORE"); do check "indexed rule file exists: $(basename "$f")" test -f "$REPO/ai-agents/rules/$(basename "$f")"; done
+for rc in .zshrc .bashrc; do
+  check "RULE_DIR exported once in $rc" test "$(grep -c "^export RULE_DIR=\"$REPO/ai-agents/rules\"$" "$HOME/$rc")" = 1
+done
 check "CLAUDE.md is a symlink to core rules" test "$(readlink "$HOME/.claude/CLAUDE.md")" = "$CORE"
 check "Pi AGENTS.md is a symlink to core rules" test "$(readlink "$HOME/.pi/agent/AGENTS.md")" = "$CORE"
 check "copilot-instructions.md is a symlink to core rules" test "$(readlink "$HOME/.copilot/copilot-instructions.md")" = "$CORE"
@@ -74,6 +74,7 @@ bash "$REPO/install.sh" > "$SANDBOX/install2.log" 2>&1 || { cat "$SANDBOX/instal
 check "foreign skill link kept" test -L "$HOME/.copilot/skills/foreign"
 check "dangling skill link pruned" test ! -L "$HOME/.copilot/skills/gone"
 check "alias blocks not duplicated on re-run" test "$(grep -c '>>> agent-files coya alias >>>' "$HOME/.bashrc")" = 1
+check "RULE_DIR block not duplicated on re-run" test "$(grep -c '>>> agent-files RULE_DIR env >>>' "$HOME/.zshrc")" = 1
 check "coy alias block once, without autopilot" test "$(grep -c "^alias coy='copilot --allow-all'$" "$HOME/.bashrc")" = 1
 check "re-run makes no new links" bash -c "! grep -q '^link: .*/skills/' '$SANDBOX/install2.log'"
 

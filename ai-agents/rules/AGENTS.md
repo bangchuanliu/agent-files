@@ -13,12 +13,10 @@
 
 Load every file whose trigger matches the task, and only those.
 
+- MUST resolve `{RULE_DIR}` to an absolute path before loading any file below:
+
 | Load when | File |
 |---|---|
-| brainstorming, specs, design, planning, research, or investigation | `~/personal/projects/agent-files/ai-agents/rules/thinking.md` |
-| writing, reviewing, debugging, testing, committing, or releasing code or config | `~/personal/projects/agent-files/ai-agents/rules/building.md` |
-| docs, readouts, status updates, messages, or review comments | `~/personal/projects/agent-files/ai-agents/rules/communicating.md` |
-
-## Local context
-
-- If `~/.agents-local/AGENTS.md` exists, read it at the start of every session and follow it as part of these rules; it holds this machine's private context.
+| brainstorming, specs, design, planning, research, or investigation | `{RULE_DIR}/thinking.md` |
+| writing, reviewing, debugging, testing, committing, or releasing code or config | `{RULE_DIR}/building.md` |
+| docs, readouts, status updates, messages, or review comments | `{RULE_DIR}/communicating.md` |

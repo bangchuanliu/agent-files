@@ -156,17 +156,32 @@ install_shell_alias() {
   done
 }
 
-# Every agent symlinks the core rules file in place; its rule index names topic files by this
-# absolute path, so the clone must live here for the index to resolve.
-RULES_HOME="$HOME/personal/projects/agent-files"
+# install_shell_env <name> <value> <comment>: own a marker-delimited export block in ~/.zshrc and
+# ~/.bashrc, replacing it in place on re-run.
+install_shell_env() {
+  local name="$1" value="$2" comment="$3" rc begin end block
+  begin="# >>> agent-files $name env >>>"
+  end="# <<< agent-files $name env <<<"
+  case "$value" in *'"'*) echo "install_shell_env: value must not contain a double quote" >&2; return 2 ;; esac
+  block="$(printf '%s\n# %s\nexport %s="%s"\n%s' "$begin" "$comment" "$name" "$value" "$end")"
+  for rc in "$HOME/.zshrc" "$HOME/.bashrc"; do
+    touch "$rc"
+    if grep -qF "$begin" "$rc"; then
+      replace_managed_block "$rc" "$begin" "$end" "$block"
+    else
+      printf '\n%s\n' "$block" >> "$rc"
+      echo "add:  $name env block in $rc"
+    fi
+  done
+}
 
-# link_core_rules <repo> <dest>: symlink <repo>/ai-agents/rules/AGENTS.md to <dest>, create
-# $WTREE_ROOT (used by the wtree and hop skills), and retire rendered copies from older installs.
+# link_core_rules <repo> <dest>: symlink <repo>/ai-agents/rules/AGENTS.md to <dest>, export
+# RULE_DIR (the {RULE_DIR} in its rule index) from the shell rc files, create $WTREE_ROOT (used by
+# the wtree and hop skills), and retire rendered copies from older installs.
 link_core_rules() {
   local repo="$1" dest="$2" local_dir="${AGENT_FILES_LOCAL_DIR:-$HOME/.agents-local}"
-  if [ "$repo" != "$RULES_HOME" ]; then
-    echo "warn: clone is at $repo, but the rule index in AGENTS.md points at $RULES_HOME" >&2
-  fi
+  install_shell_env RULE_DIR "$repo/ai-agents/rules" \
+    "RULE_DIR = topic rule files named by {RULE_DIR} in the agent rule index."
   mkdir -p "${WTREE_ROOT:-$HOME/.worktree}"
   rm -f "$local_dir/generated/AGENTS.md" "$local_dir/generated/copilot-instructions.md"
   rmdir "$local_dir/generated" 2>/dev/null || true
