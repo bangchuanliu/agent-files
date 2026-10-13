@@ -12,6 +12,8 @@ agent-files/
     rules/
       AGENTS.md           # tracked global guardrails plus an index of topic rule files
       *.md                # topic rules (thinking, building, communicating) loaded on demand
+    agents/               # tracked shared agents, one <name>.md each (Claude, Copilot)
+      skill-auditor.md    # reviews the rule files against the skill-auditor skill
     skills/               # tracked, safe-to-share skills, one level of category folders
       INDEX.md            # human lookup of every skill
       engineering/<skill>/SKILL.md
@@ -65,7 +67,8 @@ Rules render as follows:
 
 Without a local overlay, the generated file is the rendered `AGENTS.md` and nothing else.
 Claude and Pi link to the generated file; Copilot receives a regular copy because it rewrites
-its instructions file in place.
+its instructions file in place. In that copy the rule index points at
+`~/.copilot/instructions/<topic>.md`, symlinks the Copilot adapter creates to each topic rule file.
 
 | Agent | Deployed rules path |
 |---|---|

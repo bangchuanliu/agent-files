@@ -49,14 +49,27 @@ check "duplicate skill name across categories rejected" bash -c "source '$REPO/l
 
 check "no overlay: generated rules equal rendered core" cmp -s "$GENERATED" <(sed -e "s|{{RULES_DIR}}|$REPO/ai-agents/rules|g" -e "s|{{WORKTREE_ROOT}}|$WTREE_ROOT|g" "$CORE")
 check "rule placeholders rendered" bash -c "! grep -q '{{' '$GENERATED'"
-check "worktree root rendered into rules" grep -qF "$WTREE_ROOT/<repo>/" "$GENERATED"
 check "worktree root created" test -d "$WTREE_ROOT"
 check "rule index lists every rule file" test "$(grep -o "$REPO/ai-agents/rules/[a-z-]*\.md" "$GENERATED" | sort -u | wc -l | tr -d ' ')" = "$(find "$REPO/ai-agents/rules" -name '*.md' ! -name AGENTS.md | wc -l | tr -d ' ')"
 for f in $(grep -o "$REPO/ai-agents/rules/[a-z-]*\.md" "$GENERATED"); do check "indexed rule file exists: $(basename "$f")" test -f "$f"; done
 check "CLAUDE.md is a symlink to generated rules" test "$(readlink "$HOME/.claude/CLAUDE.md")" = "$GENERATED"
 check "Pi AGENTS.md is a symlink to generated rules" test "$(readlink "$HOME/.pi/agent/AGENTS.md")" = "$GENERATED"
 check "copilot-instructions.md is a regular file" test -f "$HOME/.copilot/copilot-instructions.md" -a ! -L "$HOME/.copilot/copilot-instructions.md"
-check "Copilot instructions equal generated rules" cmp -s "$HOME/.copilot/copilot-instructions.md" "$GENERATED"
+copilot_expected() { sed "s|$REPO/ai-agents/rules/|$HOME/.copilot/instructions/|g" "$GENERATED"; }
+check "Copilot instructions equal generated rules with Copilot rule paths" cmp -s "$HOME/.copilot/copilot-instructions.md" <(copilot_expected)
+check "Copilot rule index points only at ~/.copilot/instructions" bash -c "! grep -q '$REPO/ai-agents/rules/' '$HOME/.copilot/copilot-instructions.md'"
+for f in "$REPO"/ai-agents/rules/*.md; do
+  b="$(basename "$f")"
+  if [ "$b" = AGENTS.md ]; then
+    check "core AGENTS.md not installed into Copilot instructions" test ! -e "$HOME/.copilot/instructions/$b"
+    continue
+  fi
+  check "Copilot instruction $b linked" test "$(readlink "$HOME/.copilot/instructions/$b")" = "$f"
+  check "Copilot rule index lists instructions/$b" grep -qF "$HOME/.copilot/instructions/$b" "$HOME/.copilot/copilot-instructions.md"
+done
+check "Copilot topic rules are not auto-loaded (.instructions.md)" bash -c "! ls '$HOME/.copilot/instructions/' | grep -q '\.instructions\.md$'"
+check "shared skill-auditor agent linked for Copilot" test "$(readlink "$HOME/.copilot/agents/skill-auditor.agent.md")" = "$REPO/ai-agents/agents/skill-auditor.md"
+check "shared skill-auditor agent linked for Claude" test "$(readlink "$HOME/.claude/agents/skill-auditor.md")" = "$REPO/ai-agents/agents/skill-auditor.md"
 check "cla alias block once in .zshrc" test "$(grep -c '>>> agent-files cla alias >>>' "$HOME/.zshrc")" = 1
 
 # Foreign links survive, dangling ones are pruned, and re-runs are idempotent.
@@ -67,12 +80,13 @@ bash "$REPO/install.sh" > "$SANDBOX/install2.log" 2>&1 || { cat "$SANDBOX/instal
 check "foreign skill link kept" test -L "$HOME/.copilot/skills/foreign"
 check "dangling skill link pruned" test ! -L "$HOME/.copilot/skills/gone"
 check "alias blocks not duplicated on re-run" test "$(grep -c '>>> agent-files coya alias >>>' "$HOME/.bashrc")" = 1
+check "coy alias block once, without autopilot" test "$(grep -c "^alias coy='copilot --allow-all'$" "$HOME/.bashrc")" = 1
 check "re-run makes no new links" bash -c "! grep -q '^link: .*/skills/' '$SANDBOX/install2.log'"
 
 # Re-running restores a hand-edited Copilot copy from the generated rules.
 echo "drift" >> "$HOME/.copilot/copilot-instructions.md"
 bash "$REPO/install.sh" > "$SANDBOX/install3.log" 2>&1 || { cat "$SANDBOX/install3.log"; fail "third install.sh exits 0"; }
-check "re-run refreshes Copilot rules" cmp -s "$HOME/.copilot/copilot-instructions.md" "$GENERATED"
+check "re-run refreshes Copilot rules" cmp -s "$HOME/.copilot/copilot-instructions.md" <(copilot_expected)
 
 # A private overlay and private skill are installed only from the local agent directory.
 mkdir -p "$LOCAL_AGENT_DIR/skills/acme-helper"

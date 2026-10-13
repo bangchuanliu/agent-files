@@ -8,8 +8,11 @@ Covers writing, debugging, testing, committing, and releasing code or config.
 - Every bug fix ships with a regression test, and new behavior ships with tests; never ask whether tests are wanted.
 - Never add an agent as co-author in commit messages or PR descriptions.
 
-## Preferences
+## Environment
 
+- Create git worktrees under `~/.worktree/<repo>/`, never inside the main checkout.
+
+## Preferences
 - Prefer simplicity, correctness, robustness, and long-term maintainability over development cost.
 - Fix lint errors, test failures, and flaky tests you encounter, even when your change did not cause them.
 - When testing a user-facing product, hold the UI to a pixel-perfect bar and fix anything that clearly looks off along the way.

@@ -9,10 +9,6 @@
 
 - When rules conflict, resolve in this order: correctness and security, then simplicity and clarity, then performance when justified by scale, then style and conventions.
 
-## Environment
-
-- Create git worktrees under `{{WORKTREE_ROOT}}/<repo>/`, never inside the main checkout.
-
 ## Rule index
 
 Load a file only when its trigger matches the task.

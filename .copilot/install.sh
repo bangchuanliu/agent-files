@@ -20,11 +20,24 @@ assert_no_agent_collisions "$SHARED/agents" "$LOCAL_AGENTS"
 link_skills "$SHARED/skills" "$COPILOT/skills" copilot
 if [ -d "$LOCAL_SKILLS" ]; then link_skills "$LOCAL_SKILLS" "$COPILOT/skills" copilot; fi
 
+# Topic rules (thinking.md, building.md, ...) are symlinked into ~/.copilot/instructions. They
+# deliberately lack the .instructions.md suffix, which Copilot would auto-load on every
+# session; they stay lazy and are loaded on demand through the rule index.
+RULES_SRC="$SHARED/rules"
+INSTRUCTIONS="$COPILOT/instructions"
+mkdir -p "$INSTRUCTIONS"
+for f in "$RULES_SRC"/*.md; do
+  [ "$(basename "$f")" = AGENTS.md ] && continue
+  link "$f" "$INSTRUCTIONS/$(basename "$f")"
+done
+prune_dangling "$INSTRUCTIONS"
+
 # Copilot rewrites this path in place, so it must be a regular copy rather than a symlink.
+# Its rule index points at the ~/.copilot/instructions links instead of this clone.
 bash "$REPO/lib/sync-rules.sh"
 COPILOT_RULES="$COPILOT/copilot-instructions.md"
 if [ -L "$COPILOT_RULES" ]; then rm "$COPILOT_RULES"; fi
-cp "$GENERATED_RULES" "$COPILOT_RULES"
+sed "s|$RULES_SRC/|$INSTRUCTIONS/|g" "$GENERATED_RULES" > "$COPILOT_RULES"
 
 # Agents: per-file symlinks with Copilot's .agent.md extension, shared then private.
 link_agents "$SHARED/agents" "$COPILOT/agents" copilot .agent.md
@@ -33,6 +46,8 @@ prune_dangling "$COPILOT/agents"
 
 install_shell_alias coya "copilot --autopilot --allow-all" \
   "coya = Copilot CLI in autopilot mode with all tools auto-allowed."
+install_shell_alias coy "copilot --allow-all" \
+  "coy = Copilot CLI with all tools auto-allowed, without autopilot."
 
 echo ""
-echo "Copilot CLI wired. Open a new shell (or source your rc file) to pick up the 'coya' alias."
+echo "Copilot CLI wired. Open a new shell (or source your rc file) to pick up the 'coya' and 'coy' aliases."
