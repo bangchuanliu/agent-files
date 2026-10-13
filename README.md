@@ -23,7 +23,6 @@ agent-files/
   .copilot/               # Copilot CLI adapter
   .pi/                    # Pi adapter
   lib/links.sh            # shared installer helpers
-  lib/sync-rules.sh       # renders core rules plus the optional private overlay
   install.sh              # root installer
   tests/run.sh            # all repo checks; run before committing
 
@@ -31,12 +30,11 @@ agent-files/
   AGENTS.md               # optional private company/machine instructions
   skills/                 # optional private skills; each contains SKILL.md
   agents/                 # optional private agents; one <name>.md each (Claude, Copilot)
-  generated/AGENTS.md     # generated combined rules, never source-controlled
 ```
 
 `~/.agents-local/` is local to the machine and is not part of this repository. Shared skills never
 read it directly: to give a shared skill company context, point to that context from
-`~/.agents-local/AGENTS.md`, which is appended to the rendered rules. Do not put secrets in
+`~/.agents-local/AGENTS.md`, which the core rules tell every agent to read. Do not put secrets in
 its instruction files or skills. Reference the approved secret-management system instead.
 
 ## Install
@@ -50,25 +48,23 @@ agent clients through your organization's approved channels first. The installer
 download clients, packages, plugins, hooks, or MCP servers, and it leaves client settings
 and shell aliases unchanged.
 
-The installer runs the Claude, Copilot, and Pi adapters. It renders rules to
-`~/.agents-local/generated/AGENTS.md` (or `$AGENT_FILES_LOCAL_DIR/generated/AGENTS.md`) and installs
-skills into each agent's normal skill directory. Category folders are flattened: each skill gets
-one link named after its folder, so skill names must be unique across categories.
+The installer runs the Claude, Copilot, and Pi adapters. Each one symlinks its rules path
+directly to `ai-agents/rules/AGENTS.md`, with no rendering step, and installs skills into the
+agent's normal skill directory. Category folders are flattened: each skill gets one link named
+after its folder, so skill names must be unique across categories. The installer also creates
+`$WTREE_ROOT` (default `~/.worktree`), which the `wtree` and `hop` skills read.
 
-Rules render as follows:
+Rules are loaded as follows:
 
-1. `ai-agents/rules/AGENTS.md` is always included, with placeholders replaced:
-   - `{{RULES_DIR}}` becomes this clone's absolute `ai-agents/rules` path so every agent can open
-     the indexed topic rule files.
-   - The installer also creates `$WTREE_ROOT` (default `~/.worktree`), which the `wtree` and
-     `hop` skills read.
-2. `~/.agents-local/AGENTS.md` is appended under `## Local Context` when it exists and is
-   non-empty.
+1. `ai-agents/rules/AGENTS.md` is the rules file every agent sees. Its rule index names topic
+   files by the fixed path `~/personal/projects/agent-files/ai-agents/rules/<topic>.md`, so keep
+   the clone there; the installer warns when it runs from anywhere else.
+2. Its `## Local context` section tells the agent to read `~/.agents-local/AGENTS.md` when it
+   exists. The overlay is read at session start, not copied into the rules file, so
+   `$AGENT_FILES_LOCAL_DIR` changes where private skills and agents come from but not this path.
 
-Without a local overlay, the generated file is the rendered `AGENTS.md` and nothing else.
-Claude and Pi link to the generated file; Copilot receives a regular copy because it rewrites
-its instructions file in place. In that copy the rule index points at
-`~/.copilot/instructions/<topic>.md`, symlinks the Copilot adapter creates to each topic rule file.
+Edits to any rules file take effect in the next session without re-running the installer.
+Earlier installs left rendered copies under `~/.agents-local/generated/`; the installer removes them.
 
 | Agent | Deployed rules path |
 |---|---|

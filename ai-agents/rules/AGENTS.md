@@ -15,6 +15,10 @@ Load every file whose trigger matches the task, and only those.
 
 | Load when | File |
 |---|---|
-| brainstorming, specs, design, planning, research, or investigation | `{{RULES_DIR}}/thinking.md` |
-| writing, reviewing, debugging, testing, committing, or releasing code or config | `{{RULES_DIR}}/building.md` |
-| docs, readouts, status updates, messages, or review comments | `{{RULES_DIR}}/communicating.md` |
+| brainstorming, specs, design, planning, research, or investigation | `~/personal/projects/agent-files/ai-agents/rules/thinking.md` |
+| writing, reviewing, debugging, testing, committing, or releasing code or config | `~/personal/projects/agent-files/ai-agents/rules/building.md` |
+| docs, readouts, status updates, messages, or review comments | `~/personal/projects/agent-files/ai-agents/rules/communicating.md` |
+
+## Local context
+
+- If `~/.agents-local/AGENTS.md` exists, read it at the start of every session and follow it as part of these rules; it holds this machine's private context.

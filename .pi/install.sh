@@ -7,7 +7,6 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SHARED="$REPO/ai-agents"
 LOCAL_AGENT_DIR="${AGENT_FILES_LOCAL_DIR:-$HOME/.agents-local}"
 LOCAL_SKILLS="$LOCAL_AGENT_DIR/skills"
-GENERATED_RULES="$LOCAL_AGENT_DIR/generated/AGENTS.md"
 PI_AGENT_DIR="${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}"
 # shellcheck source=../lib/links.sh
 source "$REPO/lib/links.sh"
@@ -18,9 +17,8 @@ assert_no_skill_collisions "$SHARED/skills" "$LOCAL_SKILLS"
 link_skills "$SHARED/skills" "$PI_AGENT_DIR/skills" pi
 if [ -d "$LOCAL_SKILLS" ]; then link_skills "$LOCAL_SKILLS" "$PI_AGENT_DIR/skills" pi; fi
 
-# Shared core plus this machine's optional private overlay.
-bash "$REPO/lib/sync-rules.sh"
-link "$GENERATED_RULES" "$PI_AGENT_DIR/AGENTS.md"
+# Rules: a direct symlink to the shared core rules file.
+link_core_rules "$REPO" "$PI_AGENT_DIR/AGENTS.md"
 
 echo ""
 echo "Pi wired at $PI_AGENT_DIR. Restart Pi (or run /reload) to load the changes."

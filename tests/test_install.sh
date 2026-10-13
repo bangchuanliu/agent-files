@@ -8,7 +8,6 @@ SANDBOX="$(mktemp -d)"
 CORE="$REPO/ai-agents/rules/AGENTS.md"
 export WTREE_ROOT="$SANDBOX/worktrees"
 LOCAL_AGENT_DIR="$SANDBOX/custom-overlay"
-GENERATED="$LOCAL_AGENT_DIR/generated/AGENTS.md"
 cleanup() {
   rm -rf "$SANDBOX"
 }
@@ -47,26 +46,19 @@ mkdir -p "$SANDBOX/dup-skills/a/same" "$SANDBOX/dup-skills/b/same"
 touch "$SANDBOX/dup-skills/a/same/SKILL.md" "$SANDBOX/dup-skills/b/same/SKILL.md"
 check "duplicate skill name across categories rejected" bash -c "source '$REPO/lib/links.sh'; ! (link_skills '$SANDBOX/dup-skills' '$SANDBOX/dup-out' claude) 2>/dev/null"
 
-check "no overlay: generated rules equal rendered core" cmp -s "$GENERATED" <(sed -e "s|{{RULES_DIR}}|$REPO/ai-agents/rules|g" "$CORE")
-check "rule placeholders rendered" bash -c "! grep -q '{{' '$GENERATED'"
+RULES_PREFIX="~/personal/projects/agent-files/ai-agents/rules"
+check "core rules have no placeholders" bash -c "! grep -q '{{' '$CORE'"
 for f in "$REPO"/ai-agents/rules/*.md; do [ "$(basename "$f")" = AGENTS.md ] || check "topic rule $(basename "$f") has no placeholders" bash -c "! grep -q '{{' '$f'"; done
 check "worktree root created" test -d "$WTREE_ROOT"
-check "rule index lists every rule file" test "$(grep -o "$REPO/ai-agents/rules/[a-z-]*\.md" "$GENERATED" | sort -u | wc -l | tr -d ' ')" = "$(find "$REPO/ai-agents/rules" -name '*.md' ! -name AGENTS.md | wc -l | tr -d ' ')"
-for f in $(grep -o "$REPO/ai-agents/rules/[a-z-]*\.md" "$GENERATED"); do check "indexed rule file exists: $(basename "$f")" test -f "$f"; done
-check "CLAUDE.md is a symlink to generated rules" test "$(readlink "$HOME/.claude/CLAUDE.md")" = "$GENERATED"
-check "Pi AGENTS.md is a symlink to generated rules" test "$(readlink "$HOME/.pi/agent/AGENTS.md")" = "$GENERATED"
-check "copilot-instructions.md is a regular file" test -f "$HOME/.copilot/copilot-instructions.md" -a ! -L "$HOME/.copilot/copilot-instructions.md"
-copilot_expected() { sed "s|$REPO/ai-agents/rules/|$HOME/.copilot/instructions/|g" "$GENERATED"; }
-check "Copilot instructions equal generated rules with Copilot rule paths" cmp -s "$HOME/.copilot/copilot-instructions.md" <(copilot_expected)
-check "Copilot rule index points only at ~/.copilot/instructions" bash -c "! grep -q '$REPO/ai-agents/rules/' '$HOME/.copilot/copilot-instructions.md'"
+check "rule index lists every rule file" test "$(grep -oF "$RULES_PREFIX/" "$CORE" | wc -l | tr -d ' ')" = "$(find "$REPO/ai-agents/rules" -name '*.md' ! -name AGENTS.md | wc -l | tr -d ' ')"
+for f in $(grep -o "$RULES_PREFIX/[a-z-]*\.md" "$CORE"); do check "indexed rule file exists in clone: $(basename "$f")" test -f "$REPO/ai-agents/rules/$(basename "$f")"; done
+check "core rules point at the local overlay" grep -qF '~/.agents-local/AGENTS.md' "$CORE"
+check "CLAUDE.md is a symlink to core rules" test "$(readlink "$HOME/.claude/CLAUDE.md")" = "$CORE"
+check "Pi AGENTS.md is a symlink to core rules" test "$(readlink "$HOME/.pi/agent/AGENTS.md")" = "$CORE"
+check "copilot-instructions.md is a symlink to core rules" test "$(readlink "$HOME/.copilot/copilot-instructions.md")" = "$CORE"
+check "no generated rules dir under the local overlay" test ! -e "$LOCAL_AGENT_DIR/generated"
 for f in "$REPO"/ai-agents/rules/*.md; do
-  b="$(basename "$f")"
-  if [ "$b" = AGENTS.md ]; then
-    check "core AGENTS.md not installed into Copilot instructions" test ! -e "$HOME/.copilot/instructions/$b"
-    continue
-  fi
-  check "Copilot instruction $b linked" test "$(readlink "$HOME/.copilot/instructions/$b")" = "$f"
-  check "Copilot rule index lists instructions/$b" grep -qF "$HOME/.copilot/instructions/$b" "$HOME/.copilot/copilot-instructions.md"
+  check "no Copilot instructions copy of $(basename "$f")" test ! -e "$HOME/.copilot/instructions/$(basename "$f")"
 done
 check "Copilot topic rules are not auto-loaded (.instructions.md)" bash -c "! ls '$HOME/.copilot/instructions/' | grep -v '^autopilot\.instructions\.md$' | grep -q '\.instructions\.md$'"
 check "Copilot autopilot rules linked and auto-loaded" test "$(readlink "$HOME/.copilot/instructions/autopilot.instructions.md")" = "$REPO/.copilot/autopilot.md"
@@ -85,19 +77,23 @@ check "alias blocks not duplicated on re-run" test "$(grep -c '>>> agent-files c
 check "coy alias block once, without autopilot" test "$(grep -c "^alias coy='copilot --allow-all'$" "$HOME/.bashrc")" = 1
 check "re-run makes no new links" bash -c "! grep -q '^link: .*/skills/' '$SANDBOX/install2.log'"
 
-# Re-running restores a hand-edited Copilot copy from the generated rules.
-echo "drift" >> "$HOME/.copilot/copilot-instructions.md"
-bash "$REPO/install.sh" > "$SANDBOX/install3.log" 2>&1 || { cat "$SANDBOX/install3.log"; fail "third install.sh exits 0"; }
-check "re-run refreshes Copilot rules" cmp -s "$HOME/.copilot/copilot-instructions.md" <(copilot_expected)
+# Re-running retires topic links and rendered copies left by earlier installs.
+ln -s "$REPO/ai-agents/rules/thinking.md" "$HOME/.copilot/instructions/thinking.md"
+echo old > "$HOME/.copilot/instructions/AGENTS.md"
+mkdir -p "$LOCAL_AGENT_DIR/generated"
+echo old > "$LOCAL_AGENT_DIR/generated/copilot-instructions.md"
+echo old > "$LOCAL_AGENT_DIR/generated/AGENTS.md"
+bash "$REPO/install.sh" > "$SANDBOX/install3b.log" 2>&1 || { cat "$SANDBOX/install3b.log"; fail "migration install.sh exits 0"; }
+check "stale Copilot topic link removed" test ! -e "$HOME/.copilot/instructions/thinking.md"
+check "stale Copilot render removed" test ! -e "$HOME/.copilot/instructions/AGENTS.md"
+check "stale ~/.agents-local generated dir removed" test ! -e "$LOCAL_AGENT_DIR/generated"
 
 # A private overlay and private skill are installed only from the local agent directory.
 mkdir -p "$LOCAL_AGENT_DIR/skills/acme-helper"
 printf '# Acme context\n- use Acme conventions\n' > "$LOCAL_AGENT_DIR/AGENTS.md"
 printf '%s\n' '---' 'name: acme-helper' '---' '# Acme helper' > "$LOCAL_AGENT_DIR/skills/acme-helper/SKILL.md"
 bash "$REPO/install.sh" > "$SANDBOX/install4.log" 2>&1 || { cat "$SANDBOX/install4.log"; fail "install with local overlay exits 0"; }
-check "local context heading rendered" grep -q '^## Local Context$' "$GENERATED"
-check "local context rendered" grep -q '^- use Acme conventions$' "$GENERATED"
-check "local context copied to Copilot" grep -q '^- use Acme conventions$' "$HOME/.copilot/copilot-instructions.md"
+check "local overlay leaves core rules untouched" bash -c "! grep -q 'Acme' '$CORE'"
 for agent in claude copilot pi; do
   case "$agent" in
     pi) skills_dir="$HOME/.pi/agent/skills" ;;
@@ -142,8 +138,6 @@ printf '%s\n' '---' 'name: default-helper' '---' '# Default helper' > "$HOME/.ag
 printf -- '- default overlay rule\n' > "$HOME/.agents-local/AGENTS.md"
 env -u AGENT_FILES_LOCAL_DIR bash "$REPO/install.sh" > "$SANDBOX/install7.log" 2>&1 || { cat "$SANDBOX/install7.log"; fail "install with default overlay dir exits 0"; }
 check "default overlay skill linked" test "$(readlink "$HOME/.copilot/skills/default-helper")" = "$HOME/.agents-local/skills/default-helper"
-check "default overlay rules rendered" grep -q '^- default overlay rule$' "$HOME/.agents-local/generated/AGENTS.md"
-check "default overlay rules copied to Copilot" grep -q '^- default overlay rule$' "$HOME/.copilot/copilot-instructions.md"
 
 echo ""
 if [ "$fails" -eq 0 ]; then echo "test_install: all passed"; else echo "test_install: $fails failed"; exit 1; fi

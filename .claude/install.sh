@@ -8,7 +8,6 @@ SHARED="$REPO/ai-agents"
 LOCAL_AGENT_DIR="${AGENT_FILES_LOCAL_DIR:-$HOME/.agents-local}"
 LOCAL_SKILLS="$LOCAL_AGENT_DIR/skills"
 LOCAL_AGENTS="$LOCAL_AGENT_DIR/agents"
-GENERATED_RULES="$LOCAL_AGENT_DIR/generated/AGENTS.md"
 CLAUDE="$HOME/.claude"
 # shellcheck source=../lib/links.sh
 source "$REPO/lib/links.sh"
@@ -19,9 +18,8 @@ assert_no_agent_collisions "$SHARED/agents" "$LOCAL_AGENTS"
 link_skills "$SHARED/skills" "$CLAUDE/skills" claude
 if [ -d "$LOCAL_SKILLS" ]; then link_skills "$LOCAL_SKILLS" "$CLAUDE/skills" claude; fi
 
-# Rules: shared core plus this machine's optional private overlay.
-bash "$REPO/lib/sync-rules.sh"
-link "$GENERATED_RULES" "$CLAUDE/CLAUDE.md"
+# Rules: a direct symlink to the shared core rules file.
+link_core_rules "$REPO" "$CLAUDE/CLAUDE.md"
 
 # Agents: a real merge directory of per-file symlinks, shared then private.
 link_agents "$SHARED/agents" "$CLAUDE/agents" claude .md
@@ -36,7 +34,7 @@ unlink_if_symlink "$CLAUDE/docs/core"
 link "$REPO/.claude/settings.json"         "$CLAUDE/settings.json"
 link "$REPO/.claude/statusline-command.sh" "$CLAUDE/statusline-command.sh"
 
-# Old layout used ~/.claude/rules; rules now live in CLAUDE.md -> generated AGENTS.md
+# Old layout used ~/.claude/rules; rules now live in CLAUDE.md -> ai-agents/rules/AGENTS.md
 if [ -L "$CLAUDE/rules" ]; then rm "$CLAUDE/rules"; echo "removed stale ~/.claude/rules"; fi
 
 install_shell_alias cla "claude --dangerously-skip-permissions" \

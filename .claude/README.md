@@ -12,7 +12,7 @@ Wires shared `ai-agents/` content and Claude-native config into `~/.claude/`.
 |---|---|
 | `skills/<name>` | per-skill symlink into `ai-agents/skills/<category>/<name>` |
 | `agents/<name>.md` | per-file symlinks from `ai-agents/agents/` and `~/.agents-local/agents/` when present |
-| `CLAUDE.md` | symlink to `~/.agents-local/generated/AGENTS.md` (rendered by `lib/sync-rules.sh`) |
+| `CLAUDE.md` | symlink to `ai-agents/rules/AGENTS.md` |
 | `settings.json`, `statusline-command.sh` | symlinks to `.claude/*` |
 
 The skills directory is a real merge directory so other repos can add their own symlinks.

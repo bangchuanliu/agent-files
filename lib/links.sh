@@ -155,3 +155,20 @@ install_shell_alias() {
     fi
   done
 }
+
+# Every agent symlinks the core rules file in place; its rule index names topic files by this
+# absolute path, so the clone must live here for the index to resolve.
+RULES_HOME="$HOME/personal/projects/agent-files"
+
+# link_core_rules <repo> <dest>: symlink <repo>/ai-agents/rules/AGENTS.md to <dest>, create
+# $WTREE_ROOT (used by the wtree and hop skills), and retire rendered copies from older installs.
+link_core_rules() {
+  local repo="$1" dest="$2" local_dir="${AGENT_FILES_LOCAL_DIR:-$HOME/.agents-local}"
+  if [ "$repo" != "$RULES_HOME" ]; then
+    echo "warn: clone is at $repo, but the rule index in AGENTS.md points at $RULES_HOME" >&2
+  fi
+  mkdir -p "${WTREE_ROOT:-$HOME/.worktree}"
+  rm -f "$local_dir/generated/AGENTS.md" "$local_dir/generated/copilot-instructions.md"
+  rmdir "$local_dir/generated" 2>/dev/null || true
+  link "$repo/ai-agents/rules/AGENTS.md" "$dest"
+}
