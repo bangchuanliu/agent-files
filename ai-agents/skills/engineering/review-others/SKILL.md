@@ -2,7 +2,7 @@
 name: review-others
 kind: orchestrator
 agents: claude, copilot
-description: "Use when: reviewing someone else's GitHub PR and posting the review inline - one PR from a link or ref, a batch of open PRs awaiting your review, a re-review after the author addressed your comments, or any of these as a dry run that only prints. NOT for: feedback or failing checks on your own PR (pr-comments)."
+description: "Use when: reviewing someone else's GitHub PR and posting the review inline - one PR from a link or ref, a batch of open PRs awaiting your review, a re-review after the author addressed your comments, or any of these as a dry run that only prints. NOT for: feedback or failing checks on your own PR."
 ---
 
 # Review Others' PRs
