@@ -37,8 +37,10 @@ A PR is reviewed only when all three hold. In batch mode skip a PR that fails on
 - IF this is a follow-up, MUST review only the diff from your last reviewed commit to head (`gh api repos/{repo}/compare/{last}...{head}`) and confirm each earlier comment was actually fixed.
 - MUST read existing comments first and defer to earlier reviewers: a concern already raised is theirs; reply in their thread only when you add something new.
 - MUST classify every finding as `blocking`, `minor`, or `nit`, and report only what the diff confirms. A `blocking` finding names a concrete failure mode or quotes a rule.
-- IF reviewing a batch, SHOULD fan out one subagent per PR, launched together, each reading its PR via `gh`; hosts without subagents review the queue in sequence.
-- IF delegating to a subagent, MUST use a general-purpose one, because Copilot CLI's built-in `code-review` agent reviews the local tree instead of the PR.
+- IF the host has Copilot CLI's built-in `code-review` agent, MUST delegate each PR's review to it with model `gpt-6.1-sol`.
+- Because `code-review` reviews the local tree, not the PR, the parent MUST first fetch the PR via `gh` (diff or follow-up compare diff, PR metadata, existing comments, repo rules) and pass it in the prompt, telling the agent to review only the supplied diff and return classified `file:line` findings. The parent then posts.
+- IF the host has no `code-review` agent (e.g. Claude), MUST use a general-purpose subagent instead; hosts without subagents review in sequence.
+- IF reviewing a batch, SHOULD fan out one reviewer agent per PR, launched together.
 
 ### Posting
 
@@ -51,7 +53,8 @@ A PR is reviewed only when all three hold. In batch mode skip a PR that fails on
   | Findings | Event | Body |
   |---|---|---|
   | none | `APPROVE` | `LGTM.` |
-  | only `minor` / `nit` | `APPROVE` | `LGTM, {N} minor comment(s) inline.` |
+  | only `nit` | `APPROVE` | `LGTM, {N} minor comment(s) inline.` |
+  | any `minor`, no `blocking` | `COMMENT` | `{N} minor issue(s) inline.` |
   | any `blocking` | `COMMENT` | `{N} blocking issue(s) inline.` |
 
 ## Output
