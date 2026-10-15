@@ -32,10 +32,23 @@ while IFS= read -r d; do
         pi) skills_dir="$HOME/.pi/agent/skills" ;;
         *)  skills_dir="$HOME/.$agent/skills" ;;
       esac
-      check "$agent skill $b linked" test "$(readlink "$skills_dir/$b")" = "$d"
+      case "$d" in
+        "$REPO/ai-agents/skills/experimental/"*)
+          check "$agent experimental skill $b not linked" test ! -L "$skills_dir/$b" ;;
+        *)
+          check "$agent skill $b linked" test "$(readlink "$skills_dir/$b")" = "$d" ;;
+      esac
     fi
   done
 done <<< "$shared_skills"
+
+# Experimental skills are never installed, and a link left by an earlier install is removed.
+mkdir -p "$SANDBOX/exp-skills/experimental/exp" "$SANDBOX/exp-skills/general/kept" "$SANDBOX/exp-out"
+touch "$SANDBOX/exp-skills/experimental/exp/SKILL.md" "$SANDBOX/exp-skills/general/kept/SKILL.md"
+ln -s "$SANDBOX/exp-skills/experimental/exp" "$SANDBOX/exp-out/exp"
+(source "$REPO/lib/links.sh"; link_skills "$SANDBOX/exp-skills" "$SANDBOX/exp-out" claude) > /dev/null
+check "experimental skill not linked" test ! -L "$SANDBOX/exp-out/exp"
+check "non-experimental skill beside it still linked" test "$(readlink "$SANDBOX/exp-out/kept")" = "$SANDBOX/exp-skills/general/kept"
 for cat_dir in "$REPO"/ai-agents/skills/*/; do
   [ -f "${cat_dir}SKILL.md" ] && continue
   check "category $(basename "$cat_dir") is not linked as a skill" test ! -e "$HOME/.copilot/skills/$(basename "$cat_dir")"

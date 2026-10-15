@@ -58,8 +58,9 @@ assert_unique_skill_names() {
 }
 
 # link_skills <src-skills-dir> <merge-dir> <agent>: one symlink per skill directory into a real
-# flat merge directory, so other repos can add their own skills alongside. Skills whose SKILL.md
-# opts out of <agent> are unlinked. Dangling links are pruned afterwards.
+# flat merge directory, so other repos can add their own skills alongside. Skills in the
+# experimental/ category, or whose SKILL.md opts out of <agent>, are unlinked. Dangling links are
+# pruned afterwards.
 link_skills() {
   local src="$1" merged="$2" agent="$3" d b
   unlink_if_symlink "$merged"   # retire legacy whole-dir symlink
@@ -67,7 +68,10 @@ link_skills() {
   assert_unique_skill_names "$src" || return 2
   while IFS= read -r d; do
     b="$(basename "$d")"
-    if supports "$d/SKILL.md" "$agent"; then
+    if [[ "$d" == "$src/experimental/"* ]]; then
+      unlink_if_symlink "$merged/$b"
+      echo "skip: $b (experimental)"
+    elif supports "$d/SKILL.md" "$agent"; then
       link "$d" "$merged/$b"
     else
       unlink_if_symlink "$merged/$b"

@@ -18,7 +18,7 @@ agent-files/
       INDEX.md            # human lookup of every skill
       engineering/<skill>/SKILL.md
       general/<skill>/SKILL.md
-      experimental/<skill>/SKILL.md  # still changing; installed like the rest
+      experimental/<skill>/SKILL.md  # still changing; never installed
   .claude/                # Claude Code adapter
   .copilot/               # Copilot CLI adapter
   .pi/                    # Pi adapter

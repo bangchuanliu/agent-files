@@ -17,7 +17,6 @@ here to one line.
 | `domain-drill` | Learn, map, or teach back a technical domain at staff depth. |
 | `sysdesign-drill` | Do a timed, interview-condition system-design rep (not a study session). |
 | `study-dashboard` | Build a durable, visual study artifact (HTML dashboard with diagrams, FAQ practice tab, question bank, cross-device progress), not a live drill. |
-| `tech-domain-dashboard` | Find the genuinely hard sub-problems in a domain, fact-check them, and build a paired markdown + HTML practice dashboard. |
 | `local-server` | Start, stop, or check a local server for personal HTML files. |
 
 ## `general/`
@@ -32,7 +31,8 @@ here to one line.
 
 ## `experimental/`
 
-Installed like any other skill; the folder marks them as still changing.
+Never installed: `./install.sh` skips this folder and removes links an earlier install made.
+Move a skill to another category to install it.
 
 | Skill | Reach for it when... |
 |---|---|
@@ -40,6 +40,7 @@ Installed like any other skill; the folder marks them as still changing.
 | `wtree` | Create, list, show, or clean git worktrees under `$WTREE_ROOT` (default `~/.worktree`). |
 | `hop` | Jump to the terminal tab for a worktree, repo, or directory. |
 | `yell` | See every running coding-agent session and which need me. |
+| `tech-domain-dashboard` | Find the genuinely hard sub-problems in a domain, fact-check them, and build a paired markdown + HTML practice dashboard. |
 
 ## Boundaries that trip auto-recall
 
