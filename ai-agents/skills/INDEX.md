@@ -14,6 +14,7 @@ here to one line.
 | `template-general-readout` | Skeleton for a readout: strategy, launch, GA, research, program review, postmortem. |
 | `self-assessment` | Reframe **my own** work against the career principles. |
 | `peer-feedback` | Write feedback about **a colleague**. |
+| `worth-it` | Pressure-test a project, idea, or area to own **before or during** the work: real impact, Staff-level opportunity, who owns what, how deep I go. |
 | `domain-drill` | Learn, map, or teach back a technical domain at staff depth. |
 | `sysdesign-drill` | Do a timed, interview-condition system-design rep (not a study session). |
 | `study-dashboard` | Build a durable, visual study artifact (HTML dashboard with diagrams, FAQ practice tab, question bank, cross-device progress), not a live drill. |
@@ -45,6 +46,7 @@ Move a skill to another category to install it.
 ## Boundaries that trip auto-recall
 
 - **`self-assessment` vs `peer-feedback`**: about me vs about someone else.
+- **`worth-it` vs `self-assessment`**: decide what to own and how deep to go on work ahead vs reframe an artifact about work already done.
 - **`dict` vs `slack-msg`**: practice on my own English vs an outgoing message I'll send to a person.
 - **`study-dashboard` vs `tech-domain-dashboard`**: both build an HTML study dashboard. `study-dashboard` also builds question banks and adds FAQ tabs to an existing file; `tech-domain-dashboard` starts from the hard-sub-problem filter and always fact-checks before the HTML build.
 - **`yell` vs `wtree show`**: live agent sessions now vs the worktrees of one repo group.
