@@ -2,16 +2,20 @@
 name: review-others
 kind: orchestrator
 agents: claude, copilot
-description: "Use when: reviewing someone else's GitHub PR and posting the review inline - one PR from a link or ref, a batch of open PRs awaiting your review, a re-review after the author addressed your comments, or any of these as a dry run that only prints. NOT for: feedback or failing checks on your own PR."
+description: "Use when: reviewing someone else's GitHub PR and posting the review inline, then watching it and re-reviewing once your comments are addressed or your review is re-requested - one PR from a link or ref, a batch of open PRs awaiting your review, a re-review after the author addressed your comments, or any of these as a dry run that only prints. NOT for: feedback or failing checks on your own PR."
 ---
 
 # Review Others' PRs
 
 ## Objective
 
-Review other people's open PRs and post each review on GitHub as inline comments with an approve-or-comment verdict, so authors get anchored, classified findings without a confirmation round-trip. Scope is one PR (link or ref given) or a batch of at most 10 (no ref given); a follow-up re-reviews only what changed since your last review.
+Review other people's open PRs, post each review on GitHub as inline comments with an approve-or-comment verdict, then watch every PR you commented on and re-review it as soon as the author addresses your comments, so authors get anchored, classified findings and a prompt next round without a confirmation round-trip or a reminder. Scope is one PR (link or ref given) or a batch of at most 10 (no ref given); a follow-up re-reviews only what changed since your last review.
 
-Done when every PR in scope has either a posted review (or, in a dry run, a printed one) or a stated skip reason, and every finding is classified and anchored on an added line.
+Done when every PR in scope has a stated skip reason, a dry-run print, or a posted review whose watch has ended: approved, merged, closed, timed out, hit the round limit, or errored. Every finding is classified and anchored on an added line.
+
+## Context & Tools
+
+`scripts/pr_watch.py` (see `--help`) polls one PR through `gh` with no model tokens between polls and exits with a JSON `status` once the PR needs you again (`addressed`, `rerequested`) or the watch is over (`approved`, `merged`, `closed`, `timeout`, `error`). It is stateless, so a restarted watch resumes from GitHub alone. Its `--once` flag takes a single snapshot. `scripts/test_pr_watch.py` tests it; run it after changing the script.
 
 ## Guardrails & Constraints
 
@@ -34,7 +38,7 @@ A PR is reviewed only when all three hold. In batch mode skip a PR that fails on
 ### Reviewing
 
 - MUST apply the repo's own rules first: `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md` (whichever exist), plus any review context your instructions provide for this skill.
-- IF this is a follow-up, MUST review only the diff from your last reviewed commit to head (`gh api repos/{repo}/compare/{last}...{head}`) and confirm each earlier comment was actually fixed.
+- IF this is a follow-up, MUST review only the diff from your last reviewed commit to head (`gh api repos/{repo}/compare/{last}...{head}`) and confirm each earlier comment was actually fixed. IF the compare reports `diverged` (the branch was rebased), review the full PR diff instead, because the compare then mixes in base-branch changes.
 - MUST read existing comments first and defer to earlier reviewers: a concern already raised is theirs; reply in their thread only when you add something new.
 - MUST classify every finding as `blocking`, `minor`, or `nit`, and report only what the diff confirms. A `blocking` finding names a concrete failure mode or quotes a rule.
 - IF the host has Copilot CLI's built-in `code-review` agent, MUST delegate each PR's review to it with model `gpt-6.1-sol`.
@@ -57,15 +61,24 @@ A PR is reviewed only when all three hold. In batch mode skip a PR that fails on
   | any `minor`, no `blocking` | `COMMENT` | `{N} minor issue(s) inline.` |
   | any `blocking` | `COMMENT` | `{N} blocking issue(s) inline.` |
 
+### Watching
+
+- WHEN a posted review's verdict is `COMMENT`, MUST watch that PR with `scripts/pr_watch.py` rather than end, using a 20-minute poll and a 24-hour timeout unless the user gives others. A dry run or an `APPROVE` verdict starts no watch.
+- SHOULD run one watcher per PR in the background and end the turn, resuming on its exit; IF the host cannot run background processes, run it in the foreground. IF the repo has bot reviewers that post as ordinary users, pass their login pattern with `--ignore-author`, because a bot reply would otherwise count as addressing your comment.
+- On `addressed` or `rerequested`, MUST run a follow-up review and post it, then watch again on a `COMMENT` verdict. A re-request is the author's explicit ask, so it overrides the open-comments eligibility rule: review anyway and count each thread still listed in `open_threads` as an open finding in the verdict.
+- On `approved`, `merged`, `closed`, `timeout`, or `error`, MUST stop watching that PR and report the status with any `open_threads`.
+- MUST stop after 10 posted reviews on one PR and report it, because comments that do not converge need a human conversation.
+
 ## Output
 
-One block per PR, then a one-line tally (`{N} approved, {N} commented, {N} skipped`):
+One block per PR per review round, then a one-line tally (`{N} approved, {N} commented, {N} skipped`). Report each round as it is posted, so the user sees progress while the watch continues:
 
 ```
 ## PR #123 - {title} (@author) - {Initial | Follow-up} - {Approved | Commented | Skipped: reason | Dry run}
 - [blocking] path/to/file.py:L42 - description
 - [minor]    path/to/file.py:L88 - description
 Prior comments: {N addressed / N total}   # follow-up only
+Watch: {watching | stopped: approved | merged | closed | timeout | round limit | error} - open threads, if any
 ```
 
 ## Verification
@@ -73,3 +86,4 @@ Prior comments: {N addressed / N total}   # follow-up only
 - Every PR in scope appears in the output with a posted verdict, a dry-run print, or a skip reason naming the failed eligibility rule.
 - Every posted comment's line is an added line in the reviewed diff, shown by the review POST succeeding without 422.
 - In a dry run, no `gh` write call was made.
+- Every `COMMENT` verdict is followed by a running watch or a reported stop status taken from `pr_watch.py` output, not inferred.
