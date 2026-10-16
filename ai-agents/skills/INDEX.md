@@ -19,6 +19,7 @@ here to one line.
 | `sysdesign-drill` | Do a timed, interview-condition system-design rep (not a study session). |
 | `study-dashboard` | Build a durable, visual study artifact (HTML dashboard with diagrams, FAQ practice tab, question bank, cross-device progress), not a live drill. |
 | `local-server` | Start, stop, or check a local server for personal HTML files. |
+| `orca-tree` | Hand a task to a new Orca worktree (standalone, or a child of this one) with an agent already working on it. |
 
 ## `general/`
 
@@ -49,6 +50,7 @@ Move a skill to another category to install it.
 - **`worth-it` vs `self-assessment`**: decide what to own and how deep to go on work ahead vs reframe an artifact about work already done.
 - **`dict` vs `slack-msg`**: practice on my own English vs an outgoing message I'll send to a person.
 - **`study-dashboard` vs `tech-domain-dashboard`**: both build an HTML study dashboard. `study-dashboard` also builds question banks and adds FAQ tabs to an existing file; `tech-domain-dashboard` starts from the hard-sub-problem filter and always fact-checks before the HTML build.
+- **`orca-tree` vs `wtree` vs `start`**: Orca worktree plus agent plus brief vs a plain git worktree vs a Herdr/WezTerm task stack.
 - **`yell` vs `wtree show`**: live agent sessions now vs the worktrees of one repo group.
 
 ## Maintenance
