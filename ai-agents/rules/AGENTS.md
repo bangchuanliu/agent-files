@@ -20,3 +20,4 @@ Load every file whose trigger matches the task, and only those.
 | brainstorming, specs, design, planning, research, or investigation | `{RULE_DIR}/thinking.md` |
 | writing, reviewing, debugging, testing, committing, or releasing code or config | `{RULE_DIR}/building.md` |
 | docs, readouts, status updates, messages, or review comments | `{RULE_DIR}/communicating.md` |
+| an unfamiliar tool name or abbreviation, such as orca or herdr | `{RULE_DIR}/glossary.md` |

@@ -11,7 +11,7 @@ agent-files/
   ai-agents/
     rules/
       AGENTS.md           # tracked global guardrails plus an index of topic rule files
-      *.md                # topic rules (thinking, building, communicating) loaded on demand
+      *.md                # topic rules (thinking, building, communicating, glossary) loaded on demand
     agents/               # tracked shared agents, one <name>.md each (Claude, Copilot)
       skill-auditor.md    # reviews the rule files against the skill-auditor skill
     skills/               # tracked, safe-to-share skills, one level of category folders
