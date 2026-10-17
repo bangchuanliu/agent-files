@@ -29,7 +29,6 @@ here to one line.
 | `slack-msg` | Draft or reword a short message I'm about to **send**. |
 | `dict` | Save or look up vocabulary, polish **my own** English or a draft prompt, or practice a workplace conversation scenario. |
 | `html-report` | Build a self-contained HTML page a human reviews to decide something (plan, validation, status).
-| `file-layout` | Decide where a file goes, set up a personal or coding project, tidy Downloads or Desktop, or archive old material on a work or personal Mac. |
 
 ## `experimental/`
 
